@@ -1,35 +1,45 @@
 # CLAUDE.md — MuPGA Web
-> Este archivo es la fuente de verdad para cualquier instancia de Claude Code trabajando en este repositorio.
-> Leerlo completo antes de escribir una sola línea de código.
+> Fuente de verdad para toda instancia de Claude Code en este repo.
+> Leer completo antes de escribir una sola línea de código.
+> Última actualización: Semana 1 — home + noticias deployados.
 
 ---
 
 ## Qué es este proyecto
 
 Sitio web oficial del servidor privado MU Online **MuPGA** (mupga.com.ar).
-Es una web de tipo **vitrina + panel de jugador**, mobile-first, dark fantasy.
+Web tipo **vitrina + panel de jugador**, mobile-first, dark fantasy.
+Público: jugadores hispanoablantes, mayoría accede desde **celular**.
+Idioma: **español (Argentina)**. Tono: épico/fantasy, directo, sin pretensiones.
 
-El proyecto está dividido en dos partes que conviven:
-- **Este repo** → Frontend estático desplegado en **Cloudflare Pages** (HTML + CSS + JS vanilla)
-- **API separada** → Backend Node.js + Express en el VPS (repo: `mupga-api`, aún en construcción)
+### Arquitectura
+- **Este repo** → Frontend estático en **Cloudflare Pages** (HTML + CSS + JS vanilla)
+- **API** → Backend Node.js + Express en el VPS (repo separado `mupga-api`, en construcción)
+- **WebEngine (PHP)** → Sigue corriendo en el VPS para registro y panel de usuario hasta que la API esté lista
 
-El CMS anterior (WebEngine, PHP) sigue corriendo en el VPS para registro y panel de usuario **hasta que la API esté lista**. No reemplazar esa funcionalidad en este repo todavía.
+El dominio de desarrollo es **develop.mupga.com.ar** hasta que la web esté completa.
+Cuando esté lista, se apunta **mupga.com.ar** a Cloudflare Pages.
 
 ---
 
 ## Stack — NO cambiar sin consultar
 
-| Capa | Tecnología | Motivo |
-|---|---|---|
-| Frontend | HTML5 + CSS3 + JS vanilla | Sin builds, sin dependencias, Cloudflare Pages lo sirve directo |
-| Estilos | `css/mupga-design.css` (sistema de diseño propio) | Un solo archivo, variables CSS, sin frameworks |
-| Fuentes | Cinzel (títulos) + Roboto (cuerpo) vía Google Fonts | Identidad visual aprobada |
-| Datos dinámicos temporales | JSON estático en `data/` | Noticias editables sin tocar HTML |
-| Deploy | Cloudflare Pages (git push = deploy automático) | CDN global, SSL automático |
-| Dominio | mupga.com.ar | Apunta a Cloudflare Pages |
+| Capa | Tecnología |
+|---|---|
+| Frontend | HTML5 + CSS3 + JS vanilla |
+| Estilos | `css/mupga-design.css` (sistema de diseño propio) |
+| Fuentes | Cinzel (títulos) + Roboto (cuerpo) — Google Fonts |
+| Datos dinámicos temporales | JSON estático en `data/` |
+| Efectos visuales | CSS puro — sin librerías externas de animación |
+| Deploy | Cloudflare Pages — git push = deploy automático |
 
-**No instalar npm, webpack, vite, react, vue ni ningún bundler en este repo.**
-**No usar frameworks CSS (Bootstrap, Tailwind). Solo `mupga-design.css`.**
+**Prohibido:**
+- Instalar npm, webpack, vite, react, vue, o cualquier bundler
+- Usar Bootstrap, Tailwind, o cualquier framework CSS externo
+- Agregar librerías JS de animación (GSAP, Anime.js, etc.)
+- Hardcodear colores — siempre `var(--nombre-variable)`
+- Usar `!important` salvo casos extremos documentados
+- Conectar directo a SQL Server desde el frontend
 
 ---
 
@@ -37,161 +47,161 @@ El CMS anterior (WebEngine, PHP) sigue corriendo en el VPS para registro y panel
 
 ```
 mupga-web/
-├── CLAUDE.md                  ← este archivo
-├── index.html                 ← Home (página principal)
-├── noticias.html              ← Lista de noticias
-├── noticia.html               ← Detalle de noticia individual
-├── info.html                  ← Info del servidor (rates, clases, comandos)
-├── ranking.html               ← Rankings (redirige o iframe a WebEngine por ahora)
-├── descargar.html             ← Descarga del cliente MU
-├── cuenta.html                ← Panel de usuario (futuro — conecta a la API)
-├── registro.html              ← Registro (redirige a WebEngine por ahora)
+├── CLAUDE.md
+├── index.html              ✅ Completo — revisar secciones inferiores
+├── noticias.html           ✅ Completo — revisar diseño de cards
+├── noticia.html            ⏳ Pendiente
+├── info.html               ⏳ Pendiente — PRIORIDAD 2
+├── ranking.html            ⏳ Pendiente
+├── descargar.html          ⏳ Pendiente — PRIORIDAD 3
+├── donaciones.html         ⏳ Pendiente — PRIORIDAD 4
 ├── css/
-│   └── mupga-design.css       ← Sistema de diseño — NO TOCAR sin consenso
+│   └── mupga-design.css    ✅ Sistema de diseño — NO TOCAR
 ├── js/
-│   └── main.js                ← JS compartido (navbar, utilidades)
+│   └── main.js             ✅ Completo — hamburger + active link
 └── data/
-    └── noticias.json          ← Noticias estáticas editables
+    └── noticias.json       ✅ Existe — cargar noticias reales
 ```
 
 ---
 
 ## Sistema de diseño — Variables CSS
 
-Todas las variables están en `css/mupga-design.css`. Usarlas siempre. Nunca hardcodear colores o fuentes.
+Siempre usar estas variables. Nunca hardcodear valores.
 
 ```css
 /* Fondos */
---bg-void      → #0a0a0f   (fondo de página)
---bg-deep      → #0f0f1a   (navbar, footer)
---bg-surface   → #141420   (secciones alternas)
---bg-raised    → #1c1c2e   (elementos elevados)
---bg-card      → #1e1e30   (cards)
+--bg-void:      #0a0a0f    /* fondo de página */
+--bg-deep:      #0f0f1a    /* navbar, footer */
+--bg-surface:   #141420    /* secciones alternas */
+--bg-raised:    #1c1c2e    /* elementos elevados */
+--bg-card:      #1e1e30    /* cards */
 
 /* Dorados */
---gold-bright  → #f5c842   (títulos, íconos activos)
---gold-mid     → #c9952a   (bordes, acentos, hover)
---gold-dark    → #7a5a1a   (bordes sutiles)
---gold-dim     → #3d2d0d   (background de tags)
+--gold-bright:  #f5c842    /* títulos, íconos activos */
+--gold-mid:     #c9952a    /* bordes, acentos, hover */
+--gold-dark:    #7a5a1a    /* bordes sutiles */
+--gold-dim:     #3d2d0d    /* background de tags */
 
 /* Rojo */
---red-accent   → #c0392b   (CTA principal, alertas)
---red-bright   → #e74c3c   (hover del rojo)
+--red-accent:   #c0392b    /* CTA principal, alertas */
+--red-bright:   #e74c3c    /* hover del rojo */
 
 /* Texto */
---text-primary   → #f0ead6  (texto principal)
---text-secondary → #a89a7a  (texto secundario)
---text-muted     → #5c5448  (labels, metadata)
+--text-primary:   #f0ead6
+--text-secondary: #a89a7a
+--text-muted:     #5c5448
 
 /* Tipografía */
---font-display → 'Cinzel', serif      (h1–h6, logo, títulos de sección)
---font-body    → 'Roboto', sans-serif (todo el resto)
+--font-display: 'Cinzel', serif       /* solo h1–h4, logo, títulos */
+--font-body:    'Roboto', sans-serif  /* todo lo demás */
 ```
 
 ---
 
-## Tipografía — reglas
+## Efectos visuales — reglas
 
-- `font-family: var(--font-display)` → **solo** para h1–h4, logo, títulos de sección y elementos de impacto visual
-- `font-family: var(--font-body)` → todo lo demás (párrafos, botones, labels, navegación)
-- Botones: Roboto, uppercase, letter-spacing: 1.5px, font-size: 12px
-- Labels de formulario: Roboto, uppercase, letter-spacing: 1px, font-size: 11px
-- Nunca usar Arial, Inter, system-ui ni ninguna otra fuente
+El hero tiene fondo difuminado. Para agregar efectos visuales:
 
----
+**Permitido (CSS puro, liviano):**
+- Gradientes animados con `@keyframes` en fondos
+- `backdrop-filter: blur()` para glassmorphism suave
+- `text-shadow` dorado en títulos principales
+- `box-shadow` con color `--gold-mid` en hover de cards
+- Pseudo-elementos `::before` / `::after` para detalles decorativos
+- `opacity` y `transform` transitions (GPU-accelerated, no afectan performance)
 
-## Mobile-first — reglas obligatorias
-
-1. **Diseñar primero para 375px** de ancho. Luego escalar con media queries.
-2. Breakpoints disponibles en el design system:
-   - `@media (min-width: 640px)` → tablet
-   - `@media (min-width: 1024px)` → desktop
-3. Tap targets mínimos: **44px × 44px** (botones, links de nav)
-4. Nunca usar `hover` como única indicación de estado interactivo
-5. Imágenes siempre con `max-width: 100%` y `display: block`
-6. Texto mínimo: 13px. Nunca debajo de 12px
+**Prohibido:**
+- Canvas animations
+- Librerías externas de partículas o animación
+- Animaciones en `loop` infinito sobre elementos grandes (consume batería mobile)
+- `filter` pesados en imágenes grandes
 
 ---
 
-## Clases CSS disponibles — usar siempre estas, no inventar nuevas
+## Stats en tiempo real — patrón a seguir
 
-### Layout
-```
-.container       → ancho máximo 1100px, centrado, padding lateral
-.section         → padding vertical estándar de sección
-.section-alt     → sección con fondo alternado (--bg-surface)
-```
+Los stats del servidor (jugadores online, etc.) se conectarán a la API cuando esté lista.
+**Por ahora usar este patrón con datos mock:**
 
-### Tipografía
-```
-.text-gold       → gradiente dorado (para títulos especiales)
-.text-secondary  → color --text-secondary
-.text-muted      → color --text-muted
-.uppercase       → texto en mayúsculas con letter-spacing
-.section-eyebrow → texto pequeño sobre el título de sección
-```
-
-### Componentes
-```
-.navbar / .navbar-logo / .navbar-links / .navbar-hamburger / .navbar-mobile-menu
-.btn / .btn-primary / .btn-secondary / .btn-danger / .btn-ghost / .btn-lg / .btn-sm
-.card / .card-subtle / .card-tag / .card-title / .card-body / .card-footer
-.stat-pill / .stat-value / .stat-label / .stats-grid
-.form-group / .form-label / .form-input / .form-error
-.badge / .badge-online / .badge-offline
-.divider
-.footer / .footer-logo / .footer-links
-.section-header
+```javascript
+// En main.js o script inline de index.html
+async function fetchServerStats() {
+  try {
+    const res = await fetch('https://api.mupga.com.ar/stats');
+    const data = await res.json();
+    document.getElementById('stat-online').textContent = data.playersOnline;
+    document.getElementById('stat-accounts').textContent = data.totalAccounts;
+  } catch (err) {
+    // Si la API no responde, mostrar datos mock
+    document.getElementById('stat-online').textContent = '—';
+    document.getElementById('stat-accounts').textContent = '—';
+  }
+}
+fetchServerStats();
 ```
 
-### Utilidades
-```
-.text-center / .text-right
-.flex / .flex-center
-.gap-sm / .gap-md
-.mt-sm / .mt-md / .mt-lg / .mb-md / .mb-lg
-.w-full / .hidden
-```
+**Stats a mostrar en el home:**
+- Jugadores online ahora
+- Total de cuentas registradas
+- XP Rate (estático: 50x)
+- Season (estático: Season 6)
+
+El endpoint real será `https://api.mupga.com.ar/stats` — no inventar otra URL.
 
 ---
 
-## Estructura HTML de cada página
+## Noticias — formato JSON
 
-Cada página sigue esta estructura base:
+```json
+[
+  {
+    "id": 1,
+    "titulo": "Título de la noticia",
+    "tag": "Actualización",
+    "tag_tipo": "gold",
+    "resumen": "Texto breve para la card (máx 120 caracteres).",
+    "contenido": "Texto completo en HTML o texto plano.",
+    "fecha": "2025-06-01",
+    "autor": "Staff MuPGA"
+  }
+]
+```
+
+`tag_tipo`: `"gold"` (dorado) o `"red"` (eventos urgentes/mantenimiento).
+
+---
+
+## Lenguaje — reglas de contenido
+
+El servidor es gratuito pero tiene beneficios opcionales financiados por donaciones.
+
+**NUNCA usar:** vender, comprar, precio, producto, tienda, store, shop, pago, costo.
+**SIEMPRE usar:** donar, donación, apoyar, beneficios para donadores, supporter, a cambio de tu donación recibís.
+
+Ejemplos correctos:
+- "Apoyá el servidor y recibí WCoins"
+- "Pack Supporter — a cambio de tu donación"
+- "Beneficios exclusivos para donadores"
+- "Donación VIP — acceso a beneficios premium"
+
+---
+
+## Links a WebEngine — convención actual
 
 ```html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MuPGA — [Nombre de la página]</title>
-  <meta name="description" content="[descripción para SEO]">
-  <link rel="stylesheet" href="css/mupga-design.css">
-  <!-- favicon cuando esté disponible -->
-</head>
-<body>
+<!-- Registro -->
+<a href="https://mupga.com.ar/register" class="btn btn-danger">Crear cuenta gratis</a>
 
-  <!-- NAVBAR -->
-  <nav class="navbar">...</nav>
-  <div class="navbar-mobile-menu" id="mobileMenu">...</div>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <main>
-    ...
-  </main>
-
-  <!-- FOOTER -->
-  <footer class="footer">...</footer>
-
-  <script src="js/main.js"></script>
-</body>
-</html>
+<!-- Login / Panel -->
+<a href="https://mupga.com.ar/user" class="btn btn-secondary">Mi cuenta</a>
 ```
+
+Cuando la API propia esté lista, estos links se actualizan. No crear páginas de registro ni login en este repo todavía.
 
 ---
 
-## Navbar — estructura fija (copiar en todas las páginas)
+## Navbar — copiar exacta en todas las páginas
 
 ```html
 <nav class="navbar">
@@ -203,7 +213,7 @@ Cada página sigue esta estructura base:
     <a href="info.html">Información</a>
     <a href="descargar.html">Descargar</a>
   </div>
-  <a href="https://[URL-WEBENGINE]/register" class="btn btn-primary navbar-cta" target="_blank">Registrarse</a>
+  <a href="https://mupga.com.ar/register" class="btn btn-danger navbar-cta">Registrarse</a>
   <button class="navbar-hamburger" id="hamburgerBtn" aria-label="Menú">
     <span></span><span></span><span></span>
   </button>
@@ -215,101 +225,58 @@ Cada página sigue esta estructura base:
   <a href="ranking.html">Ranking</a>
   <a href="info.html">Información</a>
   <a href="descargar.html">Descargar</a>
-  <a href="https://[URL-WEBENGINE]/register" class="btn btn-primary w-full" target="_blank">Registrarse</a>
+  <a href="https://mupga.com.ar/register" class="btn btn-danger w-full">Registrarse</a>
 </div>
 ```
 
-El link `.active` se agrega con JS según la página actual (ver `js/main.js`).
+El `.active` lo aplica `main.js` automáticamente según la URL actual.
 
 ---
 
-## Noticias — formato JSON
-
-El archivo `data/noticias.json` tiene este formato. Editarlo directamente para agregar noticias:
-
-```json
-[
-  {
-    "id": 1,
-    "titulo": "Título de la noticia",
-    "tag": "Actualización",
-    "tag_tipo": "gold",
-    "resumen": "Texto breve para la card (máx 120 caracteres).",
-    "contenido": "Texto completo de la noticia en HTML o texto plano.",
-    "fecha": "2025-06-01",
-    "autor": "Staff MuPGA"
-  }
-]
-```
-
-`tag_tipo` puede ser: `"gold"` (dorado, por defecto) o `"red"` (rojo, para eventos urgentes).
-
----
-
-## Links a WebEngine — convención
-
-Mientras el registro y el panel de usuario vivan en WebEngine, los links se escriben así:
+## Estructura HTML base de cada página
 
 ```html
-<!-- Registro -->
-<a href="https://mupga.com.ar/register" class="btn btn-primary">Crear cuenta</a>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MuPGA — [Nombre de la página]</title>
+  <meta name="description" content="[descripción SEO]">
+  <link rel="stylesheet" href="css/mupga-design.css">
+</head>
+<body>
+  <nav class="navbar">...</nav>
+  <div class="navbar-mobile-menu" id="mobileMenu">...</div>
 
-<!-- Login / Panel -->
-<a href="https://mupga.com.ar/user" class="btn btn-secondary">Mi cuenta</a>
+  <main>...</main>
+
+  <footer class="footer">...</footer>
+  <script src="js/main.js"></script>
+</body>
+</html>
 ```
 
-Cuando la API propia esté lista, estos links se actualizan a las nuevas rutas. **No crear páginas de registro ni login en este repo todavía.**
+---
+
+## Prioridades actuales — en este orden
+
+1. **Mejorar `index.html`** — sección de stats con patrón fetch+mock, cards de noticias mejoradas, sección de clases disponibles, sección CTA donaciones
+2. **Crear `info.html`** — rates del servidor, clases jugables, comandos disponibles, eventos
+3. **Crear `descargar.html`** — link de descarga del cliente, requisitos, instrucciones de conexión al servidor
+4. **Crear `donaciones.html`** — packs de WCoins y VIP con lenguaje de donación (nunca "comprar")
+5. **Crear `noticia.html`** — detalle de noticia individual, leída desde noticias.json por ID en URL
+6. **Mejorar `noticias.html`** — cards más elaboradas, filtro por tag
+7. **Crear `ranking.html`** — tabla de ranking, por ahora datos mock o redirect a WebEngine
 
 ---
 
-## Lo que NO hacer — reglas de seguridad del proyecto
+## Contexto del servidor MU
 
-1. **No tocar WebEngine** — los archivos PHP del WebEngine están en el VPS, no en este repo
-2. **No instalar dependencias npm** en este repo
-3. **No modificar `css/mupga-design.css`** sin justificación clara. Si algo del diseño no alcanza, agregar estilos en un `<style>` dentro de la página y documentarlo
-4. **No hardcodear colores** — siempre `var(--nombre-variable)`
-5. **No usar `!important`** salvo casos extremos y documentados
-6. **No crear clases CSS con nombres genéricos** como `.box`, `.wrapper`, `.item` — usar las del sistema de diseño
-7. **No agregar animaciones pesadas** — prioridad es performance en mobile
-8. **No usar `position: fixed`** salvo para la navbar (ya implementada)
-9. **No conectar directamente a SQL Server** desde el frontend — toda comunicación con la DB va por la API
-10. **No subir credenciales, tokens ni contraseñas** al repo jamás
-
----
-
-## Estado actual del proyecto
-
-| Página | Estado |
-|---|---|
-| `css/mupga-design.css` | ✅ Completo |
-| `js/main.js` | ⏳ Pendiente |
-| `data/noticias.json` | ⏳ Pendiente |
-| `index.html` (Home) | ⏳ Pendiente — **prioridad 1** |
-| `noticias.html` | ⏳ Pendiente |
-| `noticia.html` | ⏳ Pendiente |
-| `info.html` | ⏳ Pendiente |
-| `ranking.html` | ⏳ Pendiente |
-| `descargar.html` | ⏳ Pendiente |
-
----
-
-## Próximos pasos (en orden)
-
-1. Crear `js/main.js` con hamburger menu y active link logic
-2. Crear `data/noticias.json` con 2-3 noticias de ejemplo
-3. Crear `index.html` — Home completo, mobile-first
-4. Crear `noticias.html` — lista de noticias desde el JSON
-5. Crear `info.html` — rates, clases, comandos del servidor
-6. Crear `descargar.html` — descarga del cliente
-7. Crear `ranking.html` — embed o redirect a WebEngine
-
----
-
-## Contexto del negocio
-
-- El servidor MU es **Season 6**, free to play
-- Público objetivo: jugadores de MU Online hispanoablantes, mayormente **mobile**
-- El tono es épico/fantasy pero sin ser pretencioso — amigable, directo
-- Idioma del sitio: **español (Argentina)**
-- Las noticias las escribe el admin (Franco) directamente en `noticias.json`
-- Los jugadores se registran, logean y gestionan su cuenta en WebEngine por ahora
+- **Season:** 6 completo
+- **XP Rate:** 50x (confirmar con admin si cambió)
+- **Modalidad:** Free to play — sin pay to win
+- **Clases disponibles:** Dark Wizard, Dark Knight, Elf, Magic Gladiator, Dark Lord, Summoner, Rage Fighter (confirmar lista completa con admin)
+- **Donaciones:** WCoins y VIP — nunca usar la palabra "venta" ni "comprar"
+- **Staff:** activo, presente en Discord
+- **Comunidad:** hispanoablante, Argentina principalmente
