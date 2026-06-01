@@ -6,6 +6,7 @@
   if (hamburger && mobileMenu) {
     hamburger.addEventListener('click', function () {
       var isOpen = mobileMenu.classList.toggle('open');
+      hamburger.classList.toggle('open', isOpen);
       hamburger.setAttribute('aria-expanded', isOpen);
     });
 
@@ -21,6 +22,7 @@
     document.addEventListener('click', function (e) {
       if (!mobileMenu.contains(e.target) && !hamburger.contains(e.target)) {
         mobileMenu.classList.remove('open');
+        hamburger.classList.remove('open');
         hamburger.setAttribute('aria-expanded', 'false');
       }
     });

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MuPGA — Servidor MU Online Season 6</title>
+  <meta name="description" content="MuPGA es el servidor privado de MU Online Season 6 para la comunidad hispana. Free to play, sin pay to win. ¡Creá tu cuenta y empezá hoy!">
+  <link rel="stylesheet" href="css/mupga-design.css">
+  <style>
+    /* ── Hero ─────────────────────────────────────────────────── */
+    .hero {
+      min-height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-2xl) var(--space-md);
+      position: relative;
+      background:
+        radial-gradient(ellipse at 50% -10%, rgba(201, 149, 42, 0.10) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 60%,  rgba(192, 57, 43, 0.05)  0%, transparent 45%),
+        var(--bg-void);
+      overflow: hidden;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 640px;
+    }
+
+    .hero-lead {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .hero-season {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .hero h1 {
+      font-size: clamp(48px, 12vw, 80px);
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: var(--space-md);
+    }
+
+    .hero-subtitle {
+      font-size: clamp(14px, 2.5vw, 16px);
+      color: var(--text-secondary);
+      max-width: 480px;
+      margin: 0 auto var(--space-xl);
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      align-items: center;
+    }
+
+    /* ── Features ─────────────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+    }
+
+    .feature-rule {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--gold-mid);
+      margin-bottom: var(--space-md);
+    }
+
+    .feature-title {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold-bright);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: var(--space-sm);
+    }
+
+    .feature-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ── Noticias ─────────────────────────────────────────────── */
+    .noticias-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+    }
+
+    /* ── CTA final ────────────────────────────────────────────── */
+    .cta-section {
+      padding: var(--space-2xl) var(--space-md);
+      text-align: center;
+      border-top: 1px solid var(--border-gold);
+      background: radial-gradient(ellipse at 50% 0%, rgba(201, 149, 42, 0.06) 0%, transparent 60%);
+    }
+
+    .cta-section h2 {
+      margin-bottom: var(--space-md);
+    }
+
+    .cta-section p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-xl);
+    }
+
+    .cta-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      align-items: center;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (min-width: 640px) {
+      .hero-actions,
+      .cta-actions {
+        flex-direction: row;
+        justify-content: center;
+      }
+
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .features-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .noticias-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-logo">MuPGA</a>
+    <div class="navbar-links">
+      <a href="index.html">Inicio</a>
+      <a href="noticias.html">Noticias</a>
+      <a href="ranking.html">Ranking</a>
+      <a href="info.html">Información</a>
+      <a href="descargar.html">Descargar</a>
+    </div>
+    <a href="https://mupga.com.ar/register" class="btn btn-primary navbar-cta" target="_blank" rel="noopener">Registrarse</a>
+    <button class="navbar-hamburger" id="hamburgerBtn" aria-label="Menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="navbar-mobile-menu" id="mobileMenu">
+    <a href="index.html">Inicio</a>
+    <a href="noticias.html">Noticias</a>
+    <a href="ranking.html">Ranking</a>
+    <a href="info.html">Información</a>
+    <a href="descargar.html">Descargar</a>
+    <a href="https://mupga.com.ar/register" class="btn btn-primary w-full" target="_blank" rel="noopener">Registrarse</a>
+  </div>
+
+  <main>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-lead">
+          <span class="badge badge-online">En línea</span>
+          <span class="hero-season">Season 6 · Free to Play</span>
+        </div>
+        <h1><span class="text-gold">MuPGA</span></h1>
+        <p class="hero-subtitle">
+          El servidor privado de MU Online para la comunidad hispana.
+          Season 6 completo, sin pay to win y con un staff siempre presente.
+        </p>
+        <div class="hero-actions">
+          <a href="https://mupga.com.ar/register" class="btn btn-danger btn-lg" target="_blank" rel="noopener">Crear cuenta gratis</a>
+          <a href="descargar.html" class="btn btn-secondary btn-lg">Descargar cliente</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS DEL SERVIDOR -->
+    <section class="section section-alt">
+      <div class="container">
+        <div class="divider"><span>El servidor</span></div>
+        <div class="stats-grid mt-md">
+          <div class="stat-pill">
+            <span class="stat-value">×50</span>
+            <span class="stat-label">Experiencia</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-value">×15</span>
+            <span class="stat-label">Drop</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-value">×5</span>
+            <span class="stat-label">Zen</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-value">400</span>
+            <span class="stat-label">Nivel máx</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARACTERÍSTICAS -->
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-eyebrow">Por qué MuPGA</span>
+          <h2>Un servidor hecho para vos</h2>
+          <p>Diseñado para ofrecer la mejor experiencia de MU Online en español.</p>
+        </div>
+        <div class="features-grid">
+          <div class="card-subtle">
+            <span class="feature-rule"></span>
+            <div class="feature-title">Season 6 completo</div>
+            <p class="feature-desc">Todas las clases, mapas, dungeons y mecánicas del Season 6 original, correctamente implementadas.</p>
+          </div>
+          <div class="card-subtle">
+            <span class="feature-rule"></span>
+            <div class="feature-title">Sin Pay to Win</div>
+            <p class="feature-desc">El progreso se gana jugando. Nada que afecte el balance del juego está disponible por dinero.</p>
+          </div>
+          <div class="card-subtle">
+            <span class="feature-rule"></span>
+            <div class="feature-title">Comunidad hispana</div>
+            <p class="feature-desc">Staff y jugadores de Argentina y Latinoamérica. El servidor está en español, para nosotros.</p>
+          </div>
+          <div class="card-subtle">
+            <span class="feature-rule"></span>
+            <div class="feature-title">Staff activo</div>
+            <p class="feature-desc">Actualizaciones frecuentes, eventos regulares y soporte rápido por Discord.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ÚLTIMAS NOTICIAS -->
+    <section class="section section-alt">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-eyebrow">Novedades</span>
+          <h2>Últimas noticias</h2>
+        </div>
+        <div class="noticias-grid" id="noticiasHome"></div>
+        <div class="text-center mt-lg">
+          <a href="noticias.html" class="btn btn-ghost">Ver todas las noticias</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="cta-section">
+      <div class="container">
+        <span class="section-eyebrow">Empezá hoy</span>
+        <h2>¿Listo para la aventura?</h2>
+        <p>Creá tu cuenta gratis en segundos y unite a la comunidad MuPGA.</p>
+        <div class="cta-actions">
+          <a href="https://mupga.com.ar/register" class="btn btn-danger btn-lg" target="_blank" rel="noopener">Crear cuenta gratis</a>
+          <a href="descargar.html" class="btn btn-secondary btn-lg">Descargar cliente</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-logo">MuPGA</div>
+    <nav class="footer-links">
+      <a href="index.html">Inicio</a>
+      <a href="noticias.html">Noticias</a>
+      <a href="ranking.html">Ranking</a>
+      <a href="info.html">Información</a>
+      <a href="descargar.html">Descargar</a>
+      <a href="https://mupga.com.ar/user" target="_blank" rel="noopener">Mi cuenta</a>
+    </nav>
+    <p class="footer-copy">© 2026 MuPGA &middot; Servidor privado de MU Online &middot; No afiliado a Webzen</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    (function () {
+      fetch('data/noticias.json')
+        .then(function (r) { return r.json(); })
+        .then(function (noticias) {
+          var container = document.getElementById('noticiasHome');
+          if (!container) return;
+
+          var ultimas = noticias.slice().reverse().slice(0, 3);
+
+          ultimas.forEach(function (n) {
+            var fecha = new Date(n.fecha + 'T00:00:00');
+            var fechaStr = fecha.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            var art = document.createElement('article');
+            art.className = 'card';
+            art.innerHTML =
+              '<span class="card-tag' + (n.tag_tipo === 'red' ? ' red' : '') + '">' + n.tag + '</span>' +
+              '<h3 class="card-title">' + n.titulo + '</h3>' +
+              '<p class="card-body">' + n.resumen + '</p>' +
+              '<div class="card-footer">' +
+                '<span class="text-muted text-sm">' + fechaStr + '</span>' +
+                '<a href="noticia.html?id=' + n.id + '" class="btn btn-ghost btn-sm">Leer más</a>' +
+              '</div>';
+
+            container.appendChild(art);
+          });
+        })
+        .catch(function () {
+          var c = document.getElementById('noticiasHome');
+          if (c) c.innerHTML = '<p class="text-secondary text-center">Las noticias no están disponibles en este momento.</p>';
+        });
+    }());
+  </script>
+
+</body>
+</html>
