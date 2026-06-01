@@ -1,0 +1,65 @@
+# ============================================================
+#  MuPGA Web — .gitignore
+# ============================================================
+
+# === Datos sensibles — NUNCA commitear ===
+# Dump productivo completo (contiene PII: emails, hashes de password, IPs)
+script.sql
+*.dump.sql
+*.bak
+db/*.bak
+
+# Los schema-only exportados (sin datos) SÍ se pueden versionar:
+# poné esos archivos en db/schema/ y se trackean normalmente.
+
+# === Credenciales de WebEngine y del sitio ===
+# Verificá cuál es el archivo de config de TU WebEngine y confirmá que cae acá.
+htdocs/includes/config.php
+htdocs/**/config*.php
+**/config.local.php
+.env
+.env.*
+*.env
+
+# === Secrets / claves ===
+*.pem
+*.key
+*.pfx
+*.p12
+secrets/
+
+# === PHP / Composer ===
+/vendor/
+composer.phar
+
+# === Node (si se usa para build o el launcher Electron) ===
+node_modules/
+npm-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# === Logs y temporales ===
+*.log
+logs/
+tmp/
+cache/
+
+# === Editores / entornos locales ===
+.idea/
+.vscode/
+*.sublime-*
+
+# === Sistema operativo ===
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# === Claude Code (config personal, no compartir) ===
+.claude/settings.local.json
+CLAUDE.local.md
+
+# === OPCIONAL ===
+# Si preferís mantener WebEngine SOLO local (como referencia, sin commitearlo),
+# descomentá la línea de abajo:
+# htdocs/
