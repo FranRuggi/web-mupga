@@ -1,0 +1,66 @@
+{
+  "secciones": [
+    {
+      "id": "rates",
+      "eyebrow": "Configuración",
+      "titulo": "Rates del servidor",
+      "tipo": "tabla",
+      "columnas": ["Concepto", "Valor"],
+      "filas": [
+        ["Experiencia (XP)", "PLACEHOLDER_XP"],
+        ["Drop rate", "PLACEHOLDER_DROP"],
+        ["Zen rate", "PLACEHOLDER_ZEN"],
+        ["Nivel máximo", "PLACEHOLDER_MAXLEVEL"],
+        ["Master Experience", "PLACEHOLDER_MASTERXP"],
+        ["Max Stats por nivel", "PLACEHOLDER_MAXSTATS"]
+      ]
+    },
+    {
+      "id": "comandos",
+      "eyebrow": "In-game",
+      "titulo": "Comandos disponibles",
+      "tipo": "tabla",
+      "columnas": ["Comando", "Descripción"],
+      "filas": [
+        ["/post", "PLACEHOLDER — descripción del comando /post"],
+        ["/reset", "PLACEHOLDER — descripción del comando /reset"],
+        ["/pkclear", "PLACEHOLDER — descripción del comando /pkclear"],
+        ["/movemap", "PLACEHOLDER — descripción del comando /movemap"],
+        ["/addstr", "PLACEHOLDER — descripción del comando /addstr"],
+        ["/addagi", "PLACEHOLDER — descripción del comando /addagi"],
+        ["/addvit", "PLACEHOLDER — descripción del comando /addvit"],
+        ["/addene", "PLACEHOLDER — descripción del comando /addene"],
+        ["/addcmd", "PLACEHOLDER — descripción del comando /addcmd (Dark Lord)"]
+      ]
+    },
+    {
+      "id": "resets",
+      "eyebrow": "Progresión",
+      "titulo": "Resets y configuración",
+      "tipo": "tabla",
+      "columnas": ["Concepto", "Valor"],
+      "filas": [
+        ["Nivel para resetear", "PLACEHOLDER"],
+        ["Costo de reset (Zen)", "PLACEHOLDER"],
+        ["Puntos por reset", "PLACEHOLDER"],
+        ["Máximo de resets", "PLACEHOLDER"],
+        ["Resetea stats al resetear", "PLACEHOLDER (Sí / No)"],
+        ["Resetea nivel al resetear", "PLACEHOLDER (Sí / No)"]
+      ]
+    },
+    {
+      "id": "chaos",
+      "eyebrow": "Crafteo",
+      "titulo": "Chaos Machine",
+      "tipo": "tabla",
+      "columnas": ["Combinación", "Tasa de éxito"],
+      "filas": [
+        ["PLACEHOLDER — ej: Normal +10 a +11", "PLACEHOLDER %"],
+        ["PLACEHOLDER — ej: Normal +11 a +12", "PLACEHOLDER %"],
+        ["PLACEHOLDER — ej: Normal +12 a +13", "PLACEHOLDER %"],
+        ["PLACEHOLDER — ej: Excellent +10 a +11", "PLACEHOLDER %"],
+        ["PLACEHOLDER — ej: Ancient +10 a +11", "PLACEHOLDER %"]
+      ]
+    }
+  ]
+}

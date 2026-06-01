@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MuPGA — Información del servidor</title>
+  <meta name="description" content="Rates, comandos, resets y Chaos Machine del servidor MuPGA Season 6. Todo lo que necesitás saber antes de jugar.">
+  <link rel="stylesheet" href="css/mupga-design.css">
+  <style>
+    /* Cabecera de página — sin hero completo, solo contexto */
+    .page-header {
+      padding: var(--space-2xl) var(--space-md) var(--space-xl);
+      text-align: center;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(201, 149, 42, 0.08) 0%, transparent 50%),
+        var(--bg-void);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .page-header h1 {
+      margin-bottom: var(--space-sm);
+    }
+
+    .page-header p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      margin-top: var(--space-sm);
+    }
+
+    /* Contenedor con scroll horizontal — evita desborde en mobile */
+    .tabla-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-md);
+    }
+
+    .info-tabla {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-body);
+      font-size: 14px;
+      min-width: 280px; /* evita colapso en pantallas muy estrechas */
+    }
+
+    /* Encabezado de tabla */
+    .info-tabla thead tr {
+      background: var(--bg-raised);
+    }
+
+    .info-tabla thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold-mid);
+      border-bottom: 1px solid var(--border-gold);
+      white-space: nowrap;
+    }
+
+    /* Filas de datos */
+    .info-tabla tbody tr {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background var(--transition);
+    }
+
+    .info-tabla tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .info-tabla tbody tr:hover {
+      background: var(--bg-raised);
+    }
+
+    /* Celdas */
+    .info-tabla tbody td {
+      padding: 12px 16px;
+      vertical-align: middle;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Primera columna — nombre/concepto más destacado que el valor */
+    .info-tabla tbody td:first-child {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-logo">MuPGA</a>
+    <div class="navbar-links">
+      <a href="index.html">Inicio</a>
+      <a href="noticias.html">Noticias</a>
+      <a href="ranking.html">Ranking</a>
+      <a href="info.html">Información</a>
+      <a href="descargar.html">Descargar</a>
+    </div>
+    <a href="https://mupga.com.ar/register" class="btn btn-danger navbar-cta">Registrarse</a>
+    <button class="navbar-hamburger" id="hamburgerBtn" aria-label="Menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="navbar-mobile-menu" id="mobileMenu">
+    <a href="index.html">Inicio</a>
+    <a href="noticias.html">Noticias</a>
+    <a href="ranking.html">Ranking</a>
+    <a href="info.html">Información</a>
+    <a href="descargar.html">Descargar</a>
+    <a href="https://mupga.com.ar/register" class="btn btn-danger w-full">Registrarse</a>
+  </div>
+
+  <!-- CABECERA DE PÁGINA -->
+  <div class="page-header">
+    <div class="container">
+      <span class="section-eyebrow">Servidor MuPGA</span>
+      <h1><span class="text-gold">Información</span></h1>
+      <p>Rates, comandos, resets y todo lo que necesitás saber antes de jugar.</p>
+    </div>
+  </div>
+
+  <!-- CONTENIDO DINÁMICO — renderizado desde data/info.json -->
+  <main>
+    <div id="infoSecciones"></div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-logo">MuPGA</div>
+    <nav class="footer-links">
+      <a href="index.html">Inicio</a>
+      <a href="noticias.html">Noticias</a>
+      <a href="ranking.html">Ranking</a>
+      <a href="info.html">Información</a>
+      <a href="descargar.html">Descargar</a>
+      <a href="https://mupga.com.ar/user" target="_blank" rel="noopener">Mi cuenta</a>
+    </nav>
+    <p class="footer-copy">© 2026 MuPGA &middot; Servidor privado de MU Online &middot; No afiliado a Webzen</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    (function () {
+      // Escapa HTML para evitar inyección desde el JSON
+      function esc(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      // Renderiza una sección de tipo "tabla"
+      function renderTabla(sec) {
+        var thCells = sec.columnas.map(function (c) {
+          return '<th>' + esc(c) + '</th>';
+        }).join('');
+
+        var rows = sec.filas.map(function (fila) {
+          var cells = fila.map(function (v) {
+            return '<td>' + esc(v) + '</td>';
+          }).join('');
+          return '<tr>' + cells + '</tr>';
+        }).join('');
+
+        return (
+          '<div class="tabla-wrapper">' +
+            '<table class="info-tabla">' +
+              '<thead><tr>' + thCells + '</tr></thead>' +
+              '<tbody>' + rows + '</tbody>' +
+            '</table>' +
+          '</div>'
+        );
+      }
+
+      // Construye el HTML interior de una sección según su tipo
+      function renderCuerpo(sec) {
+        if (sec.tipo === 'tabla') return renderTabla(sec);
+        return ''; // tipos futuros se agregan aquí
+      }
+
+      fetch('data/info.json')
+        .then(function (r) {
+          if (!r.ok) throw new Error('fetch failed');
+          return r.json();
+        })
+        .then(function (data) {
+          var root = document.getElementById('infoSecciones');
+          if (!root) return;
+
+          // Itera sobre TODOS los objetos de "secciones" sin contar cuántos son.
+          // Si se agrega un 5º, 6º o más objetos al JSON, aparecen automáticamente.
+          data.secciones.forEach(function (sec, i) {
+            var el = document.createElement('section');
+            el.id = sec.id;
+            // Par → sin fondo alterno | Impar → fondo alterno (section-alt)
+            el.className = i % 2 === 0 ? 'section' : 'section section-alt';
+
+            el.innerHTML =
+              '<div class="container">' +
+                '<div class="section-header">' +
+                  '<span class="section-eyebrow">' + esc(sec.eyebrow) + '</span>' +
+                  '<h2>' + esc(sec.titulo) + '</h2>' +
+                '</div>' +
+                renderCuerpo(sec) +
+              '</div>';
+
+            root.appendChild(el);
+          });
+        })
+        .catch(function () {
+          var root = document.getElementById('infoSecciones');
+          if (root) {
+            root.innerHTML =
+              '<section class="section"><div class="container">' +
+                '<p class="text-secondary text-center">' +
+                  'No se pudo cargar la información del servidor. Intentá de nuevo más tarde.' +
+                '</p>' +
+              '</div></section>';
+          }
+        });
+    }());
+  </script>
+
+</body>
+</html>
