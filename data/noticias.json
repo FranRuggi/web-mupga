@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "titulo": "¡Bienvenidos al servidor MuPGA!",
+    "tag": "Anuncio",
+    "tag_tipo": "gold",
+    "resumen": "El servidor Season 6 ya está en línea. Creá tu cuenta, descargá el cliente y empezá tu aventura.",
+    "contenido": "El servidor MuPGA ya está oficialmente en línea. Somos un servidor Season 6 free to play pensado para la comunidad hispanoablante.\n\nPodés registrarte desde el botón de arriba, descargar el cliente desde la sección Descargar y sumarte a nuestra comunidad. Cualquier duda o consulta encontrás al staff en el Discord oficial.",
+    "fecha": "2026-05-20",
+    "autor": "Staff MuPGA"
+  },
+  {
+    "id": 2,
+    "titulo": "Evento de doble experiencia este fin de semana",
+    "tag": "Evento",
+    "tag_tipo": "red",
+    "resumen": "Sábado y domingo con x2 EXP en todos los mapas. Aprovechá para subir nivel rápido.",
+    "contenido": "Este sábado 30 y domingo 31 de mayo activamos el modo doble experiencia en todos los mapas del servidor.\n\nHorario: desde las 00:00 del sábado hasta las 23:59 del domingo (horario Argentina, UTC-3).\n\nEs el momento ideal para subir de nivel, farmear items y prepararte para los eventos de Guild War que vienen la próxima semana. ¡No te lo perdás!",
+    "fecha": "2026-05-28",
+    "autor": "Staff MuPGA"
+  },
+  {
+    "id": 3,
+    "titulo": "Actualización de balanceo de clases v1.1",
+    "tag": "Actualización",
+    "tag_tipo": "gold",
+    "resumen": "Ajustes de balance en Dark Knight, Elf y Dark Wizard. Revisá los cambios antes de entrar.",
+    "contenido": "Aplicamos la primera actualización de balanceo del servidor. Los cambios principales son:\n\n- Dark Knight: leve reducción de daño en combo de habilidades PvP (-8%).\n- Elf: aumento de velocidad de ataque base (+5%) y mejora en el rango de Multishot.\n- Dark Wizard: incremento de resistencia mágica en builds defensivas.\n\nEstos ajustes apuntan a un PvP más parejo sin afectar el PvE. Seguimos monitoreando el balance y cualquier feedback es bienvenido en el Discord.",
+    "fecha": "2026-05-31",
+    "autor": "Staff MuPGA"
+  }
+]
