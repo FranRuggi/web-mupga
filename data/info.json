@@ -16,6 +16,21 @@
       ]
     },
     {
+      "id": "rates",
+      "eyebrow": "Configuración",
+      "titulo": "Rates del servidor",
+      "tipo": "tabla",
+      "columnas": ["Concepto", "Valor"],
+      "filas": [
+        ["Experiencia (XP)", "PLACEHOLDER_XP"],
+        ["Drop rate", "PLACEHOLDER_DROP"],
+        ["Zen rate", "PLACEHOLDER_ZEN"],
+        ["Nivel máximo", "PLACEHOLDER_MAXLEVEL"],
+        ["Master Experience", "PLACEHOLDER_MASTERXP"],
+        ["Max Stats por nivel", "PLACEHOLDER_MAXSTATS"]
+      ]
+    },
+    {
       "id": "comandos",
       "eyebrow": "In-game",
       "titulo": "Comandos disponibles",
