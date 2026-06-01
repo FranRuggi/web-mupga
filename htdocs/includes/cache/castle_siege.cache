@@ -1,0 +1,21 @@
+{
+    "castle_data": {
+        "MAP_SVR_GROUP": "0",
+        "SIEGE_START_DATE": "2018-05-06 00:00:00.000",
+        "SIEGE_END_DATE": "2018-05-07 00:00:00.000",
+        "SIEGE_GUILDLIST_SETTED": "0",
+        "SIEGE_ENDED": "0",
+        "CASTLE_OCCUPY": "1",
+        "OWNER_GUILD": "teste3",
+        "MONEY": "2215393700.0000",
+        "TAX_RATE_CHAOS": "3",
+        "TAX_RATE_STORE": "0",
+        "TAX_HUNT_ZONE": "0"
+    },
+    "castle_owner_alliance": null,
+    "registered_guilds": [
+        {
+            "member_count": "0"
+        }
+    ]
+}
