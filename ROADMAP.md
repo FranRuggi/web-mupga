@@ -3,7 +3,7 @@
 > **Checklist vivo.** Claude Code lo actualiza al completar cada tarea: marcar `[x]`, y
 > agregar una línea con fecha en "Registro de cambios" al final.
 
-**Estado actual:** Fase 1 — Completada y aprobada. Listo para Fase 2.
+**Estado actual:** Fase 2 — Completada. Listo para Fase 3 (frontend).
 **Última actualización:** 2026-06-01
 
 ---
@@ -26,12 +26,13 @@
 - [x] **Revisión de Franco** de la matriz de capacidades — aprobada 2026-06-01
 
 ## Fase 2 — Capa de acceso a datos
-- [ ] Módulo de conexión a SQL Server (PDO/sqlsrv) con sentencias preparadas
-- [ ] Funciones de solo-lectura seguras (rankings, online, info de cuenta/personaje)
-- [ ] Funciones de escritura controlada (registro, reset password, créditos WCoin)
-- [ ] Credenciales por variables de entorno (no hardcodeadas)
+- [x] Módulo de conexión a SQL Server (PDO/sqlsrv) con sentencias preparadas — 2026-06-01
+- [x] Funciones de solo-lectura seguras (rankings, online, info de cuenta/personaje) — 2026-06-01
+- [x] Funciones de escritura controlada (registro, reset password, créditos WCoin) — 2026-06-01
+- [x] Credenciales por variables de entorno (no hardcodeadas) — 2026-06-01
 
 ## Fase 3 — Frontend custom
+El frontend debe ser HTML + CSS + JS moderno y limpio. PHP solo se usa como capa de datos en el backend (los repositorios ya creados). Las páginas no deben mezclar PHP con HTML — usá PHP para servir JSON a llamadas fetch() desde el JS.
 - [ ] Migrar el diseño del template `mupga` a `src/` (sin dependencias de WebEngine)
 - [ ] Layout base: header, footer, navegación
 - [ ] Home + serverinfo (rates, Chaos Machine, comandos, eventos)
@@ -60,3 +61,6 @@
 - 2026-06-01 — [Fase 1] Generado `.claude/docs/capability-matrix.md` con clasificación SEGURA/RIESGOSA/PROHIBIDA
 - 2026-06-01 — [Fase 1] Creados skills: `mupga-db-dictionary`, `mupga-db-safety`, `mupga-php-conventions`
 - 2026-06-01 — [Fase 1] Revisión aprobada: columna `ResetCount` (no `RESETS`), operaciones sobre Character seguras online en MuPGA
+- 2026-06-01 — [Fase 2] Creados .env.example, src/config/env.php, src/config/database.php (PDO/sqlsrv singleton)
+- 2026-06-01 — [Fase 2] Creados AccountRepository, CharacterRepository, RankingsRepository, CreditsRepository
+- 2026-06-01 — [Fase 2] Creados src/bootstrap.php y src/public/index.php (entry point con test de conexión)
