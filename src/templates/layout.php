@@ -8,7 +8,12 @@
  *   $content   (string) — HTML del cuerpo de la página (generado con ob_start/ob_get_clean)
  */
 
-$base    = rtrim($_ENV['APP_BASE_URL'] ?? '/', '/');
+// Base URL calculado desde $_SERVER — no depende de APP_BASE_URL en .env
+$scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host    = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$dir     = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+$base    = $scheme . '://' . $host . $dir;   // ej: http://localhost  o  http://localhost/mupga
+
 $title   = htmlspecialchars($pageTitle ?? 'MuPGA', ENT_QUOTES);
 $year    = date('Y');
 ?>
