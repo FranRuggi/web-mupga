@@ -3,7 +3,7 @@
 > **Checklist vivo.** Claude Code lo actualiza al completar cada tarea: marcar `[x]`, y
 > agregar una línea con fecha en "Registro de cambios" al final.
 
-**Estado actual:** Fase 3 en progreso — layout base y home listos.
+**Estado actual:** Fase 3 completada. Listo para Fase 4 (features).
 **Última actualización:** 2026-06-01
 
 ---
@@ -77,3 +77,5 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-01 — [Fase 2] Creados src/bootstrap.php y src/public/index.php (entry point con test de conexión)
 - 2026-06-01 — [Fase 2] Fix de conexión: DSN sin puerto (Browser service resuelve instancia SQLEXPRESS01); pdo_sqlsrv confirmado; test.php eliminado
 - 2026-06-01 — [Fase 3] Layout base, home page, 3 API endpoints JSON, design system CSS completo, app.js vanilla
+- 2026-06-01 — [Fase 3] Rankings con tabs + auto-refresh 2min, Info del servidor dinámica desde data/info.json
+- 2026-06-01 — [Fase 3] Creado migration.md con guía paso a paso para Cloudflare Pages + VPS
