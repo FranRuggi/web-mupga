@@ -3,7 +3,7 @@
 > **Checklist vivo.** Claude Code lo actualiza al completar cada tarea: marcar `[x]`, y
 > agregar una línea con fecha en "Registro de cambios" al final.
 
-**Estado actual:** Fase 2 — Completada. Listo para Fase 3 (frontend).
+**Estado actual:** Fase 3 en progreso — layout base y home listos.
 **Última actualización:** 2026-06-01
 
 ---
@@ -32,10 +32,18 @@
 - [x] Credenciales por variables de entorno (no hardcodeadas) — 2026-06-01
 
 ## Fase 3 — Frontend custom
-El frontend debe ser HTML + CSS + JS moderno y limpio. PHP solo se usa como capa de datos en el backend (los repositorios ya creados). Las páginas no deben mezclar PHP con HTML — usá PHP para servir JSON a llamadas fetch() desde el JS.
-- [ ] Migrar el diseño del template `mupga` a `src/` (sin dependencias de WebEngine)
-- [ ] Layout base: header, footer, navegación
-- [ ] Home + serverinfo (rates, Chaos Machine, comandos, eventos)
+El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstrap, sin jQuery.
+- [x] Estructura de assets: src/public/assets/css/, js/, img/class/ — 2026-06-01
+- [x] src/public/assets/css/main.css — sistema de diseño completo (dark fantasy luxury) — 2026-06-01
+- [x] src/public/assets/js/app.js — fetch helpers, renderers, countdown, nav — 2026-06-01
+- [x] src/templates/layout.php — header, nav, sidebar, footer (PHP puro, sin vars de juego) — 2026-06-01
+- [x] src/public/index.php — home con hero, info cards, top 3 resets, news placeholder — 2026-06-01
+- [x] src/public/api/online.php — GET → {count} — 2026-06-01
+- [x] src/public/api/serverinfo.php — GET → {season, exp, drop, players_online, players_total} — 2026-06-01
+- [x] src/public/api/rankings.php — GET ?type&limit → array de personajes/guilds — 2026-06-01
+- [ ] Avatares de clase copiados a src/public/assets/img/class/ ✓ — hero-bg.jpg pendiente (agregar imagen)
+- [ ] Rankings page completa (src/public/rankings/index.php)
+- [ ] Info del servidor page (src/public/info/index.php)
 
 ## Fase 4 — Features por capacidad
 - [ ] Rankings (resets, PvP, guilds)
@@ -64,3 +72,5 @@ El frontend debe ser HTML + CSS + JS moderno y limpio. PHP solo se usa como capa
 - 2026-06-01 — [Fase 2] Creados .env.example, src/config/env.php, src/config/database.php (PDO/sqlsrv singleton)
 - 2026-06-01 — [Fase 2] Creados AccountRepository, CharacterRepository, RankingsRepository, CreditsRepository
 - 2026-06-01 — [Fase 2] Creados src/bootstrap.php y src/public/index.php (entry point con test de conexión)
+- 2026-06-01 — [Fase 2] Fix de conexión: DSN sin puerto (Browser service resuelve instancia SQLEXPRESS01); pdo_sqlsrv confirmado; test.php eliminado
+- 2026-06-01 — [Fase 3] Layout base, home page, 3 API endpoints JSON, design system CSS completo, app.js vanilla
