@@ -183,49 +183,6 @@ async function loadInfoCards() {
   `).join('');
 }
 
-// ── Countdown timer ──────────────────────────────────────────
-function startCountdown(targetTs, containerId) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-
-  function render() {
-    const diff = targetTs - Date.now();
-    if (diff <= 0) {
-      el.innerHTML = '<p style="text-align:center;color:var(--purple-light);font-family:var(--font-title);font-size:0.8rem;letter-spacing:0.1em">¡EN CURSO!</p>';
-      return;
-    }
-
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000)  / 60000);
-    const s = Math.floor((diff % 60000)    / 1000);
-
-    el.innerHTML = `
-      <div class="countdown">
-        ${[['d', d], ['h', h], ['m', m], ['s', s]].map(([l, v]) => `
-          <div class="countdown-unit">
-            <span class="countdown-num">${String(v).padStart(2, '0')}</span>
-            <span class="countdown-lbl">${l}</span>
-          </div>
-        `).join('')}
-      </div>`;
-  }
-
-  render();
-  setInterval(render, 1000);
-}
-
-// Próximo domingo a las 20:00 (Castle Siege)
-function nextSunday20h() {
-  const now  = new Date();
-  const day  = now.getDay();           // 0=Dom … 6=Sáb
-  const diff = day === 0 ? 7 : 7 - day; // días hasta el próximo domingo
-  const next = new Date(now);
-  next.setDate(now.getDate() + diff);
-  next.setHours(20, 0, 0, 0);
-  return next.getTime();
-}
-
 // ── Nav: hamburger ───────────────────────────────────────────
 function initNav() {
   const toggle = document.querySelector('.nav-toggle');
@@ -266,6 +223,4 @@ document.addEventListener('DOMContentLoaded', () => {
   loadServerInfo();
   loadTopPlayers();
   loadInfoCards();
-
-  startCountdown(nextSunday20h(), 'cs-countdown');
 });

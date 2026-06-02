@@ -1,18 +1,16 @@
 <?php
 /**
  * Layout base del sitio MuPGA.
- * Incluir al final de cada página después de definir $pageTitle y $content.
- *
- * Variables esperadas:
- *   $pageTitle (string) — título de la página
- *   $content   (string) — HTML del cuerpo de la página (generado con ob_start/ob_get_clean)
+ * Variables esperadas: $pageTitle (string), $content (string), $extraJs (string|null)
  */
 
-// Base URL calculado desde $_SERVER — no depende de APP_BASE_URL en .env
+// Base URL robusto: compara DOCUMENT_ROOT con la ubicación real de src/public/
+// Funciona en cualquier subdirectorio (rankings/, info/, etc.) sin depender de APP_BASE_URL.
+$docRoot = rtrim(str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'])), '/');
+$pubDir  = rtrim(str_replace('\\', '/', realpath(SRC_ROOT . '/public')), '/');
+$webPath = str_replace($docRoot, '', $pubDir); // '' para raíz, '/mupga' para subdir
 $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$host    = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$dir     = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
-$base    = $scheme . '://' . $host . $dir;   // ej: http://localhost  o  http://localhost/mupga
+$base    = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $webPath;
 
 $title   = htmlspecialchars($pageTitle ?? 'MuPGA', ENT_QUOTES);
 $year    = date('Y');
@@ -22,42 +20,34 @@ $year    = date('Y');
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="MuPGA — Servidor privado de MU Online Season 6. Unite a la batalla.">
+  <meta name="description" content="MuPGA — Servidor privado de MU Online Season 6.">
   <meta name="theme-color" content="#0d0b14">
   <title><?= $title ?> · MuPGA</title>
-
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="<?= $base ?>/assets/css/main.css">
 </head>
 <body>
 
 <div class="page-wrapper">
 
-  <!-- ── Header ── -->
   <header class="site-header">
     <a href="<?= $base ?>/" class="site-logo">Mu<span>PGA</span></a>
-
     <button class="nav-toggle" aria-label="Abrir menú" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
-
     <nav class="site-nav" aria-label="Navegación principal">
-      <a href="<?= $base ?>/"          class="nav-link">Inicio</a>
-      <a href="<?= $base ?>/rankings/" class="nav-link">Rankings</a>
-      <a href="<?= $base ?>/info/"     class="nav-link">Info del servidor</a>
-      <a href="<?= $base ?>/login/"    class="nav-link">Login</a>
-      <a href="<?= $base ?>/register/" class="nav-link nav-cta">Registrarme</a>
+      <a href="<?= $base ?>/"           class="nav-link">Inicio</a>
+      <a href="<?= $base ?>/rankings/"  class="nav-link">Rankings</a>
+      <a href="<?= $base ?>/info/"      class="nav-link">Info del servidor</a>
+      <a href="<?= $base ?>/login/"     class="nav-link">Login</a>
+      <a href="<?= $base ?>/register/"  class="nav-link nav-cta">Registrarme</a>
     </nav>
   </header>
 
-  <!-- ── Contenido de la página ── -->
   <?= $content ?>
 
-  <!-- ── Sidebar ── -->
   <aside class="site-sidebar" aria-label="Panel lateral">
 
     <div class="widget">
@@ -71,36 +61,29 @@ $year    = date('Y');
     <div class="widget">
       <p class="widget-title">Servidor</p>
       <div id="server-stats">
-        <div class="skeleton" style="height:0.8rem;margin-bottom:0.6rem"></div>
-        <div class="skeleton" style="height:0.8rem;margin-bottom:0.6rem"></div>
-        <div class="skeleton" style="height:0.8rem;margin-bottom:0.6rem"></div>
-        <div class="skeleton" style="height:0.8rem;margin-bottom:0.6rem"></div>
-        <div class="skeleton" style="height:0.8rem"></div>
-      </div>
-    </div>
-
-    <div class="widget">
-      <p class="widget-title">🏰 Próximo Castle Siege</p>
-      <div id="cs-countdown">
-        <div class="skeleton" style="height:64px;border-radius:8px"></div>
+        <?php for ($i = 0; $i < 5; $i++): ?>
+          <div class="skeleton" style="height:0.8rem;margin-bottom:<?= $i < 4 ? '0.6rem' : '0' ?>"></div>
+        <?php endfor; ?>
       </div>
     </div>
 
   </aside>
 
-  <!-- ── Footer ── -->
   <footer class="site-footer">
     <span class="footer-logo">MuPGA</span>
     <span>© <?= $year ?> MuPGA · Todos los derechos reservados.</span>
-    <nav class="footer-links" aria-label="Redes sociales">
-      <a href="#" aria-label="Discord">Discord</a>
-      <a href="#" aria-label="Facebook">Facebook</a>
-      <a href="#" aria-label="Foro">Foro</a>
+    <nav class="footer-links">
+      <a href="#">Discord</a>
+      <a href="#">Facebook</a>
+      <a href="#">Foro</a>
     </nav>
   </footer>
 
-</div><!-- /.page-wrapper -->
+</div>
 
 <script src="<?= $base ?>/assets/js/app.js" defer></script>
+<?php if (!empty($extraJs)): ?>
+<script src="<?= $base ?>/assets/js/<?= htmlspecialchars($extraJs) ?>" defer></script>
+<?php endif; ?>
 </body>
 </html>

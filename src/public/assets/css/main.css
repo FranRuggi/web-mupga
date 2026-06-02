@@ -265,7 +265,7 @@ h1, h2, h3, h4 {
   grid-area: sidebar;
   background: var(--bg-mid);
   border-left: 1px solid var(--purple-border);
-  padding: var(--gap-lg) var(--gap-md);
+  padding: var(--gap-lg) var(--gap-md) var(--gap-xl);
   display: flex;
   flex-direction: column;
   gap: var(--gap-md);
@@ -273,6 +273,15 @@ h1, h2, h3, h4 {
   top: var(--header-h);
   height: calc(100vh - var(--header-h));
   overflow-y: auto;
+  /* Fix: padding-bottom es ignorado por algunos navegadores en flex overflow */
+  /* El padding-bottom real lo da el ::after */
+}
+
+.site-sidebar::after {
+  content: '';
+  display: block;
+  height: var(--gap-lg);
+  flex-shrink: 0;
 }
 
 .site-sidebar::-webkit-scrollbar { width: 3px; }
