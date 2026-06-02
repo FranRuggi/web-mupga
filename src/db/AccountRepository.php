@@ -50,12 +50,13 @@ class AccountRepository {
      */
     public function validateCredentials(string $username, string $password): bool {
         if (($_ENV['DB_USE_MD5'] ?? 'true') === 'true') {
+            // PDO/sqlsrv no permite reusar named params → :u y :u2 distintos
             $stmt = $this->pdo->prepare(
                 'SELECT 1 FROM MEMB_INFO
                  WHERE memb___id = :u
-                   AND memb__pwd = [dbo].[fn_md5](:p, :u)'
+                   AND memb__pwd = [dbo].[fn_md5](:p, :u2)'
             );
-            $stmt->execute([':u' => $username, ':p' => $password]);
+            $stmt->execute([':u' => $username, ':p' => $password, ':u2' => $username]);
         } else {
             $stmt = $this->pdo->prepare(
                 'SELECT 1 FROM MEMB_INFO WHERE memb___id = ? AND memb__pwd = ?'
@@ -122,37 +123,46 @@ class AccountRepository {
         // sno__numb es char(18) — rellenar hasta 18 con espacios
         $serial = str_pad('1111111111111', 18);
 
-        if (($_ENV['DB_USE_MD5'] ?? 'true') === 'true') {
-            $stmt = $this->pdo->prepare(
-                'INSERT INTO MEMB_INFO
-                    (memb___id, memb__pwd, memb_name, sno__numb, mail_addr,
-                     bloc_code, ctl1_code, AccountLevel, Lock,
-                     AccountExpireDate, CreatedAt, WarehouseCount, ShowBanner)
-                 VALUES
-                    (:u, [dbo].[fn_md5](:p, :u), :u, :s, :e,
-                     0, 0, 0, 0,
-                     GETDATE(), GETDATE(), 0, 0)'
-            );
-            $stmt->execute([':u' => $username, ':p' => $password, ':s' => $serial, ':e' => $email]);
-        } else {
-            $stmt = $this->pdo->prepare(
-                'INSERT INTO MEMB_INFO
-                    (memb___id, memb__pwd, memb_name, sno__numb, mail_addr,
-                     bloc_code, ctl1_code, AccountLevel, Lock,
-                     AccountExpireDate, CreatedAt, WarehouseCount, ShowBanner)
-                 VALUES
-                    (?, ?, ?, ?, ?,
-                     0, 0, 0, 0,
-                     GETDATE(), GETDATE(), 0, 0)'
-            );
-            $stmt->execute([$username, $password, $username, $serial, $email]);
-        }
+        $this->pdo->beginTransaction();
+        try {
+            if (($_ENV['DB_USE_MD5'] ?? 'true') === 'true') {
+                // PDO/sqlsrv no permite reusar named params → :u, :u2, :u3 distintos
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO MEMB_INFO
+                        (memb___id, memb__pwd, memb_name, sno__numb, mail_addr,
+                         bloc_code, ctl1_code, AccountLevel, Lock,
+                         AccountExpireDate, CreatedAt, WarehouseCount, ShowBanner)
+                     VALUES
+                        (:u, [dbo].[fn_md5](:p, :u2), :u3, :s, :e,
+                         0, 0, 0, 0,
+                         GETDATE(), GETDATE(), 0, 0)'
+                );
+                $stmt->execute([':u' => $username, ':p' => $password, ':u2' => $username, ':u3' => $username, ':s' => $serial, ':e' => $email]);
+            } else {
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO MEMB_INFO
+                        (memb___id, memb__pwd, memb_name, sno__numb, mail_addr,
+                         bloc_code, ctl1_code, AccountLevel, Lock,
+                         AccountExpireDate, CreatedAt, WarehouseCount, ShowBanner)
+                     VALUES
+                        (?, ?, ?, ?, ?,
+                         0, 0, 0, 0,
+                         GETDATE(), GETDATE(), 0, 0)'
+                );
+                $stmt->execute([$username, $password, $username, $serial, $email]);
+            }
 
-        // Fila de CashShopData necesaria para que sp_AddWCoinWithLog funcione
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO CashShopData (AccountID, WCoinC, WCoinP, GoblinPoint) VALUES (?, 0, 0, 0)'
-        );
-        $stmt->execute([$username]);
+            // Fila de CashShopData necesaria para que sp_AddWCoinWithLog funcione
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO CashShopData (AccountID, WCoinC, WCoinP, GoblinPoint) VALUES (?, 0, 0, 0)'
+            );
+            $stmt->execute([$username]);
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
 
         return true;
     }

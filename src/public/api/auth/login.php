@@ -46,15 +46,21 @@ try {
     $repo    = new AccountRepository($db);
     $ip      = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-    // ── Anti-brute force: verificar intentos fallidos ──
-    $flaCheck = $db->prepare(
-        'SELECT failed_attempts, unlock_timestamp FROM WEBENGINE_FLA WHERE ip_address = ?'
-    );
-    $flaCheck->execute([$ip]);
-    $fla = $flaCheck->fetch();
-
     $maxAttempts = 5;
     $lockMinutes = 15;
+    $fla         = null;
+
+    // ── Anti-brute force: verificar intentos fallidos ──
+    // La tabla WEBENGINE_FLA puede no existir en entornos de solo juego → try/catch
+    try {
+        $flaCheck = $db->prepare(
+            'SELECT failed_attempts, unlock_timestamp FROM WEBENGINE_FLA WHERE ip_address = ?'
+        );
+        $flaCheck->execute([$ip]);
+        $fla = $flaCheck->fetch() ?: null;
+    } catch (Throwable) {
+        $fla = null; // tabla no disponible → saltar anti-brute force
+    }
 
     if ($fla && $fla['failed_attempts'] >= $maxAttempts) {
         if (time() < (int) $fla['unlock_timestamp']) {
@@ -62,24 +68,25 @@ try {
             echo json_encode(['error' => "Demasiados intentos fallidos. Intentá en {$lockMinutes} minutos."]);
             exit;
         }
-        // Lock expirado → limpiar
-        $db->prepare('DELETE FROM WEBENGINE_FLA WHERE ip_address = ?')->execute([$ip]);
+        try { $db->prepare('DELETE FROM WEBENGINE_FLA WHERE ip_address = ?')->execute([$ip]); } catch (Throwable) {}
         $fla = null;
     }
 
     // ── Validar credenciales ──
     if (!$repo->validateCredentials($username, $password)) {
-        // Registrar intento fallido
+        // Registrar intento fallido (silenciar si la tabla no existe)
         $unlock = time() + $lockMinutes * 60;
-        if ($fla) {
-            $db->prepare(
-                'UPDATE WEBENGINE_FLA SET failed_attempts = failed_attempts + 1, unlock_timestamp = ?, timestamp = ? WHERE ip_address = ?'
-            )->execute([$unlock, time(), $ip]);
-        } else {
-            $db->prepare(
-                'INSERT INTO WEBENGINE_FLA (username, ip_address, failed_attempts, unlock_timestamp, timestamp) VALUES (?,?,1,?,?)'
-            )->execute([$username, $ip, $unlock, time()]);
-        }
+        try {
+            if ($fla) {
+                $db->prepare(
+                    'UPDATE WEBENGINE_FLA SET failed_attempts = failed_attempts + 1, unlock_timestamp = ?, timestamp = ? WHERE ip_address = ?'
+                )->execute([$unlock, time(), $ip]);
+            } else {
+                $db->prepare(
+                    'INSERT INTO WEBENGINE_FLA (username, ip_address, failed_attempts, unlock_timestamp, timestamp) VALUES (?,?,1,?,?)'
+                )->execute([$username, $ip, $unlock, time()]);
+            }
+        } catch (Throwable) {}
 
         http_response_code(401);
         echo json_encode(['error' => 'Usuario o contraseña incorrectos.']);
@@ -87,8 +94,7 @@ try {
     }
 
     // ── Login exitoso ──
-    // Limpiar intentos fallidos
-    $db->prepare('DELETE FROM WEBENGINE_FLA WHERE ip_address = ?')->execute([$ip]);
+    try { $db->prepare('DELETE FROM WEBENGINE_FLA WHERE ip_address = ?')->execute([$ip]); } catch (Throwable) {}
 
     $account = $repo->getByUsername($username);
     if (!$account) {
@@ -114,5 +120,9 @@ try {
 
 } catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Error interno del servidor.']);
+    $payload = ['error' => 'Error interno del servidor.'];
+    if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
+        $payload['debug'] = $e->getMessage();
+    }
+    echo json_encode($payload);
 }

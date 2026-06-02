@@ -309,6 +309,63 @@ Cloudflare Pages va a servir el contenido de `dist/` automáticamente en cada pu
 
 ---
 
+## Gotchas técnicos (errores conocidos resueltos)
+
+### PDO/sqlsrv — Named parameters no se pueden reutilizar
+A diferencia de MySQL, `PDO_SQLSRV` no permite usar el mismo nombre de parámetro más de una
+vez en una query. Por ejemplo, `:u` aparece tanto en `VALUES` como dentro de `fn_md5(:p, :u)`.
+
+**Síntoma:** `SQLSTATE[07002]: COUNT field incorrect or syntax error`
+**Solución aplicada:** usar `:u`, `:u2`, `:u3` como nombres distintos para el mismo valor.
+Afecta a `AccountRepository::validateCredentials()` y `AccountRepository::create()`.
+
+### INSERT en MEMB_INFO — schema local desactualizado (BLOQUEANTE en dev)
+El `script.sql` disponible es un **backup viejo** de la DB. El schema real de producción
+tiene columnas que no están en el backup local, entre ellas `CreatedAt`.
+
+**Síntoma actual:** `SQLSTATE[42S22]: Invalid column name 'CreatedAt'`
+**Causa raíz:** La DB local está restaurada desde un backup antiguo. El INSERT del sitio
+incluye columnas que en ese backup no existen todavía.
+
+**Resolución pendiente:** Obtener un dump nuevo de la DB de producción y restaurarlo
+localmente. Hasta entonces, el registro de cuentas no funciona en el entorno de desarrollo.
+No afecta producción — la DB real sí tiene esas columnas.
+
+**Columnas a verificar en el nuevo dump antes de continuar:**
+- `MEMB_INFO`: `CreatedAt`, `AccountLevel`, `Lock`, `AccountExpireDate`, `WarehouseCount`, `ShowBanner`
+- Confirmar tipos y si tienen DEFAULT values definidos en el schema real.
+
+### WEBENGINE_FLA — puede no existir en entornos sin WebEngine
+El anti-brute-force de login usa esta tabla. Si la DB solo tiene las tablas del juego (sin las
+tablas WEBENGINE_*), el login fallaba con error 500.
+**Solución aplicada:** todas las operaciones sobre `WEBENGINE_FLA` están envueltas en
+try/catch — si la tabla no existe, el anti-brute force se saltea silenciosamente.
+En producción donde WebEngine sí existe, la tabla va a estar y va a funcionar normalmente.
+
+### fn_md5 — no está en script.sql, viene con MuEmu Louis
+La función `[dbo].[fn_md5]` existe en la DB de producción (la instala MuEmu Louis) pero no
+se exporta en dumps normales. Por eso no está en `script.sql`.
+
+**Entorno local (desarrollo):**
+- `DB_USE_MD5=false` en `.env` → contraseñas en texto plano para testear.
+- Las cuentas de dev NO son compatibles con el cliente del juego (esperado — es dev).
+- Si se quiere compatibilidad total, crear la función con `db/schema/fn_md5.sql`:
+  1. Abrir SSMS → conectar a `localhost\SQLEXPRESS01` → base `MuOnline`
+  2. Verificar primero la definición real en el VPS: `SELECT OBJECT_DEFINITION(OBJECT_ID('dbo.fn_md5'));`
+  3. Si coincide con `fn_md5.sql`, ejecutarlo. Si no, actualizar el script y luego ejecutarlo.
+
+**Producción (VPS):**
+- `DB_USE_MD5=true` en `.env` → usa `fn_md5` del GameServer (ya existe).
+- No tocar la función en la DB de producción.
+
+### APP_SECRET — obligatorio para el login
+El login genera tokens firmados con HMAC-SHA256. `APP_SECRET` debe estar en el `.env`.
+- **Local (desarrollo):** cualquier string de 16+ chars alcanza.
+- **Producción:** generar con `php -r "echo bin2hex(random_bytes(32));"` y ponerlo en el
+  `.env` del VPS. **Nunca commitear.**
+
+---
+
 ## Notas adicionales
 
 - **`data/info.json`** — editar directamente en el repo local. Al hacer push, Cloudflare Pages vuelve a deployar el frontend que al cargar pide el JSON al VPS. No hay paso extra.
