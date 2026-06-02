@@ -5,6 +5,7 @@
 
 ---
 
+
 ## Requisitos previos en el VPS
 
 - Windows Server con SQL Server Express corriendo (instancia `SQLEXPRESS01` o similar).
