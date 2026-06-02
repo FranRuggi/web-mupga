@@ -19,9 +19,14 @@ try {
     $db = Database::get();
 
     $guild = $db->prepare(
-        "SELECT G_Name, G_Master, G_Score, G_Count,
-                CONVERT(varchar(max), G_Mark, 2) AS G_Mark_Hex
-         FROM Guild WHERE G_Name = ?"
+        "SELECT g.G_Name, g.G_Master,
+                SUM(ISNULL(c.ResetCount, 0)) AS G_Score,
+                CONVERT(varchar(max), g.G_Mark, 2) AS G_Mark_Hex
+         FROM Guild g
+         LEFT JOIN GuildMember gm ON gm.G_Name = g.G_Name
+         LEFT JOIN Character   c  ON c.Name    = gm.Name
+         WHERE g.G_Name = ?
+         GROUP BY g.G_Name, g.G_Master, g.G_Mark"
     );
     $guild->execute([$name]);
     $g = $guild->fetch();
@@ -42,11 +47,13 @@ try {
     );
     $members->execute([$name]);
 
+    $memberList = $members->fetchAll();
+
     echo json_encode([
         'name'    => $g['G_Name'],
         'master'  => $g['G_Master'],
         'score'   => (int) $g['G_Score'],
-        'count'   => (int) $g['G_Count'],
+        'count'   => count($memberList),        // G_Count no lo actualiza el GS en tiempo real
         'members' => array_map(fn($m) => [
             'name'    => $m['Name'],
             'class'   => (int) ($m['Class'] ?? 0),
@@ -54,7 +61,7 @@ try {
             'resets'  => (int) ($m['ResetCount'] ?? 0),
             'rank'    => (int) ($m['G_Level'] ?? 0),
             'status'  => (int) ($m['G_Status'] ?? 0),
-        ], $members->fetchAll()),
+        ], $memberList),
     ], JSON_THROW_ON_ERROR);
 
 } catch (Throwable $e) {

@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     <div class="profile-card profile-avatar-card">
       <div class="profile-guild-name" style="font-size:2rem">🏰</div>
-      <div class="profile-stat-row"><span class="profile-stat-label">Puntuación</span>
+      <div class="profile-stat-row"><span class="profile-stat-label">Resets totales</span>
         <span class="profile-stat-value">${data.score.toLocaleString('es-AR')}</span></div>
       <div class="profile-stat-row"><span class="profile-stat-label">Miembros</span>
         <span class="profile-stat-value">${data.count}</span></div>
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div class="profile-stat-row">
             <span class="profile-stat-label">
               <a class="rank-name-link" href="${BASE}/player/?name=${encodeURIComponent(m.name)}">${esc(m.name)}</a>
-              ${m.status === 0 ? ' 👑' : ''}
+              ${m.name === data.master ? ' 👑' : ''}
             </span>
             <span class="profile-stat-value">${esc(className(m.class))} · Nv${m.level} · ${m.resets} RST</span>
           </div>`).join('')}

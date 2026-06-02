@@ -21,7 +21,7 @@ async function cachedFetch(url) {
 
 // ISO 2 → emoji de bandera (ej: "AR" → 🇦🇷)
 const flag = iso => iso
-  ? String.fromCodePoint(...[...iso.toUpperCase()].map(c => 0x1F1E0 + c.charCodeAt(0) - 65))
+  ? `<img src="https://flagcdn.com/16x12/${iso.toLowerCase()}.png" alt="${esc(iso)}" title="${esc(iso)}" style="width:16px;height:12px;vertical-align:middle;border-radius:2px;margin-right:3px">`
   : '';
 
 const TABS = [
@@ -29,7 +29,7 @@ const TABS = [
   { type: 'level',        label: 'Nivel',         stat: 'level',        statLabel: 'Nivel'     },
   { type: 'masterresets', label: 'Master Resets', stat: 'masterResets', statLabel: 'M. Resets' },
   { type: 'kills',        label: 'PK Killers',    stat: 'pkCount',      statLabel: 'Kills'     },
-  { type: 'guilds',       label: 'Guilds',        stat: 'score',        statLabel: 'Puntos'    },
+  { type: 'guilds',       label: 'Guilds',        stat: 'score',        statLabel: 'Resets'    },
 ];
 
 // ── Renderizadores ────────────────────────────────────────

@@ -145,14 +145,24 @@ class RankingsRepository {
     // Guilds
     // -------------------------------------------------------------------------
 
+    /**
+     * Ranking de guilds por suma de ResetCount de sus miembros.
+     * G_Score no es usado por este servidor (siempre 0), así que se
+     * rankea por progresión real: total de resets acumulados del guild.
+     */
     public function getGuildsByScore(int $limit = 100, array $excludeGuilds = []): array {
-        $ex   = $this->buildExcludeList($excludeGuilds);
+        $ex = $this->buildExcludeList($excludeGuilds);
         return $this->pdo->query(
             "SELECT TOP {$limit}
-                 G_Name, G_Master, G_Score, G_Count,
-                 CONVERT(varchar(max), G_Mark, 2) AS G_Mark_Hex
-             FROM Guild
-             WHERE G_Name NOT IN ({$ex})
+                 g.G_Name, g.G_Master,
+                 SUM(ISNULL(c.ResetCount, 0)) AS G_Score,
+                 COUNT(gm.Name)               AS G_Count,
+                 CONVERT(varchar(max), g.G_Mark, 2) AS G_Mark_Hex
+             FROM Guild g
+             LEFT JOIN GuildMember gm ON gm.G_Name = g.G_Name
+             LEFT JOIN Character   c  ON c.Name    = gm.Name
+             WHERE g.G_Name NOT IN ({$ex})
+             GROUP BY g.G_Name, g.G_Master, g.G_Mark
              ORDER BY G_Score DESC"
         )->fetchAll();
     }
