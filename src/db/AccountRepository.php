@@ -119,21 +119,31 @@ class AccountRepository {
      * Inserta en MEMB_INFO y crea la fila de CashShopData con saldo cero.
      */
     public function create(string $username, string $password, string $email): bool {
-        $serial = '1111111111111';
+        // sno__numb es char(18) — rellenar hasta 18 con espacios
+        $serial = str_pad('1111111111111', 18);
 
         if (($_ENV['DB_USE_MD5'] ?? 'true') === 'true') {
             $stmt = $this->pdo->prepare(
                 'INSERT INTO MEMB_INFO
-                    (memb___id, memb__pwd, memb_name, sno__numb, mail_addr, bloc_code, ctl1_code)
+                    (memb___id, memb__pwd, memb_name, sno__numb, mail_addr,
+                     bloc_code, ctl1_code, AccountLevel, Lock,
+                     AccountExpireDate, CreatedAt, WarehouseCount, ShowBanner)
                  VALUES
-                    (:u, [dbo].[fn_md5](:p, :u), :u, :s, :e, 0, 0)'
+                    (:u, [dbo].[fn_md5](:p, :u), :u, :s, :e,
+                     0, 0, 0, 0,
+                     GETDATE(), GETDATE(), 0, 0)'
             );
             $stmt->execute([':u' => $username, ':p' => $password, ':s' => $serial, ':e' => $email]);
         } else {
             $stmt = $this->pdo->prepare(
                 'INSERT INTO MEMB_INFO
-                    (memb___id, memb__pwd, memb_name, sno__numb, mail_addr, bloc_code, ctl1_code)
-                 VALUES (?, ?, ?, ?, ?, 0, 0)'
+                    (memb___id, memb__pwd, memb_name, sno__numb, mail_addr,
+                     bloc_code, ctl1_code, AccountLevel, Lock,
+                     AccountExpireDate, CreatedAt, WarehouseCount, ShowBanner)
+                 VALUES
+                    (?, ?, ?, ?, ?,
+                     0, 0, 0, 0,
+                     GETDATE(), GETDATE(), 0, 0)'
             );
             $stmt->execute([$username, $password, $username, $serial, $email]);
         }

@@ -41,8 +41,13 @@ $year    = date('Y');
       <a href="<?= $base ?>/"           class="nav-link">Inicio</a>
       <a href="<?= $base ?>/rankings/"  class="nav-link">Rankings</a>
       <a href="<?= $base ?>/info/"      class="nav-link">Info del servidor</a>
-      <a href="<?= $base ?>/login/"     class="nav-link">Login</a>
-      <a href="<?= $base ?>/register/"  class="nav-link nav-cta">Registrarme</a>
+      <a href="<?= $base ?>/donate/"    class="nav-link">WCoin</a>
+      <!-- Links para usuarios NO autenticados (JS los oculta si hay sesión) -->
+      <a href="<?= $base ?>/login/"     class="nav-link"     data-guest-show>Login</a>
+      <a href="<?= $base ?>/register/"  class="nav-link nav-cta" data-guest-show>Registrarme</a>
+      <!-- Links para usuarios autenticados (JS los muestra si hay sesión) -->
+      <a href="<?= $base ?>/usercp/"    class="nav-link"     data-auth-show hidden>Mi cuenta</a>
+      <a href="#" id="nav-logout"       class="nav-link"     data-auth-show hidden>Salir</a>
     </nav>
   </header>
 
@@ -82,6 +87,7 @@ $year    = date('Y');
 </div>
 
 <script src="<?= $base ?>/assets/js/app.js" defer></script>
+<script src="<?= $base ?>/assets/js/auth.js" defer></script>
 <?php if (!empty($extraJs)): ?>
 <script src="<?= $base ?>/assets/js/<?= htmlspecialchars($extraJs) ?>" defer></script>
 <?php endif; ?>

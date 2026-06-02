@@ -22,6 +22,27 @@
 
 ---
 
+## Estado del Paso 1 (actualizado Fase 4 — 2026-06-01)
+
+Los siguientes ítems del Paso 1 ya están **implementados** en el código:
+
+| Ítem | Estado | Archivo |
+|------|--------|---------|
+| `_cors.php` creado | ✅ Hecho | `src/public/api/_cors.php` |
+| CORS aplicado a nuevos endpoints auth y account | ✅ Hecho | `api/auth/*.php`, `api/account/*.php` |
+| `TokenService.php` (auth tokens) | ✅ Hecho | `src/lib/TokenService.php` |
+| `Auth.php` middleware | ✅ Hecho | `src/lib/Auth.php` |
+| `APP_SECRET` en `.env.example` | ✅ Hecho | `.env.example` |
+| `CORS_ALLOWED_ORIGINS` en `.env.example` | ✅ Hecho | `.env.example` |
+| `DONATION_URL` en `.env.example` (único punto de config de pagos) | ✅ Hecho | `.env.example` |
+
+**Pendiente del Paso 1:**
+- [ ] Aplicar `_cors.php` a los endpoints existentes: `online.php`, `serverinfo.php`, `rankings.php`, `infodata.php`
+- [ ] Crear `config.js` y actualizar `app.js` para la URL de API (necesario para Pages + VPS separados)
+- [ ] Generar `dist/` con HTML estático de cada página
+
+---
+
 ## Paso 1 — Cambios de código necesarios antes de migrar
 
 Estos cambios se hacen en el repo local y se suben al repo de GitHub.
@@ -259,12 +280,16 @@ Cloudflare Pages va a servir el contenido de `dist/` automáticamente en cada pu
 ## Checklist de migración
 
 ### Código (pendiente antes de migrar)
-- [ ] Crear `src/public/api/_cors.php` y aplicar en todos los endpoints
+- [x] Crear `src/public/api/_cors.php` — ✅ 2026-06-01
+- [x] `APP_SECRET`, `CORS_ALLOWED_ORIGINS`, `DONATION_URL` en `.env.example` — ✅ 2026-06-01
+- [ ] Aplicar `_cors.php` a endpoints existentes (online, serverinfo, rankings, infodata)
 - [ ] Crear `src/public/assets/js/config.js` con la URL del VPS
-- [ ] Actualizar `app.js` para usar `config.js` en lugar de `data-base-url`
+- [ ] Actualizar `app.js` para usar `config.js` en lugar de `data-base-url` (compatibilidad Pages separado)
 - [ ] Generar `dist/` con los HTML estáticos de cada página
 - [ ] Agregar `config.js` en cada HTML de `dist/`
 - [ ] Agregar `data/info.json` con valores reales (reemplazar PLACEHOLDERs)
+- [ ] Generar `APP_SECRET` real en el VPS: `php -r "echo bin2hex(random_bytes(32));"`
+- [ ] Configurar `DONATION_URL` en el `.env` del VPS cuando la plataforma de pagos esté lista
 
 ### VPS
 - [ ] XAMPP instalado y Apache corriendo

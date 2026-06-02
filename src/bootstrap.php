@@ -17,3 +17,6 @@ require_once SRC_ROOT . '/db/AccountRepository.php';
 require_once SRC_ROOT . '/db/CharacterRepository.php';
 require_once SRC_ROOT . '/db/RankingsRepository.php';
 require_once SRC_ROOT . '/db/CreditsRepository.php';
+
+require_once SRC_ROOT . '/lib/TokenService.php';
+require_once SRC_ROOT . '/lib/Auth.php';

@@ -3,7 +3,7 @@
 > **Checklist vivo.** Claude Code lo actualiza al completar cada tarea: marcar `[x]`, y
 > agregar una línea con fecha en "Registro de cambios" al final.
 
-**Estado actual:** Fase 3 completada. Listo para Fase 4 (features).
+**Estado actual:** Fase 4 completada. Listo para revisión y ajustes finales.
 **Última actualización:** 2026-06-01
 
 ---
@@ -49,11 +49,12 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] Fix base URL robusto para subdirectorios (rankings/, info/) — 2026-06-01
 
 ## Fase 4 — Features por capacidad
-- [ ] Rankings (resets, PvP, guilds)
-- [ ] Registro de cuenta + login
-- [ ] Panel de cuenta (estado VIP, saldo WCoin)
-- [ ] CashShop / WCoin
-- [ ] Otros, según lo que habilite la matriz de capacidades
+- [x] Rankings (resets, nivel, master, PK, guilds) — completado en Fase 3
+- [x] Registro de cuenta + login (token-based, HMAC-SHA256) — 2026-06-01
+- [x] Panel de cuenta (VIP, WCoin, personajes, cambio password/email) — 2026-06-01
+- [x] Página de donaciones (UI + placeholder DONATION_URL en .env) — 2026-06-01
+- [x] CORS listo para Pages + VPS separados (`_cors.php`) — 2026-06-01
+- [ ] Completar datos/info.json con valores reales del servidor
 
 ## Fase 5 — Deploy y testing
 - [ ] Pipeline local → VPS
@@ -79,3 +80,8 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-01 — [Fase 3] Layout base, home page, 3 API endpoints JSON, design system CSS completo, app.js vanilla
 - 2026-06-01 — [Fase 3] Rankings con tabs + auto-refresh 2min, Info del servidor dinámica desde data/info.json
 - 2026-06-01 — [Fase 3] Creado migration.md con guía paso a paso para Cloudflare Pages + VPS
+- 2026-06-01 — [Fase 4] Auth token-based (HMAC-SHA256): TokenService, Auth middleware, login, register
+- 2026-06-01 — [Fase 4] Panel de cuenta: profile, balance, changepassword, changeemail
+- 2026-06-01 — [Fase 4] Página de donaciones: UI completa, DONATION_URL en .env (único punto de config)
+- 2026-06-01 — [Fase 4] Nav dinámica según sesión (data-auth-show / data-guest-show)
+- 2026-06-01 — [Fase 4] _cors.php listo para Pages + VPS separados; migration.md actualizado
