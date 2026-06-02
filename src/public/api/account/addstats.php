@@ -40,9 +40,6 @@ if (!$charName) {
 if ($totalToAdd === 0) {
     http_response_code(400); echo json_encode(['error' => 'Debés agregar al menos 1 punto.']); exit;
 }
-if ($totalToAdd > 500) {
-    http_response_code(400); echo json_encode(['error' => 'Máximo 500 puntos por operación.']); exit;
-}
 
 try {
     $db   = Database::get();

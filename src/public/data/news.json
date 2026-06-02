@@ -1,0 +1,23 @@
+[
+  {
+    "title": "¡Bienvenidos a MuPGA Season 6!",
+    "date": "2026-06-01",
+    "category": "Anuncio",
+    "summary": "El servidor está oficialmente en línea. Registrate, descargá el cliente y entrá a jugar.",
+    "content": "Después de meses de preparación, MuPGA Season 6 está en línea. Podés registrar tu cuenta desde esta misma página, descargar el cliente en la sección Descargas y conectarte al servidor. ¡Nos vemos en el juego!"
+  },
+  {
+    "title": "Rates del servidor",
+    "date": "2026-06-01",
+    "category": "Info",
+    "summary": "EXP, Drop y demás configuraciones del servidor para que sepas qué esperar.",
+    "content": "Los rates actuales son: EXP 50x, Drop 30%, Zen 3x. Consultá la página Info del servidor para el listado completo de configuraciones, comandos disponibles y eventos activos."
+  },
+  {
+    "title": "Mantenimiento programado",
+    "date": "2026-06-02",
+    "category": "Mantenimiento",
+    "summary": "Mantenimiento de rutina. El servidor estará offline aproximadamente 30 minutos.",
+    "content": "Se realizará un mantenimiento de rutina el próximo fin de semana. El servidor estará offline por aproximadamente 30 minutos. Seguinos en Discord para actualizaciones en tiempo real."
+  }
+]

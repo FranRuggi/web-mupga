@@ -8,28 +8,36 @@
 
 /* ── Variables ─────────────────────────────────────────────── */
 :root {
-  --bg:            #14111f;
-  --bg-mid:        #1c1830;
-  --bg-surface:    #23203a;
-  --bg-raised:     #2d2850;
+  /* ── Fondos (de negro puro hacia arriba) ── */
+  --bg:            #09080f;   /* body — casi negro */
+  --bg-mid:        #0e0c1b;   /* sidebar, zonas laterales */
+  --bg-surface:    #131124;   /* cards y paneles */
+  --bg-raised:     #1b1830;   /* hover / elementos elevados */
 
+  /* ── Borde neutro (definido explícitamente) ── */
+  --border:        rgba(255,255,255,0.07);
+
+  /* ── Oro ── */
   --gold:          #c8a84b;
   --gold-light:    #f0d080;
   --gold-dim:      #6e5a20;
-  --gold-glow:     rgba(200, 168, 75, 0.22);
-  --gold-border:   rgba(200, 168, 75, 0.38);
+  --gold-glow:     rgba(200, 168, 75, 0.18);
+  --gold-border:   rgba(200, 168, 75, 0.32);
 
-  --purple:        #7c3fc4;
-  --purple-light:  #a855f7;
-  --purple-glow:   rgba(124, 63, 196, 0.32);
-  --purple-border: rgba(124, 63, 196, 0.28);
+  /* ── Violeta — más vibrante para que resalte sobre el negro ── */
+  --purple:        #9147e8;
+  --purple-light:  #b87fff;
+  --purple-glow:   rgba(145, 71, 232, 0.28);
+  --purple-border: rgba(145, 71, 232, 0.22);
 
-  --cyan:          #00b4d8;
-  --cyan-glow:     rgba(0, 180, 216, 0.3);
+  /* ── Cyan ── */
+  --cyan:          #00c4ea;
+  --cyan-glow:     rgba(0, 196, 234, 0.28);
 
-  --text:          #d4cdf0;
-  --text-dim:      #9088b8;
-  --text-bright:   #f0ecff;
+  /* ── Texto — legible sobre el negro profundo ── */
+  --text:          #e8e4f4;
+  --text-dim:      #a099be;
+  --text-bright:   #f5f2ff;
 
   --font-display:  'Cinzel Decorative', 'Cinzel', serif;
   --font-title:    'Cinzel', serif;
@@ -127,7 +135,7 @@ h1, h2, h3, h4 {
   top: 0;
   z-index: 200;
   height: var(--header-h);
-  background: rgba(13, 11, 20, 0.94);
+  background: color-mix(in srgb, var(--bg-mid) 96%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--purple-border);
@@ -435,9 +443,9 @@ h1, h2, h3, h4 {
   padding: var(--gap-xl) var(--gap-lg);
   /* Fallback CSS gradient if no hero image */
   background:
-    radial-gradient(ellipse 70% 90% at 25% 60%, rgba(124,63,196,0.28) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 60% at 75% 25%, rgba(200,168,75,0.12) 0%, transparent 50%),
-    linear-gradient(160deg, #0d0b14 0%, #130d28 50%, #0d0b14 100%);
+    radial-gradient(ellipse 70% 90% at 25% 60%, rgba(145,71,232,0.42) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 75% 25%, rgba(200,168,75,0.14) 0%, transparent 50%),
+    linear-gradient(160deg, #06050c 0%, #0e0922 50%, #06050c 100%);
 }
 
 /* Grid pattern overlay — geometric depth */
@@ -446,8 +454,8 @@ h1, h2, h3, h4 {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(124,63,196,0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(124,63,196,0.06) 1px, transparent 1px);
+    linear-gradient(rgba(145,71,232,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(145,71,232,0.08) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse 80% 100% at 50% 50%, black 30%, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 80% 100% at 50% 50%, black 30%, transparent 80%);
@@ -950,7 +958,8 @@ h1, h2, h3, h4 {
 .page-hero {
   padding: var(--gap-xl) var(--gap-lg) var(--gap-lg);
   background:
-    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(124,63,196,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 100% at 15% 50%, rgba(145,71,232,0.32) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 90% 20%, rgba(145,71,232,0.12) 0%, transparent 50%),
     var(--bg-mid);
   border-bottom: 1px solid var(--purple-border);
 }
@@ -1382,7 +1391,7 @@ h1, h2, h3, h4 {
 .char-item:hover { border-color: var(--gold-border); }
 
 /* ── Panel de Opciones de personaje ── */
-.game-options-card { border-color: rgba(0,180,216,0.25); }
+.game-options-card { border-color: var(--cyan-glow); }
 .game-options-desc {
   font-size: 0.85rem;
   color: var(--text-dim);
@@ -1632,7 +1641,7 @@ h1, h2, h3, h4 {
 }
 
 .profile-card {
-  background: #1a1825;
+  background: var(--bg-surface);
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: var(--radius);
   padding: var(--gap-lg);
@@ -1828,3 +1837,19 @@ h1, h2, h3, h4 {
   .balance-grid { grid-template-columns: repeat(3, 1fr); }
   .form-card { padding: var(--gap-lg) var(--gap-md); }
 }
+
+/* ── Noticias ── */
+.news-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius);
+  padding: var(--gap-md);
+  margin-bottom: var(--gap-md);
+  max-width: 860px;
+}
+.news-meta   { display:flex; gap:1rem; align-items:center; margin-bottom:.5rem; }
+.news-category { font-size:.68rem; font-family:var(--font-title); letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--gold-glow); border:1px solid var(--gold-border); padding:2px 8px; border-radius:20px; }
+.news-date   { font-size:.78rem; color:var(--text-dim); }
+.news-title  { font-family:var(--font-title); font-size:1.05rem; color:var(--text-bright); margin-bottom:.4rem; }
+.news-summary{ font-size:.88rem; color:var(--text); margin-bottom:.5rem; }
+.news-content{ font-size:.85rem; color:var(--text-dim); line-height:1.7; border-top:1px solid var(--border); padding-top:.75rem; margin-top:.5rem; }

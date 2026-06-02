@@ -116,7 +116,7 @@ ob_start();
     </div>
 
     <!-- ── Agregar puntos de stats ── -->
-    <div class="account-card game-options-card" id="addstats-card" style="display:none">
+    <div class="account-card game-options-card" id="addstats-card">
       <p class="account-card__title">➕ Agregar puntos de estadística</p>
       <p class="game-options-desc">
         Personaje seleccionado: <strong id="addstats-char-name">—</strong> ·

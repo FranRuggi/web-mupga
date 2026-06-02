@@ -40,6 +40,7 @@ $year    = date('Y');
     </button>
     <nav class="site-nav" aria-label="Navegación principal">
       <a href="<?= $base ?>/"            class="nav-link">Inicio</a>
+      <a href="<?= $base ?>/news/"      class="nav-link">Noticias</a>
       <a href="<?= $base ?>/rankings/"  class="nav-link">Rankings</a>
       <a href="<?= $base ?>/info/"      class="nav-link">Info</a>
       <a href="<?= $base ?>/downloads/" class="nav-link">Descargas</a>
@@ -88,6 +89,7 @@ $year    = date('Y');
 
 </div>
 
+<script src="<?= $base ?>/assets/js/config.js<?= $v ?>"></script>
 <script src="<?= $base ?>/assets/js/app.js<?= $v ?>" defer></script>
 <script src="<?= $base ?>/assets/js/auth.js<?= $v ?>" defer></script>
 <?php if (!empty($extraJs)): ?>

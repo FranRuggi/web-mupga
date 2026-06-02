@@ -4,8 +4,13 @@
    ============================================================ */
 
 // ── Config ──────────────────────────────────────────────────
-const BASE = (document.documentElement.dataset.baseUrl || '/').replace(/\/$/, '');
-const API  = `${BASE}/api`;
+// Prioridad: 1) data-base-url inyectado por PHP (VPS all-in-one)
+//            2) MUPGA_CONFIG.api de config.js (Cloudflare Pages + VPS separados)
+//            3) cadena vacía → URLs relativas
+const _phpBase    = document.documentElement.dataset.baseUrl ?? '';
+const _configBase = (typeof MUPGA_CONFIG !== 'undefined') ? MUPGA_CONFIG.api : '';
+const BASE = (_phpBase || _configBase).replace(/\/$/, '');
+const API  = BASE ? `${BASE}/api` : '/api';
 
 // ── Fetch helper ─────────────────────────────────────────────
 async function apiFetch(endpoint) {
@@ -163,6 +168,25 @@ async function loadTopPlayers() {
   `).join('');
 }
 
+// ── Últimas noticias (home) ─────────────────────────────────
+async function loadHomeNews() {
+  const el = document.getElementById('home-news');
+  if (!el) return;
+
+  const data = await apiFetch('newsdata.php');
+  if (!data?.length) return;
+
+  el.innerHTML = data.slice(0, 3).map((n, i) => `
+    <div class="card animate-in" style="animation-delay:${i * 0.08}s">
+      <div class="card-body">
+        <div class="card-meta">${esc(n.category)} · ${esc(n.date)}</div>
+        <h3 class="card-title">${esc(n.title)}</h3>
+        <p class="card-text">${esc(n.summary)}</p>
+        <a class="card-link" href="${BASE}/news/#news-${i}">Leer más</a>
+      </div>
+    </div>`).join('');
+}
+
 // ── Info cards (home) ────────────────────────────────────────
 async function loadInfoCards() {
   const el = document.getElementById('info-cards');
@@ -229,4 +253,5 @@ document.addEventListener('DOMContentLoaded', () => {
   loadServerInfo();
   loadTopPlayers();
   loadInfoCards();
+  loadHomeNews();
 });

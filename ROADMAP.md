@@ -3,7 +3,7 @@
 > **Checklist vivo.** Claude Code lo actualiza al completar cada tarea: marcar `[x]`, y
 > agregar una línea con fecha en "Registro de cambios" al final.
 
-**Estado actual:** Fase 4 completada + fixes de estabilidad. En curso: pulido UI y UserCP features.
+**Estado actual:** Fase 4 completa ✅ — iniciando Fase 5 (deploy al VPS).
 **Última actualización:** 2026-06-02
 
 ---
@@ -48,18 +48,44 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] Fix sidebar padding bottom — 2026-06-01
 - [x] Fix base URL robusto para subdirectorios (rankings/, info/) — 2026-06-01
 
-## Fase 4 — Features por capacidad
+## Fase 4 — Features por capacidad ✅
 - [x] Rankings (resets, nivel, master, PK, guilds) — completado en Fase 3
 - [x] Registro de cuenta + login (token-based, HMAC-SHA256) — 2026-06-01
 - [x] Panel de cuenta (VIP, WCoin, personajes, cambio password/email) — 2026-06-01
 - [x] Página de donaciones (UI + placeholder DONATION_URL en .env) — 2026-06-01
 - [x] CORS listo para Pages + VPS separados (`_cors.php`) — 2026-06-01
-- [ ] Completar datos/info.json con valores reales del servidor
+- [x] UserCP: Unstick, Clear PK, Reset Stats, Reset ML, Agregar Stats — 2026-06-02
+- [x] Perfil público de jugador (`/player/?name=X`) — 2026-06-02
+- [x] Página de descargas (`/downloads/`) con `data/downloads.json` — 2026-06-02
+- [x] config.js creado apuntando a `https://api.mupga.com.ar` — 2026-06-02
+- [ ] Completar `data/info.json` con valores reales del servidor (pendiente Franco)
+- [ ] Completar `data/downloads.json` con URLs reales del cliente (pendiente Franco)
 
 ## Fase 5 — Deploy y testing
-- [ ] Pipeline local → VPS
-- [ ] Pruebas contra la DB real en el VPS
-- [ ] Pasar `develop` a producción
+
+> Guía completa paso a paso en `docs/deploy.md`.
+
+### Código (ya listo en el repo)
+- [x] `.htaccess` con rewrite para Authorization header — 2026-06-02
+- [x] `.env.example` con todas las variables documentadas — 2026-06-01
+- [x] `config.js` con URL de producción (`https://api.mupga.com.ar`) — 2026-06-02
+- [x] `docs/deploy.md` con el paso a paso completo — 2026-06-02
+
+### VPS — pasos manuales (seguir `docs/deploy.md`)
+- [ ] Clonar el repo en el VPS (`C:\mupga\`)
+- [ ] Instalar extensión `pdo_sqlsrv` para la versión de PHP de XAMPP
+- [ ] Habilitar `mod_rewrite` en `httpd.conf`
+- [ ] Configurar VirtualHost en `httpd-vhosts.conf` con `AllowOverride All`
+- [ ] Crear `.env` de producción con `APP_SECRET` generado, `APP_ENV=production`
+- [ ] Reiniciar Apache
+- [ ] Verificar DNS Cloudflare: registro A `api` apuntando a IP del VPS
+
+### Testing en producción
+- [ ] `/api/online.php` responde `{"count":N}`
+- [ ] `/api/rankings.php?type=resets&limit=3` responde array JSON
+- [ ] Login y panel de cuenta (`/usercp/`) funcionan
+- [ ] Unstick / Clear PK / Agregar Stats funcionan contra DB real
+- [ ] Rankings excluyen cuentas admin configuradas en `.env`
 
 ---
 
@@ -104,3 +130,16 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-02 — [Feat] UserCP: endpoint addstats.php + panel "Agregar puntos de estadística" con inputs por stat
 - 2026-06-02 — [Feat] CharacterRepository.getByAccount incluye LevelUpPoint en la query
 - 2026-06-02 — [Feat] Página de descargas: downloads/index.php + downloads.js + data/downloads.json (placeholders)
+- 2026-06-02 — [Fix] UserCP addstats: panel ahora aparece al cargar (no solo al cambiar el select)
+- 2026-06-02 — [Fix] UserCP addstats: si no hay personajes oculta el panel; si hay, lo muestra con el primero seleccionado
+- 2026-06-02 — [Design] CSS: fondos profundizados hacia negro puro (#09080f/#0e0c1b/#131124)
+- 2026-06-02 — [Design] CSS: purple más vibrante (#9147e8) para destacar sobre negro; --border definido
+- 2026-06-02 — [Design] CSS: hero gradient reforzado (purple 42%), header usa variable de color, game-options-card usa --cyan-glow
+- 2026-06-02 — [Fix] addstats.php: eliminado límite de 500 puntos por operación
+- 2026-06-02 — [Fix] usercp.js: resetstats/resetml actualizan el contador "Puntos disponibles" en tiempo real usando new_points del response
+- 2026-06-02 — [Fase 5] config.js creado (apunta a api.mupga.com.ar en producción); app.js usa config.js como fallback
+- 2026-06-02 — [Fase 5] docs/deploy.md creado con guía completa de deploy en VPS Windows
+- 2026-06-02 — [Fase 5] ROADMAP.md: Fase 4 marcada completa, Fase 5 expandida con ítems de código vs VPS
+- 2026-06-02 — [Feat] Noticias: news/index.php + news.js + data/news.json (3 placeholders) + newsdata.php
+- 2026-06-02 — [Feat] Navbar: enlace a Noticias agregado
+- 2026-06-02 — [Design] Tipografía: --text #e8e4f4, --text-dim #a099be, --text-bright #f5f2ff

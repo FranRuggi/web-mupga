@@ -52,32 +52,13 @@ ob_start();
     </div>
   </section>
 
-  <!-- ── Últimas noticias (placeholder Fase 4) ── -->
+  <!-- ── Últimas noticias ── -->
   <section class="section section--alt">
     <h2 class="section-title">Últimas noticias</h2>
-    <div class="card-grid card-grid--3">
-      <div class="card">
-        <div class="card-body">
-          <div class="card-meta">Próximamente</div>
-          <h3 class="card-title">Noticias y actualizaciones del servidor</h3>
-          <p class="card-text">Las noticias, parches y eventos del servidor aparecerán aquí. ¡Seguí las novedades!</p>
-          <span class="card-link" style="pointer-events:none;opacity:0.4">Leer más</span>
-        </div>
-      </div>
-      <div class="card" style="opacity:0.35">
-        <div class="card-body">
-          <div class="card-meta" style="height:0.7rem" class="skeleton"></div>
-          <div class="skeleton" style="height:1rem;width:70%;margin:0.5rem 0;border-radius:4px"></div>
-          <div class="skeleton" style="height:3rem;border-radius:4px"></div>
-        </div>
-      </div>
-      <div class="card" style="opacity:0.2">
-        <div class="card-body">
-          <div class="skeleton" style="height:0.7rem;margin-bottom:0.5rem;border-radius:4px"></div>
-          <div class="skeleton" style="height:1rem;width:60%;margin-bottom:0.5rem;border-radius:4px"></div>
-          <div class="skeleton" style="height:3rem;border-radius:4px"></div>
-        </div>
-      </div>
+    <div id="home-news" class="card-grid card-grid--3">
+      <div class="card"><div class="card-body"><div class="skeleton" style="height:0.7rem;margin-bottom:.5rem;border-radius:4px"></div><div class="skeleton" style="height:1rem;width:70%;margin-bottom:.5rem;border-radius:4px"></div><div class="skeleton" style="height:3rem;border-radius:4px"></div></div></div>
+      <div class="card"><div class="card-body"><div class="skeleton" style="height:0.7rem;margin-bottom:.5rem;border-radius:4px"></div><div class="skeleton" style="height:1rem;width:60%;margin-bottom:.5rem;border-radius:4px"></div><div class="skeleton" style="height:3rem;border-radius:4px"></div></div></div>
+      <div class="card"><div class="card-body"><div class="skeleton" style="height:0.7rem;margin-bottom:.5rem;border-radius:4px"></div><div class="skeleton" style="height:1rem;width:65%;margin-bottom:.5rem;border-radius:4px"></div><div class="skeleton" style="height:3rem;border-radius:4px"></div></div></div>
     </div>
   </section>
 

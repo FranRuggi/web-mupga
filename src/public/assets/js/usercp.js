@@ -108,15 +108,27 @@ function renderCharacters(chars) {
 function populateCharSelect(chars) {
   const sel = document.getElementById('char-select');
   if (!sel) return;
-  sel.innerHTML = chars.length
-    ? chars.map(c => `<option value="${esc(c.name)}">${esc(c.name)} — ${esc(className(c.class))} Nv${c.level}</option>`).join('')
-    : '<option value="">Sin personajes</option>';
 
-  // Habilitar botones si hay personajes
-  const hasChars = chars.length > 0;
+  if (!chars.length) {
+    sel.innerHTML = '<option value="">Sin personajes</option>';
+    ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml'].forEach(id =>
+      document.getElementById(id)?.toggleAttribute('disabled', true)
+    );
+    const card = document.getElementById('addstats-card');
+    if (card) card.style.display = 'none';
+    return;
+  }
+
+  sel.innerHTML = chars.map(c =>
+    `<option value="${esc(c.name)}">${esc(c.name)} — ${esc(className(c.class))} Nv${c.level}</option>`
+  ).join('');
+
   ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml'].forEach(id =>
-    document.getElementById(id)?.toggleAttribute('disabled', !hasChars)
+    document.getElementById(id)?.toggleAttribute('disabled', false)
   );
+
+  // Mostrar el panel de stats con el primer personaje seleccionado
+  updateAddStatsPanel();
 }
 
 function initGameOptions() {
@@ -225,6 +237,13 @@ async function runCharAction(actionId, endpoint, msgId, btnLabel) {
   if (!res) return;
   const data = await res.json();
   showGameMsg(msgId, data.message ?? data.error, res.ok ? 'success' : 'error');
+
+  // Si la acción devuelve new_points (resetstats / resetml), refrescar el contador
+  if (res.ok && data.new_points !== undefined) {
+    const char = _characters.find(c => c.name === charName);
+    if (char) char.level_up_point = data.new_points;
+    document.getElementById('addstats-available').textContent = data.new_points;
+  }
 }
 
 function showGameMsg(id, msg, type) {
