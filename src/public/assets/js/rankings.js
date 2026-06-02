@@ -9,6 +9,21 @@ const RANKINGS_LIMIT   = 100;
 const REFRESH_INTERVAL = 2 * 60 * 1000;
 let   currentType      = 'resets';
 
+// Caché en memoria: evita re-fetch al cambiar de tab en los primeros 2 min
+const _cache = new Map(); // url → {raw, ts}
+async function cachedFetch(url) {
+  const hit = _cache.get(url);
+  if (hit && Date.now() - hit.ts < REFRESH_INTERVAL) return hit.raw;
+  const raw = await apiFetch(url);
+  if (raw) _cache.set(url, { raw, ts: Date.now() });
+  return raw;
+}
+
+// ISO 2 → emoji de bandera (ej: "AR" → 🇦🇷)
+const flag = iso => iso
+  ? String.fromCodePoint(...[...iso.toUpperCase()].map(c => 0x1F1E0 + c.charCodeAt(0) - 65))
+  : '';
+
 const TABS = [
   { type: 'resets',       label: 'Resets',       stat: 'resets',       statLabel: 'Resets'    },
   { type: 'level',        label: 'Nivel',         stat: 'level',        statLabel: 'Nivel'     },
@@ -30,6 +45,7 @@ function renderPlayerRow(p, pos, statKey, statLabel) {
            loading="lazy">
       <div>
         <div class="rank-name">
+          ${p.country ? `<span title="${esc(p.country)}">${flag(p.country)}</span> ` : ''}
           <a class="rank-name-link" href="${BASE}/player/?name=${encodeURIComponent(p.name)}">${esc(p.name)}</a>
           ${isMe ? '<span class="rank-me-badge">vos</span>' : ''}
         </div>
@@ -48,8 +64,8 @@ function renderGuildRow(g, i) {
       <span class="rank-pos">${i + 1}</span>
       <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;font-size:1.4rem">🏰</div>
       <div>
-        <div class="rank-name">${esc(g.name)}</div>
-        <div class="rank-class">Master: ${esc(g.master)}</div>
+        <div class="rank-name"><a class="rank-name-link" href="${BASE}/guild/?name=${encodeURIComponent(g.name)}">${esc(g.name)}</a></div>
+        <div class="rank-class">Master: <a class="rank-name-link" href="${BASE}/player/?name=${encodeURIComponent(g.master)}">${esc(g.master)}</a></div>
       </div>
       <div class="rank-stat">
         <span class="rank-stat__num">${esc(g.score)}</span>
@@ -112,7 +128,7 @@ async function loadRanking(type) {
   const container = document.getElementById('rankings-container');
   container.innerHTML = `<div class="rankings-loading">${skeletonRankRows(8)}</div>`;
 
-  const raw = await apiFetch(rankingUrl(type));
+  const raw = await cachedFetch(rankingUrl(type));
   if (!raw) {
     container.innerHTML = '<p class="state-message">Sin datos disponibles para este ranking.</p>';
     return;
@@ -133,7 +149,7 @@ async function loadRanking(type) {
 
 // ── Refresh silencioso ────────────────────────────────────
 async function silentRefresh() {
-  const raw = await apiFetch(rankingUrl(currentType));
+  const raw = await cachedFetch(rankingUrl(currentType));
   if (!raw) return;
 
   const container = document.getElementById('rankings-container');

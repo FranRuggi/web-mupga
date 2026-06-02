@@ -249,6 +249,21 @@ PK: `ID` (IDENTITY)
 
 ---
 
+### MUPGA_ACCOUNT_COUNTRY — País de registro (tabla propia del sitio)
+> Creada por el sitio custom. Script: `db/schema/mupga_tables.sql`.
+> **No es de WebEngine ni del GameServer.**
+
+| Columna       | Tipo              | Descripción                                        |
+|---------------|-------------------|----------------------------------------------------|
+| `Username`    | VARCHAR(10) PK    | FK lógica → MEMB_INFO.memb___id                   |
+| `CountryCode` | CHAR(2) NOT NULL  | Código ISO 3166-1 alpha-2 (ej: "AR", "BR", "US")  |
+| `RegisteredAt`| DATETIME NOT NULL | Fecha/hora de inserción (DEFAULT GETDATE())        |
+
+Usada en: `RankingsRepository` (LEFT JOIN para mostrar bandera en rankings).
+Escrita en: `api/auth/register.php` via ip-api.com al crear la cuenta.
+
+---
+
 ### Otras tablas de juego relevantes (solo lectura para el sitio)
 
 | Tabla                    | Descripción                                    |

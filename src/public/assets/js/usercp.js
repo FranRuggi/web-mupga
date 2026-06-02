@@ -55,6 +55,13 @@ function renderAccountInfo(data) {
     vipEl.innerHTML = isVip
       ? '<span class="badge badge--vip">⭐ VIP activo</span>'
       : '<span class="badge badge--normal">Sin VIP</span>';
+
+    const expireRow = document.getElementById('info-vip-expire-row');
+    const expireEl  = document.getElementById('info-vip-expire');
+    if (isVip && data.expire_date && expireRow && expireEl) {
+      expireEl.textContent = new Date(data.expire_date).toLocaleDateString('es-AR');
+      expireRow.style.display = '';
+    }
   }
 
   fill('info-created', data.created_at

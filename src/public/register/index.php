@@ -46,6 +46,11 @@ ob_start();
           <span class="field-error" id="err-email"></span>
         </div>
 
+        <?php if (!empty($_ENV['TURNSTILE_SITE_KEY'])): ?>
+        <div class="cf-turnstile" data-sitekey="<?= htmlspecialchars($_ENV['TURNSTILE_SITE_KEY']) ?>"
+             data-theme="dark" style="margin-bottom:1rem"></div>
+        <?php endif; ?>
+
         <div class="form-actions">
           <button class="btn btn-primary btn-full" type="submit" id="btn-register">Crear cuenta</button>
         </div>

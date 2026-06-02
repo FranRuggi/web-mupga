@@ -32,6 +32,9 @@ Fase activa: **Fase 1 — Ingeniería inversa** (ver roadmap).
 4. `htdocs/` es **solo referencia / lectura**. No modificar WebEngine. El sitio nuevo vive en `src/`.
 5. Nunca commitear credenciales ni datos de jugadores (ya cubierto en `.gitignore`).
    Credenciales del sitio → variables de entorno, jamás hardcodeadas.
+6. **Nunca usar tablas `WEBENGINE_*`.** Esas tablas pertenecen al CMS reemplazado
+   (WebEngine) y no existen en producción. Si una feature las necesita, implementar
+   tabla propia o documentar el caso como pendiente.
 
 ## Flujo de trabajo (importante)
 

@@ -59,6 +59,26 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 50) {
     fail('El email no es válido.', 'email');
 }
 
+// Verificar Turnstile solo si la clave secreta está configurada
+if (!empty($_ENV['TURNSTILE_SECRET_KEY'])) {
+    $token    = $body['cf-turnstile-response'] ?? '';
+    $verify   = file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false,
+        stream_context_create(['http' => [
+            'method'  => 'POST',
+            'header'  => 'Content-Type: application/x-www-form-urlencoded',
+            'content' => http_build_query([
+                'secret'   => $_ENV['TURNSTILE_SECRET_KEY'],
+                'response' => $token,
+                'remoteip' => $_SERVER['REMOTE_ADDR'] ?? '',
+            ]),
+        ]])
+    );
+    $result = $verify ? json_decode($verify, true) : null;
+    if (!($result['success'] ?? false)) {
+        fail('Verificación de seguridad fallida. Intentá de nuevo.', '', 400);
+    }
+}
+
 try {
     $db   = Database::get();
     $repo = new AccountRepository($db);
@@ -73,6 +93,20 @@ try {
 
     // Crear la cuenta (usa fn_md5 internamente para el password)
     $repo->create($username, $password, $email);
+
+    // Detectar país vía ip-api.com (sin key, gratuito, falla silenciosamente)
+    $ip  = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
+    $ip  = trim(explode(',', $ip)[0]); // primer IP si hay proxy
+    if ($ip && $ip !== '127.0.0.1' && $ip !== '::1') {
+        $geo = @file_get_contents("http://ip-api.com/json/{$ip}?fields=countryCode");
+        $geo = $geo ? json_decode($geo, true) : null;
+        if (!empty($geo['countryCode']) && strlen($geo['countryCode']) === 2) {
+            $stmt = $db->prepare(
+                'INSERT INTO MUPGA_ACCOUNT_COUNTRY (Username, CountryCode) VALUES (?, ?)'
+            );
+            @$stmt->execute([$username, strtoupper($geo['countryCode'])]);
+        }
+    }
 
     echo json_encode(['message' => '¡Cuenta creada con éxito! Ya podés iniciar sesión.'], JSON_THROW_ON_ERROR);
 

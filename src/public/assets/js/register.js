@@ -20,10 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     clearAlerts();
 
     const data = {
-      username:         document.getElementById('username').value.trim(),
-      password:         document.getElementById('password').value,
-      password_confirm: document.getElementById('password_confirm').value,
-      email:            document.getElementById('email').value.trim(),
+      username:              document.getElementById('username').value.trim(),
+      password:              document.getElementById('password').value,
+      password_confirm:      document.getElementById('password_confirm').value,
+      email:                 document.getElementById('email').value.trim(),
+      'cf-turnstile-response': document.querySelector('[name=cf-turnstile-response]')?.value ?? '',
     };
 
     setLoading(btnSubmit, true);

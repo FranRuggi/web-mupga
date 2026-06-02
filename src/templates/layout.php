@@ -89,6 +89,9 @@ $year    = date('Y');
 
 </div>
 
+<?php if (!empty($_ENV['TURNSTILE_SITE_KEY'])): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<?php endif; ?>
 <script src="<?= $base ?>/assets/js/config.js<?= $v ?>"></script>
 <script src="<?= $base ?>/assets/js/app.js<?= $v ?>" defer></script>
 <script src="<?= $base ?>/assets/js/auth.js<?= $v ?>" defer></script>

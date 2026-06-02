@@ -31,6 +31,10 @@ ob_start();
           <span class="account-info-row__label">Estado VIP</span>
           <span class="account-info-row__value" id="info-vip">—</span>
         </div>
+        <div class="account-info-row" id="info-vip-expire-row" style="display:none">
+          <span class="account-info-row__label">VIP vence</span>
+          <span class="account-info-row__value" id="info-vip-expire">—</span>
+        </div>
         <div class="account-info-row">
           <span class="account-info-row__label">Estado</span>
           <span class="account-info-row__value" id="info-online">—</span>

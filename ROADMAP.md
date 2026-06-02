@@ -141,5 +141,11 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-02 — [Fase 5] docs/deploy.md creado con guía completa de deploy en VPS Windows
 - 2026-06-02 — [Fase 5] ROADMAP.md: Fase 4 marcada completa, Fase 5 expandida con ítems de código vs VPS
 - 2026-06-02 — [Feat] Noticias: news/index.php + news.js + data/news.json (3 placeholders) + newsdata.php
+- 2026-06-02 — [Feat] Rankings: caché en memoria 2min (cachedFetch); loadRanking y silentRefresh usan caché
+- 2026-06-02 — [Feat] Guild profile: api/guild.php + guild/index.php + guild.js; nombres en ranking guild → links
+- 2026-06-02 — [Feat] Registro: Cloudflare Turnstile integrado (widget + verificación server-side); deshabilitado si TURNSTILE_SECRET_KEY vacío
+- 2026-06-02 — [Feat] UserCP VIP: muestra fecha de expiración (AccountExpireDate) solo cuando VIP activo
+- 2026-06-02 — [Doc] CLAUDE.md: regla 6 — nunca usar tablas WEBENGINE_*
+- 2026-06-02 — [Feat] Rankings país: tabla MUPGA_ACCOUNT_COUNTRY propia; ip-api.com al registrar; emoji bandera en ranking
 - 2026-06-02 — [Feat] Navbar: enlace a Noticias agregado
 - 2026-06-02 — [Design] Tipografía: --text #e8e4f4, --text-dim #a099be, --text-bright #f5f2ff

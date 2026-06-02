@@ -47,6 +47,7 @@ function normalizePlayerRow(array $r): array {
         'pkCount'      => (int) ($r['PkCount']      ?? 0),
         'pkLevel'      => (int) ($r['PkLevel']      ?? 0),
         'map'          => (int) ($r['MapNumber']    ?? 0),
+        'country'      => $r['CountryCode']         ?? null,
     ];
 }
 

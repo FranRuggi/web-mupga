@@ -39,50 +39,65 @@ class RankingsRepository {
     public function getByLevel(int $limit = 100, array $excluded = []): array {
         $where = $this->excludeClause($excluded);
         return $this->pdo->query(
-            "SELECT TOP {$limit} Name, Class, cLevel, ResetCount,
-                    ISNULL(MasterResetCount,0) AS MasterResetCount, MapNumber
-             FROM Character WHERE {$where}
-             ORDER BY cLevel DESC"
+            "SELECT TOP {$limit} c.Name, c.Class, c.cLevel, c.ResetCount,
+                    ISNULL(c.MasterResetCount,0) AS MasterResetCount, c.MapNumber,
+                    mac.CountryCode
+             FROM Character c
+             LEFT JOIN MUPGA_ACCOUNT_COUNTRY mac ON mac.Username = c.AccountID
+             WHERE {$where}
+             ORDER BY c.cLevel DESC"
         )->fetchAll();
     }
 
     public function getByResets(int $limit = 100, array $excluded = []): array {
         $where = $this->excludeClause($excluded);
         return $this->pdo->query(
-            "SELECT TOP {$limit} Name, Class, cLevel, ResetCount,
-                    ISNULL(MasterResetCount,0) AS MasterResetCount, MapNumber
-             FROM Character WHERE {$where} AND ResetCount > 0
-             ORDER BY ResetCount DESC, cLevel DESC"
+            "SELECT TOP {$limit} c.Name, c.Class, c.cLevel, c.ResetCount,
+                    ISNULL(c.MasterResetCount,0) AS MasterResetCount, c.MapNumber,
+                    mac.CountryCode
+             FROM Character c
+             LEFT JOIN MUPGA_ACCOUNT_COUNTRY mac ON mac.Username = c.AccountID
+             WHERE {$where} AND c.ResetCount > 0
+             ORDER BY c.ResetCount DESC, c.cLevel DESC"
         )->fetchAll();
     }
 
     public function getByMasterResets(int $limit = 100, array $excluded = []): array {
         $where = $this->excludeClause($excluded);
         return $this->pdo->query(
-            "SELECT TOP {$limit} Name, Class, cLevel, ResetCount,
-                    ISNULL(MasterResetCount,0) AS MasterResetCount, MapNumber
-             FROM Character WHERE {$where} AND ISNULL(MasterResetCount,0) > 0
-             ORDER BY MasterResetCount DESC, ResetCount DESC, cLevel DESC"
+            "SELECT TOP {$limit} c.Name, c.Class, c.cLevel, c.ResetCount,
+                    ISNULL(c.MasterResetCount,0) AS MasterResetCount, c.MapNumber,
+                    mac.CountryCode
+             FROM Character c
+             LEFT JOIN MUPGA_ACCOUNT_COUNTRY mac ON mac.Username = c.AccountID
+             WHERE {$where} AND ISNULL(c.MasterResetCount,0) > 0
+             ORDER BY c.MasterResetCount DESC, c.ResetCount DESC, c.cLevel DESC"
         )->fetchAll();
     }
 
     public function getByKills(int $limit = 100, array $excluded = []): array {
         $where = $this->excludeClause($excluded);
         return $this->pdo->query(
-            "SELECT TOP {$limit} Name, Class, cLevel,
-                    ISNULL(PkCount,0) AS PkCount, ISNULL(PkLevel,3) AS PkLevel, MapNumber
-             FROM Character WHERE {$where} AND ISNULL(PkCount,0) > 0
-             ORDER BY PkCount DESC"
+            "SELECT TOP {$limit} c.Name, c.Class, c.cLevel,
+                    ISNULL(c.PkCount,0) AS PkCount, ISNULL(c.PkLevel,3) AS PkLevel, c.MapNumber,
+                    mac.CountryCode
+             FROM Character c
+             LEFT JOIN MUPGA_ACCOUNT_COUNTRY mac ON mac.Username = c.AccountID
+             WHERE {$where} AND ISNULL(c.PkCount,0) > 0
+             ORDER BY c.PkCount DESC"
         )->fetchAll();
     }
 
     public function getByMasterLevel(int $limit = 100, array $excluded = []): array {
         $where = $this->excludeClause($excluded);
         return $this->pdo->query(
-            "SELECT TOP {$limit} Name, Class, cLevel,
-                    ISNULL(mLevel,0) AS mLevel, ResetCount, MapNumber
-             FROM Character WHERE {$where} AND ISNULL(mLevel,0) > 0
-             ORDER BY mLevel DESC, cLevel DESC"
+            "SELECT TOP {$limit} c.Name, c.Class, c.cLevel,
+                    ISNULL(c.mLevel,0) AS mLevel, c.ResetCount, c.MapNumber,
+                    mac.CountryCode
+             FROM Character c
+             LEFT JOIN MUPGA_ACCOUNT_COUNTRY mac ON mac.Username = c.AccountID
+             WHERE {$where} AND ISNULL(c.mLevel,0) > 0
+             ORDER BY c.mLevel DESC, c.cLevel DESC"
         )->fetchAll();
     }
 
