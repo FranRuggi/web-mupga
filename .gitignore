@@ -1,0 +1,10 @@
+# Credenciales y entorno
+.env
+script.sql
+
+# Build — generado por GitHub Actions, no commitear
+dist/
+
+# Sistema
+Thumbs.db
+.DS_Store

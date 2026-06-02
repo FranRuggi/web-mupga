@@ -4,13 +4,16 @@
    ============================================================ */
 
 // ── Config ──────────────────────────────────────────────────
-// Prioridad: 1) data-base-url inyectado por PHP (VPS all-in-one)
-//            2) MUPGA_CONFIG.api de config.js (Cloudflare Pages + VPS separados)
-//            3) cadena vacía → URLs relativas
-const _phpBase    = document.documentElement.dataset.baseUrl ?? '';
-const _configBase = (typeof MUPGA_CONFIG !== 'undefined') ? MUPGA_CONFIG.api : '';
-const BASE = (_phpBase || _configBase).replace(/\/$/, '');
-const API  = BASE ? `${BASE}/api` : '/api';
+// BASE : para assets y links de navegación.
+//   VPS all-in-one → PHP inyecta la URL completa (ej. https://api.mupga.com.ar)
+//   Cloudflare Pages → PHP no corre, data-base-url="", BASE='' → assets del CDN
+// API  : para fetch() al backend.
+//   VPS all-in-one → mismo dominio que BASE
+//   Cloudflare Pages → config.js provee https://api.mupga.com.ar
+const _phpBase  = (document.documentElement.dataset.baseUrl ?? '').replace(/\/$/, '');
+const _apiBase  = (typeof MUPGA_CONFIG !== 'undefined') ? MUPGA_CONFIG.api : '';
+const BASE = _phpBase;
+const API  = _phpBase ? `${_phpBase}/api` : (_apiBase ? `${_apiBase}/api` : '/api');
 
 // ── Fetch helper ─────────────────────────────────────────────
 async function apiFetch(endpoint) {

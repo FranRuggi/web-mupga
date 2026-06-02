@@ -70,6 +70,14 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] `.env.example` con todas las variables documentadas — 2026-06-01
 - [x] `config.js` con URL de producción (`https://api.mupga.com.ar`) — 2026-06-02
 - [x] `docs/deploy.md` con el paso a paso completo — 2026-06-02
+- [x] `build.php` + `build_runner.php` — generan `dist/` HTML estático para Cloudflare Pages — 2026-06-02
+- [x] `layout.php` modo CLI: `data-base-url=""` para que config.js maneje la URL — 2026-06-02
+- [x] `app.js` separación BASE (assets/nav) vs API (fetch al VPS) — 2026-06-02
+
+### Cloudflare Pages
+- [ ] Ejecutar `php build.php` y verificar `dist/` generado sin errores
+- [ ] Subir `dist/` a Cloudflare Pages (o conectar el repo con output dir = `dist`)
+- [ ] Configurar dominio custom en Pages (`mupga.com.ar`)
 
 ### VPS — pasos manuales (seguir `docs/deploy.md`)
 - [ ] Clonar el repo en el VPS (`C:\mupga\`)
@@ -140,6 +148,8 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-02 — [Fase 5] config.js creado (apunta a api.mupga.com.ar en producción); app.js usa config.js como fallback
 - 2026-06-02 — [Fase 5] docs/deploy.md creado con guía completa de deploy en VPS Windows
 - 2026-06-02 — [Fase 5] ROADMAP.md: Fase 4 marcada completa, Fase 5 expandida con ítems de código vs VPS
+- 2026-06-02 — [Fase 5] build.php + build_runner.php: generador de dist/ HTML estático por subprocess PHP aislado
+- 2026-06-02 — [Fase 5] layout.php: base vacía en CLI; app.js: BASE (assets) separado de API (VPS)
 - 2026-06-02 — [Feat] Noticias: news/index.php + news.js + data/news.json (3 placeholders) + newsdata.php
 - 2026-06-02 — [Feat] Rankings: caché en memoria 2min (cachedFetch); loadRanking y silentRefresh usan caché
 - 2026-06-02 — [Feat] Guild profile: api/guild.php + guild/index.php + guild.js; nombres en ranking guild → links

@@ -4,13 +4,16 @@
  * Variables esperadas: $pageTitle (string), $content (string), $extraJs (string|null)
  */
 
-// Base URL robusto: compara DOCUMENT_ROOT con la ubicación real de src/public/
-// Funciona en cualquier subdirectorio (rankings/, info/, etc.) sin depender de APP_BASE_URL.
-$docRoot = rtrim(str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'])), '/');
-$pubDir  = rtrim(str_replace('\\', '/', realpath(SRC_ROOT . '/public')), '/');
-$webPath = str_replace($docRoot, '', $pubDir); // '' para raíz, '/mupga' para subdir
-$scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$base    = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $webPath;
+// En modo CLI (build estático), base vacía — config.js maneja la URL del API.
+if (php_sapi_name() === 'cli') {
+    $base = '';
+} else {
+    $docRoot = rtrim(str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'])), '/');
+    $pubDir  = rtrim(str_replace('\\', '/', realpath(SRC_ROOT . '/public')), '/');
+    $webPath = str_replace($docRoot, '', $pubDir);
+    $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $base    = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $webPath;
+}
 
 $title   = htmlspecialchars($pageTitle ?? 'MuPGA', ENT_QUOTES);
 $year    = date('Y');
