@@ -7,7 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,7 +14,7 @@ jobs:
       - name: Instalar PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.0'
           extensions: none
 
       - name: Generar dist/
@@ -26,6 +25,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: mupga
+          projectName: web-mupga
           directory: dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
