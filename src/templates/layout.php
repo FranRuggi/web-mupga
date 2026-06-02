@@ -26,7 +26,8 @@ $year    = date('Y');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= $base ?>/assets/css/main.css">
+<?php $v = ($_ENV['APP_ENV'] ?? 'production') === 'development' ? '?v=' . time() : '?v=1'; ?>
+  <link rel="stylesheet" href="<?= $base ?>/assets/css/main.css<?= $v ?>">
 </head>
 <body>
 
@@ -38,9 +39,10 @@ $year    = date('Y');
       <span></span><span></span><span></span>
     </button>
     <nav class="site-nav" aria-label="Navegación principal">
-      <a href="<?= $base ?>/"           class="nav-link">Inicio</a>
+      <a href="<?= $base ?>/"            class="nav-link">Inicio</a>
       <a href="<?= $base ?>/rankings/"  class="nav-link">Rankings</a>
-      <a href="<?= $base ?>/info/"      class="nav-link">Info del servidor</a>
+      <a href="<?= $base ?>/info/"      class="nav-link">Info</a>
+      <a href="<?= $base ?>/downloads/" class="nav-link">Descargas</a>
       <a href="<?= $base ?>/donate/"    class="nav-link">WCoin</a>
       <!-- Links para usuarios NO autenticados (JS los oculta si hay sesión) -->
       <a href="<?= $base ?>/login/"     class="nav-link"     data-guest-show>Login</a>
@@ -86,10 +88,10 @@ $year    = date('Y');
 
 </div>
 
-<script src="<?= $base ?>/assets/js/app.js" defer></script>
-<script src="<?= $base ?>/assets/js/auth.js" defer></script>
+<script src="<?= $base ?>/assets/js/app.js<?= $v ?>" defer></script>
+<script src="<?= $base ?>/assets/js/auth.js<?= $v ?>" defer></script>
 <?php if (!empty($extraJs)): ?>
-<script src="<?= $base ?>/assets/js/<?= htmlspecialchars($extraJs) ?>" defer></script>
+<script src="<?= $base ?>/assets/js/<?= htmlspecialchars($extraJs) ?><?= $v ?>" defer></script>
 <?php endif; ?>
 </body>
 </html>

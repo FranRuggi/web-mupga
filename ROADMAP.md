@@ -3,8 +3,8 @@
 > **Checklist vivo.** Claude Code lo actualiza al completar cada tarea: marcar `[x]`, y
 > agregar una línea con fecha en "Registro de cambios" al final.
 
-**Estado actual:** Fase 4 completada. Listo para revisión y ajustes finales.
-**Última actualización:** 2026-06-01
+**Estado actual:** Fase 4 completada + fixes de estabilidad. En curso: pulido UI y UserCP features.
+**Última actualización:** 2026-06-02
 
 ---
 
@@ -85,3 +85,22 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-01 — [Fase 4] Página de donaciones: UI completa, DONATION_URL en .env (único punto de config)
 - 2026-06-01 — [Fase 4] Nav dinámica según sesión (data-auth-show / data-guest-show)
 - 2026-06-01 — [Fase 4] _cors.php listo para Pages + VPS separados; migration.md actualizado
+- 2026-06-02 — [Fix] Authorization header en Apache: .htaccess + Auth.php multicadena; login funcionando
+- 2026-06-02 — [Fix] changepassword devuelve 400 (no 401) cuando contraseña actual es incorrecta
+- 2026-06-02 — [Fix] Rankings: exclusión de admins por AccountID (RANKINGS_EXCLUDED_ACCOUNTS en .env)
+- 2026-06-02 — [Fix] Rankings: top 100, posición del jugador logueado con highlight cyan
+- 2026-06-02 — [Fix] UserCP: sección "Opciones de personaje" con Unstick y Limpiar PK
+- 2026-06-02 — [Fix] rankings.php: getPlayerCharacterRank aislado en try/catch para que columnas faltantes no maten toda la respuesta
+- 2026-06-02 — [Fix] app.js loadTopPlayers: normaliza respuesta array vs {rows,player}
+- 2026-06-02 — [Fix] CSS fondos más claros; cache-buster ?v= en layout para JS y CSS en dev
+- 2026-06-02 — [Fix] UserCP botones: textos cortos, layout flex corregido (text-overflow)
+- 2026-06-02 — [Feat] Rankings: exclusión por AccountID + Name (doble filtro admin)
+- 2026-06-02 — [Feat] UserCP: endpoints resetstats.php y resetml.php + botones en UI
+- 2026-06-02 — [Feat] Perfil público de jugador: api/player.php + player/index.php + player.js
+- 2026-06-02 — [Feat] Rankings y home: nombres de personajes clickeables → perfil público
+- 2026-06-02 — [Feat] Perfil público: diseño mejorado (neutro oscuro, separadores zebra, contraste)
+- 2026-06-02 — [Feat] UserCP: VIP muestra "VIP activo / Sin VIP" (AccountLevel 0 vs 3)
+- 2026-06-02 — [Fix] className() robusto: muestra código real si la clase no está mapeada
+- 2026-06-02 — [Feat] UserCP: endpoint addstats.php + panel "Agregar puntos de estadística" con inputs por stat
+- 2026-06-02 — [Feat] CharacterRepository.getByAccount incluye LevelUpPoint en la query
+- 2026-06-02 — [Feat] Página de descargas: downloads/index.php + downloads.js + data/downloads.json (placeholders)

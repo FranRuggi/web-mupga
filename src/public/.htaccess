@@ -1,0 +1,6 @@
+RewriteEngine On
+
+# Apache elimina el header Authorization antes de pasarlo a PHP.
+# Esta regla lo reinyecta como variable de entorno para que PHP lo lea.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

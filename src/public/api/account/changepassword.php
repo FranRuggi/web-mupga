@@ -47,7 +47,7 @@ try {
     $repo = new AccountRepository($db);
 
     if (!$repo->validateCredentials($auth['usr'], $current)) {
-        http_response_code(401);
+        http_response_code(400);
         echo json_encode(['error' => 'La contraseña actual es incorrecta.', 'field' => 'current_password']);
         exit;
     }

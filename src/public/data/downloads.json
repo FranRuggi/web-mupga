@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "id": "client-full",
+      "title": "Cliente MuPGA — Instalación completa",
+      "description": "Instalador completo del cliente del juego. Incluye todos los archivos necesarios para jugar desde cero.",
+      "version": "1.0",
+      "size": "PENDIENTE",
+      "url": "PENDIENTE"
+    },
+    {
+      "id": "client-patch",
+      "title": "Patch de actualización",
+      "description": "Parche para actualizar un cliente existente a la versión actual del servidor.",
+      "version": "1.0",
+      "size": "PENDIENTE",
+      "url": "PENDIENTE"
+    }
+  ]
+}

@@ -44,12 +44,113 @@ ob_start();
       <div class="account-card">
         <p class="account-card__title">Mis personajes</p>
         <div class="char-list" id="char-list">
-          <!-- usercp.js renderiza acá -->
           <div class="skeleton" style="height:52px;margin-bottom:0.5rem;border-radius:8px"></div>
           <div class="skeleton" style="height:52px;border-radius:8px"></div>
         </div>
       </div>
 
+    </div>
+
+    <!-- ── Opciones de personaje ── -->
+    <div class="account-card game-options-card" id="game-options-card">
+      <p class="account-card__title">⚔ Opciones de personaje</p>
+      <p class="game-options-desc">
+        Seleccioná tu personaje y aplicá las acciones disponibles.
+        Los cambios se aplican al servidor en tiempo real.
+      </p>
+
+      <div class="game-options-selector">
+        <label class="form-label" for="char-select">Personaje</label>
+        <select class="form-input" id="char-select">
+          <option value="">Cargando personajes...</option>
+        </select>
+      </div>
+
+      <div class="game-options-actions">
+
+        <div class="game-option-btn-group">
+          <button class="btn btn-secondary game-option-btn" id="btn-unstick" disabled>
+            <span class="game-option-icon">📍</span>
+            <span class="game-option-text">
+              <strong>Unstick</strong>
+              <small>Mover a Lorencia si quedaste trabado</small>
+            </span>
+          </button>
+          <div id="msg-unstick" class="alert" role="alert"></div>
+        </div>
+
+        <div class="game-option-btn-group">
+          <button class="btn btn-secondary game-option-btn" id="btn-clearpk" disabled>
+            <span class="game-option-icon">🕊</span>
+            <span class="game-option-text">
+              <strong>Limpiar PK</strong>
+              <small>Sacar el estado asesino del personaje</small>
+            </span>
+          </button>
+          <div id="msg-clearpk" class="alert" role="alert"></div>
+        </div>
+
+        <div class="game-option-btn-group">
+          <button class="btn btn-secondary game-option-btn" id="btn-resetstats" disabled>
+            <span class="game-option-icon">⚡</span>
+            <span class="game-option-text">
+              <strong>Resetear Stats</strong>
+              <small>Devolver puntos de estadísticas al pool</small>
+            </span>
+          </button>
+          <div id="msg-resetstats" class="alert" role="alert"></div>
+        </div>
+
+        <div class="game-option-btn-group">
+          <button class="btn btn-secondary game-option-btn" id="btn-resetml" disabled>
+            <span class="game-option-icon">🌀</span>
+            <span class="game-option-text">
+              <strong>Resetear Árbol ML</strong>
+              <small>Recuperar puntos del árbol maestro</small>
+            </span>
+          </button>
+          <div id="msg-resetml" class="alert" role="alert"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Agregar puntos de stats ── -->
+    <div class="account-card game-options-card" id="addstats-card" style="display:none">
+      <p class="account-card__title">➕ Agregar puntos de estadística</p>
+      <p class="game-options-desc">
+        Personaje seleccionado: <strong id="addstats-char-name">—</strong> ·
+        Puntos disponibles: <strong id="addstats-available">—</strong>
+      </p>
+      <div id="msg-addstats" class="alert" role="alert"></div>
+      <form id="form-addstats" class="addstats-form" novalidate>
+        <div class="addstats-grid">
+          <div class="addstats-row">
+            <label class="addstats-label" for="add-str">Fuerza</label>
+            <input class="form-input addstats-input" type="number" id="add-str" min="0" max="9999" value="0">
+          </div>
+          <div class="addstats-row">
+            <label class="addstats-label" for="add-agi">Agilidad</label>
+            <input class="form-input addstats-input" type="number" id="add-agi" min="0" max="9999" value="0">
+          </div>
+          <div class="addstats-row">
+            <label class="addstats-label" for="add-vit">Vitalidad</label>
+            <input class="form-input addstats-input" type="number" id="add-vit" min="0" max="9999" value="0">
+          </div>
+          <div class="addstats-row">
+            <label class="addstats-label" for="add-ene">Energía</label>
+            <input class="form-input addstats-input" type="number" id="add-ene" min="0" max="9999" value="0">
+          </div>
+          <div class="addstats-row" id="add-cmd-row" style="display:none">
+            <label class="addstats-label" for="add-cmd">Liderazgo</label>
+            <input class="form-input addstats-input" type="number" id="add-cmd" min="0" max="9999" value="0">
+          </div>
+        </div>
+        <div class="addstats-total">
+          Total a gastar: <strong id="addstats-total">0</strong> puntos
+        </div>
+        <button class="btn btn-primary" type="submit" id="btn-addstats">Agregar puntos</button>
+      </form>
     </div>
 
     <!-- ── Fila 2: Saldo WCoin ── -->

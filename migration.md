@@ -342,6 +342,19 @@ tablas WEBENGINE_*), el login fallaba con error 500.
 try/catch — si la tabla no existe, el anti-brute force se saltea silenciosamente.
 En producción donde WebEngine sí existe, la tabla va a estar y va a funcionar normalmente.
 
+### Apache elimina el header Authorization — requiere .htaccess
+Por defecto Apache no pasa el header `Authorization` a PHP. Sin esto, todos los endpoints
+protegidos (panel de cuenta, cambio de contraseña, etc.) devuelven 401 y el JS redirige al
+login con "sesión expirada", aunque el token sea válido.
+
+**Solución aplicada:**
+- `src/public/.htaccess` con la regla `RewriteRule` que reinyecta el header.
+- `Auth.php` busca el header en `HTTP_AUTHORIZATION`, `REDIRECT_HTTP_AUTHORIZATION` y
+  `getallheaders()` como fallbacks (cubre distintas configs de Apache/FastCGI).
+
+**En el VPS:** verificar que `mod_rewrite` esté habilitado en Apache y que el VirtualHost
+tenga `AllowOverride All` para que el `.htaccess` se aplique.
+
 ### fn_md5 — no está en script.sql, viene con MuEmu Louis
 La función `[dbo].[fn_md5]` existe en la DB de producción (la instala MuEmu Louis) pero no
 se exporta en dumps normales. Por eso no está en `script.sql`.

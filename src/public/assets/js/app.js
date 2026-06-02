@@ -63,7 +63,8 @@ function avatarSrc(classCode) {
 }
 
 function className(classCode) {
-  return CLASS_NAMES[classCode] || 'Desconocido';
+  const n = parseInt(classCode, 10);
+  return CLASS_NAMES[n] ?? (Number.isFinite(n) ? `Clase ${n}` : '—');
 }
 
 // ── Skeleton helpers ─────────────────────────────────────────
@@ -131,13 +132,16 @@ async function loadTopPlayers() {
 
   el.innerHTML = skeletonRankRows(3);
 
-  const data = await apiFetch('rankings.php?type=resets&limit=3');
-  if (!data || !data.length) {
+  const raw  = await apiFetch('rankings.php?type=resets&limit=3');
+  // La API puede devolver array plano o {rows, player} — normalizar
+  const rows = Array.isArray(raw) ? raw : (raw?.rows ?? []);
+
+  if (!rows.length) {
     el.innerHTML = '<p class="state-message">Sin datos disponibles.</p>';
     return;
   }
 
-  el.innerHTML = data.map((p, i) => `
+  el.innerHTML = rows.map((p, i) => `
     <div class="rank-item animate-in" style="animation-delay:${i * 0.1}s">
       <span class="rank-pos">${i + 1}</span>
       <img class="rank-avatar"
@@ -146,7 +150,9 @@ async function loadTopPlayers() {
            onerror="this.src='${BASE}/assets/img/class/avatar.jpg'"
            loading="lazy">
       <div>
-        <div class="rank-name">${esc(p.name)}</div>
+        <div class="rank-name">
+          <a class="rank-name-link" href="${BASE}/player/?name=${encodeURIComponent(p.name)}">${esc(p.name)}</a>
+        </div>
         <div class="rank-class">${esc(className(p.class))}</div>
       </div>
       <div class="rank-stat">

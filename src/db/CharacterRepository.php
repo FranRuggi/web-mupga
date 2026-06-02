@@ -25,7 +25,9 @@ class CharacterRepository {
      */
     public function getByAccount(string $username): array {
         $stmt = $this->pdo->prepare(
-            'SELECT Name, Class, cLevel, ResetCount, MasterResetCount, MapNumber
+            'SELECT Name, Class, cLevel, ResetCount,
+                    ISNULL(MasterResetCount,0) AS MasterResetCount,
+                    MapNumber, ISNULL(LevelUpPoint,0) AS LevelUpPoint
              FROM Character WHERE AccountID = ?'
         );
         $stmt->execute([$username]);

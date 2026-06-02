@@ -1,34 +1,38 @@
 /* ============================================================
    MuPGA — rankings.js
    Lógica de la página de rankings (tabs + renderizado)
-   Depende de app.js (BASE, API, apiFetch, esc, avatarSrc, className, skeletonRankRows)
+   Depende de app.js (BASE, API, apiFetch, esc, avatarSrc, className)
+   y auth.js (getUser, isAuthenticated)
    ============================================================ */
 
-const RANKINGS_LIMIT   = 50;
-const REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutos en ms
+const RANKINGS_LIMIT   = 100;
+const REFRESH_INTERVAL = 2 * 60 * 1000;
 let   currentType      = 'resets';
 
-// ── Configuración de tabs ─────────────────────────────────────
 const TABS = [
-  { type: 'resets',       label: 'Resets',       stat: 'resets',      statLabel: 'Resets'    },
-  { type: 'level',        label: 'Nivel',         stat: 'level',       statLabel: 'Nivel'     },
-  { type: 'masterresets', label: 'Master Resets', stat: 'masterResets',statLabel: 'M. Resets' },
-  { type: 'kills',        label: 'PK Killers',    stat: 'pkCount',     statLabel: 'Kills'     },
-  { type: 'guilds',       label: 'Guilds',        stat: 'score',       statLabel: 'Puntos'    },
+  { type: 'resets',       label: 'Resets',       stat: 'resets',       statLabel: 'Resets'    },
+  { type: 'level',        label: 'Nivel',         stat: 'level',        statLabel: 'Nivel'     },
+  { type: 'masterresets', label: 'Master Resets', stat: 'masterResets', statLabel: 'M. Resets' },
+  { type: 'kills',        label: 'PK Killers',    stat: 'pkCount',      statLabel: 'Kills'     },
+  { type: 'guilds',       label: 'Guilds',        stat: 'score',        statLabel: 'Puntos'    },
 ];
 
-// ── Renderizadores ────────────────────────────────────────────
-function renderPlayerRow(p, i, statKey, statLabel) {
+// ── Renderizadores ────────────────────────────────────────
+function renderPlayerRow(p, pos, statKey, statLabel) {
+  const isMe = p.isPlayer === true;
   return `
-    <div class="rank-item animate-in" style="animation-delay:${Math.min(i,8) * 0.04}s">
-      <span class="rank-pos">${i + 1}</span>
+    <div class="rank-item animate-in${isMe ? ' rank-item--me' : ''}" style="animation-delay:${Math.min(pos - 1, 8) * 0.04}s">
+      <span class="rank-pos">${pos}</span>
       <img class="rank-avatar"
            src="${avatarSrc(p.class)}"
            alt="${esc(className(p.class))}"
            onerror="this.src='${BASE}/assets/img/class/avatar.jpg'"
            loading="lazy">
       <div>
-        <div class="rank-name">${esc(p.name)}</div>
+        <div class="rank-name">
+          <a class="rank-name-link" href="${BASE}/player/?name=${encodeURIComponent(p.name)}">${esc(p.name)}</a>
+          ${isMe ? '<span class="rank-me-badge">vos</span>' : ''}
+        </div>
         <div class="rank-class">${esc(className(p.class))}</div>
       </div>
       <div class="rank-stat">
@@ -40,7 +44,7 @@ function renderPlayerRow(p, i, statKey, statLabel) {
 
 function renderGuildRow(g, i) {
   return `
-    <div class="rank-item animate-in" style="animation-delay:${Math.min(i,8) * 0.04}s">
+    <div class="rank-item animate-in" style="animation-delay:${Math.min(i, 8) * 0.04}s">
       <span class="rank-pos">${i + 1}</span>
       <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;font-size:1.4rem">🏰</div>
       <div>
@@ -54,63 +58,100 @@ function renderGuildRow(g, i) {
     </div>`;
 }
 
-// ── Renderiza los datos en el contenedor ──────────────────────
-function renderData(data, type) {
+// ── Renderiza la lista completa + entrada del jugador fuera de top ────────
+function renderData(rows, player, type) {
   const tabCfg = TABS.find(t => t.type === type) ?? TABS[0];
+  const list   = document.createElement('div');
+  list.className = 'ranking-list';
 
   if (type === 'guilds') {
-    return `<div class="ranking-list">${data.map((g, i) => renderGuildRow(g, i)).join('')}</div>`;
+    list.innerHTML = rows.map((g, i) => renderGuildRow(g, i)).join('');
+    return list.outerHTML;
   }
-  return `<div class="ranking-list">${data.map((p, i) => renderPlayerRow(p, i, tabCfg.stat, tabCfg.statLabel)).join('')}</div>`;
+
+  list.innerHTML = rows.map((p, i) => renderPlayerRow(p, i + 1, tabCfg.stat, tabCfg.statLabel)).join('');
+
+  // Si el jugador no aparece en el top, mostrar su entrada separada al final
+  if (player && !rows.some(r => r.isPlayer)) {
+    const sep = document.createElement('div');
+    sep.className = 'rank-separator';
+    sep.textContent = `Tu posición: #${player.position}`;
+    list.insertAdjacentHTML('beforeend', sep.outerHTML + renderPlayerRow(
+      { ...player, isPlayer: true },
+      player.position,
+      tabCfg.stat,
+      tabCfg.statLabel
+    ));
+  }
+
+  return list.outerHTML;
 }
 
-// ── Actualiza el timestamp de última actualización ────────────
+// ── Actualiza timestamp ───────────────────────────────────
 function updateTimestamp() {
   const el = document.getElementById('refresh-ts');
   if (el) el.textContent = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 }
 
-// ── Carga inicial (con skeleton) ──────────────────────────────
+// ── Construye la URL con el account del jugador si está logueado ──────────
+function rankingUrl(type) {
+  const user    = typeof getUser === 'function' ? getUser() : null;
+  const account = user?.username ?? '';
+  const base    = `rankings.php?type=${encodeURIComponent(type)}&limit=${RANKINGS_LIMIT}`;
+  return account ? `${base}&account=${encodeURIComponent(account)}` : base;
+}
+
+// ── Carga inicial ─────────────────────────────────────────
 async function loadRanking(type) {
   currentType = type;
 
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.type === type);
-  });
+  document.querySelectorAll('.tab-btn').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.type === type)
+  );
 
   const container = document.getElementById('rankings-container');
   container.innerHTML = `<div class="rankings-loading">${skeletonRankRows(8)}</div>`;
 
-  const data = await apiFetch(`rankings.php?type=${encodeURIComponent(type)}&limit=${RANKINGS_LIMIT}`);
-
-  if (!data || !data.length) {
+  const raw = await apiFetch(rankingUrl(type));
+  if (!raw) {
     container.innerHTML = '<p class="state-message">Sin datos disponibles para este ranking.</p>';
     return;
   }
 
-  container.innerHTML = renderData(data, type);
+  // La API devuelve array plano (guilds / sin account) u objeto {rows, player}
+  const rows   = Array.isArray(raw) ? raw   : (raw.rows   ?? []);
+  const player = Array.isArray(raw) ? null  : (raw.player ?? null);
+
+  if (!rows.length) {
+    container.innerHTML = '<p class="state-message">Sin datos disponibles para este ranking.</p>';
+    return;
+  }
+
+  container.innerHTML = renderData(rows, player, type);
   updateTimestamp();
 }
 
-// ── Refresh silencioso cada 2 minutos ─────────────────────────
-// No muestra skeleton — si falla, conserva los datos anteriores
+// ── Refresh silencioso ────────────────────────────────────
 async function silentRefresh() {
-  const data = await apiFetch(`rankings.php?type=${encodeURIComponent(currentType)}&limit=${RANKINGS_LIMIT}`);
-  if (!data || !data.length) return;
+  const raw = await apiFetch(rankingUrl(currentType));
+  if (!raw) return;
 
   const container = document.getElementById('rankings-container');
   if (!container) return;
 
-  container.innerHTML = renderData(data, currentType);
+  const rows   = Array.isArray(raw) ? raw  : (raw.rows   ?? []);
+  const player = Array.isArray(raw) ? null : (raw.player ?? null);
+  if (!rows.length) return;
+
+  container.innerHTML = renderData(rows, player, currentType);
   updateTimestamp();
 }
 
-// ── Init ──────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const nav = document.getElementById('tab-nav');
   if (!nav) return;
 
-  // Construir tabs dinámicamente
   nav.innerHTML = TABS.map(t =>
     `<button class="tab-btn${t.type === currentType ? ' active' : ''}" data-type="${t.type}">${t.label}</button>`
   ).join('');
@@ -120,9 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btn) loadRanking(btn.dataset.type);
   });
 
-  // Carga inicial
   loadRanking(currentType);
-
-  // Auto-refresh cada 2 minutos (sin skeleton, silencioso)
   setInterval(silentRefresh, REFRESH_INTERVAL);
 });

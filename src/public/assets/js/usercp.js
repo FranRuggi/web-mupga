@@ -5,7 +5,6 @@
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Proteger la página — redirigir si no hay sesión
   if (!isAuthenticated()) {
     window.location.replace(`${BASE}/login/`);
     return;
@@ -17,15 +16,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (el) el.textContent = user.username;
   }
 
-  // Cargar datos en paralelo
-  await Promise.all([
-    loadProfile(),
-    loadBalance(),
-  ]);
+  await Promise.all([loadProfile(), loadBalance()]);
 
-  // Formularios de configuración
   initChangePassword();
   initChangeEmail();
+  initGameOptions();
 });
 
 // ── Perfil + personajes ───────────────────────────────────────
@@ -55,9 +50,11 @@ function renderAccountInfo(data) {
 
   const vipEl = document.getElementById('info-vip');
   if (vipEl) {
-    vipEl.innerHTML = data.is_vip
-      ? `<span class="badge badge--vip">⭐ VIP Nivel ${data.account_level}</span>`
-      : `<span class="badge badge--normal">Normal</span>`;
+    // AccountLevel 3 = único nivel VIP activo en MuPGA
+    const isVip = (data.account_level ?? 0) === 3;
+    vipEl.innerHTML = isVip
+      ? '<span class="badge badge--vip">⭐ VIP activo</span>'
+      : '<span class="badge badge--normal">Sin VIP</span>';
   }
 
   fill('info-created', data.created_at
@@ -72,7 +69,11 @@ function renderAccountInfo(data) {
   }
 }
 
+// Lista de personajes cargados (para el selector de opciones de juego)
+let _characters = [];
+
 function renderCharacters(chars) {
+  _characters = chars;
   const el = document.getElementById('char-list');
   if (!el) return;
 
@@ -97,6 +98,141 @@ function renderCharacters(chars) {
       </div>
     </div>
   `).join('');
+
+  // Sincronizar selector del panel de opciones
+  populateCharSelect(chars);
+}
+
+// ── Panel de Opciones de personaje ───────────────────────────
+
+function populateCharSelect(chars) {
+  const sel = document.getElementById('char-select');
+  if (!sel) return;
+  sel.innerHTML = chars.length
+    ? chars.map(c => `<option value="${esc(c.name)}">${esc(c.name)} — ${esc(className(c.class))} Nv${c.level}</option>`).join('')
+    : '<option value="">Sin personajes</option>';
+
+  // Habilitar botones si hay personajes
+  const hasChars = chars.length > 0;
+  ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml'].forEach(id =>
+    document.getElementById(id)?.toggleAttribute('disabled', !hasChars)
+  );
+}
+
+function initGameOptions() {
+  const actions = [
+    ['btn-unstick',    'account/unstick.php',    'msg-unstick',    'Unstick'],
+    ['btn-clearpk',    'account/clearpk.php',    'msg-clearpk',    'Limpiar PK'],
+    ['btn-resetstats', 'account/resetstats.php', 'msg-resetstats', 'Resetear Stats'],
+    ['btn-resetml',    'account/resetml.php',    'msg-resetml',    'Resetear Árbol ML'],
+  ];
+  actions.forEach(([id, endpoint, msgId, label]) => {
+    document.getElementById(id)?.addEventListener('click', () =>
+      runCharAction(id.replace('btn-', ''), endpoint, msgId, label)
+    );
+  });
+
+  // Actualizar sección add-stats al cambiar personaje
+  document.getElementById('char-select')?.addEventListener('change', updateAddStatsPanel);
+
+  // Inputs: recalcular total en tiempo real
+  document.querySelectorAll('.addstats-input').forEach(inp =>
+    inp.addEventListener('input', recalcAddStatsTotal)
+  );
+
+  // Submit agregar stats
+  document.getElementById('form-addstats')?.addEventListener('submit', handleAddStats);
+}
+
+function updateAddStatsPanel() {
+  const sel    = document.getElementById('char-select');
+  const card   = document.getElementById('addstats-card');
+  const charName = sel?.value;
+  if (!charName || !card) return;
+
+  const char = _characters.find(c => c.name === charName);
+  if (!char) return;
+
+  card.style.display = '';
+  document.getElementById('addstats-char-name').textContent = char.name;
+  document.getElementById('addstats-available').textContent = char.level_up_point ?? '—';
+
+  // Mostrar Liderazgo solo para Dark Lord (clases 64, 66, 70)
+  const isDarkLord = [64, 66, 70].includes(char.class);
+  const cmdRow = document.getElementById('add-cmd-row');
+  if (cmdRow) cmdRow.style.display = isDarkLord ? '' : 'none';
+
+  // Resetear inputs
+  document.querySelectorAll('.addstats-input').forEach(i => i.value = '0');
+  recalcAddStatsTotal();
+}
+
+function recalcAddStatsTotal() {
+  const total = ['add-str','add-agi','add-vit','add-ene','add-cmd']
+    .reduce((s, id) => s + Math.max(0, parseInt(document.getElementById(id)?.value ?? 0, 10)), 0);
+  const el = document.getElementById('addstats-total');
+  if (el) el.textContent = total.toLocaleString('es-AR');
+}
+
+async function handleAddStats(e) {
+  e.preventDefault();
+  const sel      = document.getElementById('char-select');
+  const charName = sel?.value;
+  if (!charName) return;
+
+  const btn = document.getElementById('btn-addstats');
+  if (btn) { btn.disabled = true; btn.textContent = 'Aplicando...'; }
+
+  const res = await authFetch('account/addstats.php', {
+    method: 'POST',
+    body: JSON.stringify({
+      character: charName,
+      str: parseInt(document.getElementById('add-str')?.value ?? 0, 10),
+      agi: parseInt(document.getElementById('add-agi')?.value ?? 0, 10),
+      vit: parseInt(document.getElementById('add-vit')?.value ?? 0, 10),
+      ene: parseInt(document.getElementById('add-ene')?.value ?? 0, 10),
+      cmd: parseInt(document.getElementById('add-cmd')?.value ?? 0, 10),
+    }),
+  });
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Agregar puntos'; }
+  if (!res) return;
+
+  const data = await res.json();
+  showGameMsg('msg-addstats', data.message ?? data.error, res.ok ? 'success' : 'error');
+
+  if (res.ok && data.remaining !== undefined) {
+    document.getElementById('addstats-available').textContent = data.remaining;
+    document.querySelectorAll('.addstats-input').forEach(i => i.value = '0');
+    recalcAddStatsTotal();
+    // Actualizar el pool en _characters para que el selector refleje el nuevo valor
+    const char = _characters.find(c => c.name === charName);
+    if (char) char.level_up_point = data.remaining;
+  }
+}
+
+async function runCharAction(actionId, endpoint, msgId, btnLabel) {
+  const sel      = document.getElementById('char-select');
+  const charName = sel?.value;
+  if (!charName) return;
+
+  const btn = document.getElementById(`btn-${actionId}`);
+  if (btn) { btn.disabled = true; btn.querySelector('strong').textContent = '...'; }
+
+  const res  = await authFetch(endpoint, { method: 'POST', body: JSON.stringify({ character: charName }) });
+  if (btn) { btn.disabled = false; btn.querySelector('strong').textContent = btnLabel; }
+
+  if (!res) return;
+  const data = await res.json();
+  showGameMsg(msgId, data.message ?? data.error, res.ok ? 'success' : 'error');
+}
+
+function showGameMsg(id, msg, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className   = `alert alert--${type} visible`;
+  setTimeout(() => { el.className = 'alert'; }, 5000);
 }
 
 // ── Balance WCoin ─────────────────────────────────────────────

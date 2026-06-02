@@ -9,7 +9,14 @@
  */
 
 function requireAuth(): array {
-    $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    // Apache suele eliminar el header Authorization. Se busca en tres lugares:
+    // 1. $_SERVER['HTTP_AUTHORIZATION']         — Apache con mod_rewrite pasándolo
+    // 2. $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] — Apache con FastCGI/suexec
+    // 3. getallheaders()['Authorization']        — fallback universal
+    $header = $_SERVER['HTTP_AUTHORIZATION']
+           ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+           ?? (function_exists('getallheaders') ? (getallheaders()['Authorization'] ?? '') : '')
+           ?? '';
 
     if (!preg_match('/^Bearer\s+(\S+)$/i', $header, $m)) {
         http_response_code(401);

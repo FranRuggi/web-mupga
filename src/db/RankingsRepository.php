@@ -3,146 +3,148 @@
  * Queries de rankings — solo lectura.
  * Tablas: Character, Guild, GuildMember.
  *
- * Nota sobre Gens: igcn.tables.php define _TBL_GENS_ = 'IGC_Gens', pero ese nombre
- * no aparece en el dump script.sql (sí aparecen Gens_Duprian, Gens_Varnert, Gens_Rank).
- * El ranking de Gens queda pendiente de verificar el nombre real de la tabla.
+ * Exclusión de admins: se filtra por AccountID Y por Name.
+ * Esto cubre dos casos:
+ *   - La cuenta tiene AccountID = 'ruggi' → todos sus personajes desaparecen.
+ *   - El personaje se llama 'ruggi' aunque la cuenta tenga otro ID → también desaparece.
+ * Los valores vienen del .env (RANKINGS_EXCLUDED_ACCOUNTS), nunca de input de usuario.
  */
 class RankingsRepository {
 
     public function __construct(private PDO $pdo) {}
 
     /**
-     * Construye el fragmento IN ('a','b') para excluir nombres.
-     * Solo para listas de config interna, nunca para input de usuario.
+     * Construye el fragmento IN ('a','b') para exclusiones hardcoded de config.
+     * Solo para listas internas, nunca para input de usuario.
      */
     private function buildExcludeList(array $names): string {
-        if (empty($names)) {
-            return "''";
-        }
-        $escaped = array_map(
+        if (empty($names)) return "''";
+        return implode(',', array_map(
             fn(string $n) => "'" . str_replace("'", "''", $n) . "'",
             $names
-        );
-        return implode(',', $escaped);
+        ));
+    }
+
+    /** WHERE clause que excluye por AccountID y por Name a la vez. */
+    private function excludeClause(array $excluded): string {
+        if (empty($excluded)) return '1=1';
+        $ex = $this->buildExcludeList($excluded);
+        return "AccountID NOT IN ({$ex}) AND Name NOT IN ({$ex})";
     }
 
     // -------------------------------------------------------------------------
     // Rankings de personajes
     // -------------------------------------------------------------------------
 
-    public function getByLevel(int $limit = 25, array $exclude = []): array {
-        $ex   = $this->buildExcludeList($exclude);
-        $stmt = $this->pdo->query(
-            "SELECT TOP {$limit} Name, Class, cLevel, ResetCount, MasterResetCount, MapNumber
-             FROM Character
-             WHERE Name NOT IN ({$ex})
+    public function getByLevel(int $limit = 100, array $excluded = []): array {
+        $where = $this->excludeClause($excluded);
+        return $this->pdo->query(
+            "SELECT TOP {$limit} Name, Class, cLevel, ResetCount,
+                    ISNULL(MasterResetCount,0) AS MasterResetCount, MapNumber
+             FROM Character WHERE {$where}
              ORDER BY cLevel DESC"
-        );
-        return $stmt->fetchAll();
+        )->fetchAll();
     }
 
-    public function getByResets(int $limit = 25, array $exclude = []): array {
-        $ex   = $this->buildExcludeList($exclude);
-        $stmt = $this->pdo->query(
-            "SELECT TOP {$limit} Name, Class, cLevel, ResetCount, MasterResetCount, MapNumber
-             FROM Character
-             WHERE Name NOT IN ({$ex}) AND ResetCount > 0
+    public function getByResets(int $limit = 100, array $excluded = []): array {
+        $where = $this->excludeClause($excluded);
+        return $this->pdo->query(
+            "SELECT TOP {$limit} Name, Class, cLevel, ResetCount,
+                    ISNULL(MasterResetCount,0) AS MasterResetCount, MapNumber
+             FROM Character WHERE {$where} AND ResetCount > 0
              ORDER BY ResetCount DESC, cLevel DESC"
-        );
-        return $stmt->fetchAll();
+        )->fetchAll();
     }
 
-    public function getByMasterResets(int $limit = 25, array $exclude = []): array {
-        $ex   = $this->buildExcludeList($exclude);
-        $stmt = $this->pdo->query(
-            "SELECT TOP {$limit} Name, Class, cLevel, ResetCount, MasterResetCount, MapNumber
-             FROM Character
-             WHERE Name NOT IN ({$ex}) AND MasterResetCount > 0
+    public function getByMasterResets(int $limit = 100, array $excluded = []): array {
+        $where = $this->excludeClause($excluded);
+        return $this->pdo->query(
+            "SELECT TOP {$limit} Name, Class, cLevel, ResetCount,
+                    ISNULL(MasterResetCount,0) AS MasterResetCount, MapNumber
+             FROM Character WHERE {$where} AND ISNULL(MasterResetCount,0) > 0
              ORDER BY MasterResetCount DESC, ResetCount DESC, cLevel DESC"
-        );
-        return $stmt->fetchAll();
+        )->fetchAll();
     }
 
-    /**
-     * Ranking de killers PK.
-     * PkCount = cantidad de kills; PkLevel: 0=Hero, 3=Normal, 4+=Murder.
-     */
-    public function getByKills(int $limit = 25, array $exclude = []): array {
-        $ex   = $this->buildExcludeList($exclude);
-        $stmt = $this->pdo->query(
-            "SELECT TOP {$limit} Name, Class, cLevel, PkCount, PkLevel, MapNumber
-             FROM Character
-             WHERE Name NOT IN ({$ex}) AND PkCount > 0
+    public function getByKills(int $limit = 100, array $excluded = []): array {
+        $where = $this->excludeClause($excluded);
+        return $this->pdo->query(
+            "SELECT TOP {$limit} Name, Class, cLevel,
+                    ISNULL(PkCount,0) AS PkCount, ISNULL(PkLevel,3) AS PkLevel, MapNumber
+             FROM Character WHERE {$where} AND ISNULL(PkCount,0) > 0
              ORDER BY PkCount DESC"
-        );
-        return $stmt->fetchAll();
+        )->fetchAll();
     }
 
-    /**
-     * Ranking de nivel Master.
-     * Columna mLevel (en IGCN S6 está en la tabla Character — verificar en DDL completo).
-     */
-    public function getByMasterLevel(int $limit = 25, array $exclude = []): array {
-        $ex   = $this->buildExcludeList($exclude);
-        $stmt = $this->pdo->query(
-            "SELECT TOP {$limit} Name, Class, cLevel, mLevel, ResetCount, MapNumber
-             FROM Character
-             WHERE Name NOT IN ({$ex}) AND mLevel > 0
+    public function getByMasterLevel(int $limit = 100, array $excluded = []): array {
+        $where = $this->excludeClause($excluded);
+        return $this->pdo->query(
+            "SELECT TOP {$limit} Name, Class, cLevel,
+                    ISNULL(mLevel,0) AS mLevel, ResetCount, MapNumber
+             FROM Character WHERE {$where} AND ISNULL(mLevel,0) > 0
              ORDER BY mLevel DESC, cLevel DESC"
-        );
-        return $stmt->fetchAll();
+        )->fetchAll();
     }
 
     // -------------------------------------------------------------------------
-    // Ranking de guilds
+    // Posición del jugador logueado
     // -------------------------------------------------------------------------
 
-    /**
-     * Ranking de guilds por G_Score (campo nativo del servidor).
-     */
-    public function getGuildsByScore(int $limit = 25, array $excludeGuilds = []): array {
+    public function getPlayerCharacterRank(string $accountId, string $type, array $excluded = []): ?array {
+        $ex    = $this->buildExcludeList($excluded);
+        $excl  = empty($excluded) ? '1=1' : "AccountID NOT IN ({$ex}) AND Name NOT IN ({$ex})";
+
+        [$orderBy, $condition] = match ($type) {
+            'level'        => ['cLevel DESC',                                     '1=1'],
+            'kills'        => ['ISNULL(PkCount,0) DESC',                          'ISNULL(PkCount,0) > 0'],
+            'masterresets' => ['ISNULL(MasterResetCount,0) DESC, ResetCount DESC, cLevel DESC',
+                               'ISNULL(MasterResetCount,0) > 0'],
+            'master'       => ['ISNULL(mLevel,0) DESC, cLevel DESC',              'ISNULL(mLevel,0) > 0'],
+            default        => ['ResetCount DESC, cLevel DESC',                    'ResetCount > 0'],
+        };
+
+        $stmt = $this->pdo->prepare(
+            "WITH ranked AS (
+                SELECT Name, Class, cLevel,
+                       ResetCount,
+                       ISNULL(MasterResetCount,0) AS MasterResetCount,
+                       ISNULL(mLevel,0) AS mLevel,
+                       ISNULL(PkCount,0) AS PkCount,
+                       ISNULL(PkLevel,3) AS PkLevel,
+                       AccountID,
+                       ROW_NUMBER() OVER (ORDER BY {$orderBy}) AS position
+                FROM Character
+                WHERE {$excl} AND {$condition}
+             )
+             SELECT TOP 1 Name, Class, cLevel, ResetCount, MasterResetCount,
+                    mLevel, PkCount, PkLevel, position
+             FROM ranked
+             WHERE AccountID = ?
+             ORDER BY position ASC"
+        );
+        $stmt->execute([$accountId]);
+        return $stmt->fetch() ?: null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Guilds
+    // -------------------------------------------------------------------------
+
+    public function getGuildsByScore(int $limit = 100, array $excludeGuilds = []): array {
         $ex   = $this->buildExcludeList($excludeGuilds);
-        $stmt = $this->pdo->query(
+        return $this->pdo->query(
             "SELECT TOP {$limit}
                  G_Name, G_Master, G_Score, G_Count,
                  CONVERT(varchar(max), G_Mark, 2) AS G_Mark_Hex
              FROM Guild
              WHERE G_Name NOT IN ({$ex})
              ORDER BY G_Score DESC"
-        );
-        return $stmt->fetchAll();
+        )->fetchAll();
     }
-
-    /**
-     * Ranking de guilds por suma de stats de sus miembros.
-     * Fórmula: STR + AGI + VIT + ENE + CMD de todos los personajes del guild.
-     */
-    public function getGuildsByMemberStats(int $limit = 25, array $excludeGuilds = []): array {
-        $ex   = $this->buildExcludeList($excludeGuilds);
-        $stmt = $this->pdo->query(
-            "SELECT TOP {$limit}
-                 gm.G_Name,
-                 g.G_Master,
-                 SUM(c.Strength + c.Dexterity + c.Vitality + c.Energy + c.Leadership) AS TotalStats,
-                 CONVERT(varchar(max), g.G_Mark, 2) AS G_Mark_Hex
-             FROM GuildMember gm
-             INNER JOIN Character c ON c.Name = gm.Name
-             INNER JOIN Guild g ON g.G_Name = gm.G_Name
-             WHERE gm.G_Name NOT IN ({$ex})
-             GROUP BY gm.G_Name, g.G_Master, g.G_Mark
-             ORDER BY TotalStats DESC"
-        );
-        return $stmt->fetchAll();
-    }
-
-    // -------------------------------------------------------------------------
-    // Online count (útil para la home)
-    // -------------------------------------------------------------------------
 
     public function getOnlineCount(): int {
-        $stmt = $this->pdo->query(
+        return (int) $this->pdo->query(
             'SELECT COUNT(*) FROM MEMB_STAT WHERE ConnectStat = 1'
-        );
-        return (int) $stmt->fetchColumn();
+        )->fetchColumn();
     }
 }
