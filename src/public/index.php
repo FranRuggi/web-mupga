@@ -24,7 +24,7 @@ ob_start();
         Resets, Castle Siege y comunidad activa. Unite hoy.
       </p>
       <div class="hero-actions animate-in delay-3">
-        <a href="register/" class="btn btn-primary">Registrarme</a>
+        <a href="register/" class="btn btn-primary" id="hero-cta">Registrarme</a>
         <a href="downloads/" class="btn btn-secondary">Descargar el juego</a>
       </div>
     </div>

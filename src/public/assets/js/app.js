@@ -249,6 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initNav();
   markActiveNav();
 
+  const cta = document.getElementById('hero-cta');
+  if (cta && typeof isAuthenticated === 'function' && isAuthenticated()) {
+    cta.textContent = 'Mi cuenta';
+    cta.href = `${BASE}/usercp/`;
+  }
+
   loadOnlineCount();
   loadServerInfo();
   loadTopPlayers();
