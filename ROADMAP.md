@@ -41,9 +41,12 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] src/public/api/online.php — GET → {count} — 2026-06-01
 - [x] src/public/api/serverinfo.php — GET → {season, exp, drop, players_online, players_total} — 2026-06-01
 - [x] src/public/api/rankings.php — GET ?type&limit → array de personajes/guilds — 2026-06-01
-- [ ] Avatares de clase copiados a src/public/assets/img/class/ ✓ — hero-bg.jpg pendiente (agregar imagen)
-- [ ] Rankings page completa (src/public/rankings/index.php)
-- [ ] Info del servidor page (src/public/info/index.php)
+- [x] Avatares de clase en src/public/assets/img/class/ — hero-bg.jpg pendiente (poner imagen del juego)
+- [x] Rankings page con tabs: Resets / Nivel / Master Resets / PK Killers / Guilds — 2026-06-01
+- [x] Info del servidor: rates, Chaos Machine, comandos, eventos — 2026-06-01
+- [x] Castle Siege removido del sidebar — 2026-06-01
+- [x] Fix sidebar padding bottom — 2026-06-01
+- [x] Fix base URL robusto para subdirectorios (rankings/, info/) — 2026-06-01
 
 ## Fase 4 — Features por capacidad
 - [ ] Rankings (resets, PvP, guilds)
