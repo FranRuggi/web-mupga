@@ -26,6 +26,7 @@ $pages = [
     'usercp/index.html'     => 'src/public/usercp/index.php',
     'guild/index.html'      => 'src/public/guild/index.php',
     'player/index.html'     => 'src/public/player/index.php',
+    'donate/index.html'     => 'src/public/donate/index.php',
 ];
 
 // ── Helpers ──────────────────────────────────────────────────
