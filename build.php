@@ -27,6 +27,8 @@ $pages = [
     'guild/index.html'      => 'src/public/guild/index.php',
     'player/index.html'     => 'src/public/player/index.php',
     'donate/index.html'     => 'src/public/donate/index.php',
+    'privacy/index.html'   => 'src/public/privacy/index.php',
+    'terms/index.html'     => 'src/public/terms/index.php',
 ];
 
 // ── Helpers ──────────────────────────────────────────────────
