@@ -4,6 +4,7 @@
  * Sirve data/downloads.json al frontend.
  */
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
+require_once __DIR__ . '/_cors.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: public, max-age=300');

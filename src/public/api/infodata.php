@@ -5,6 +5,7 @@
  * Respuesta: el JSON tal cual está en el archivo.
  */
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
+require_once __DIR__ . '/_cors.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: max-age=300'); // cacheable 5 min — el JSON no cambia seguido
