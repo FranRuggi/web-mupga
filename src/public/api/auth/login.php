@@ -58,7 +58,7 @@ try {
         );
         $flaCheck->execute([$ip]);
         $fla = $flaCheck->fetch() ?: null;
-    } catch (Throwable) {
+    } catch (Throwable $e) {
         $fla = null; // tabla no disponible → saltar anti-brute force
     }
 
@@ -68,7 +68,7 @@ try {
             echo json_encode(['error' => "Demasiados intentos fallidos. Intentá en {$lockMinutes} minutos."]);
             exit;
         }
-        try { $db->prepare('DELETE FROM WEBENGINE_FLA WHERE ip_address = ?')->execute([$ip]); } catch (Throwable) {}
+        try { $db->prepare('DELETE FROM WEBENGINE_FLA WHERE ip_address = ?')->execute([$ip]); } catch (Throwable $e) {}
         $fla = null;
     }
 
@@ -86,7 +86,7 @@ try {
                     'INSERT INTO WEBENGINE_FLA (username, ip_address, failed_attempts, unlock_timestamp, timestamp) VALUES (?,?,1,?,?)'
                 )->execute([$username, $ip, $unlock, time()]);
             }
-        } catch (Throwable) {}
+        } catch (Throwable $e) {}
 
         http_response_code(401);
         echo json_encode(['error' => 'Usuario o contraseña incorrectos.']);
@@ -94,7 +94,7 @@ try {
     }
 
     // ── Login exitoso ──
-    try { $db->prepare('DELETE FROM WEBENGINE_FLA WHERE ip_address = ?')->execute([$ip]); } catch (Throwable) {}
+    try { $db->prepare('DELETE FROM WEBENGINE_FLA WHERE ip_address = ?')->execute([$ip]); } catch (Throwable $e) {}
 
     $account = $repo->getByUsername($username);
     if (!$account) {

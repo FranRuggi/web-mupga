@@ -95,7 +95,7 @@ try {
                 }
             }
             unset($row);
-        } catch (Throwable) {
+        } catch (Throwable $e) {
             $player = null;
         }
 
