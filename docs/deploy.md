@@ -34,6 +34,9 @@ La estructura queda en `C:\mupga\`.
    ```
    Ejemplo: `PHP 8.2.x (ts) x64`.
 
+   > **PHP 7.4 está EOL (fin de vida).** Si el VPS tiene 7.4, actualizar XAMPP
+   > a la versión con PHP 8.2 antes de continuar. El código del sitio es compatible.
+
 2. Descargar las DLL que coincidan con la versión (TS = Thread Safe, x64):
    - URL: https://github.com/microsoft/msphpsql/releases
    - Archivos: `php_sqlsrv_82_ts_x64.dll` y `php_pdo_sqlsrv_82_ts_x64.dll`
