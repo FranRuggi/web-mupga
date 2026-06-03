@@ -6,12 +6,13 @@
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!PROFILE_CHAR) {
+  const charName = PROFILE_CHAR || new URLSearchParams(window.location.search).get('name') || '';
+  if (!charName) {
     renderError('No se especificó un personaje.');
     return;
   }
 
-  const data = await apiFetch(`player.php?name=${encodeURIComponent(PROFILE_CHAR)}`);
+  const data = await apiFetch(`player.php?name=${encodeURIComponent(charName)}`);
 
   if (!data || data.error) {
     renderError(data?.error ?? 'Personaje no encontrado.');

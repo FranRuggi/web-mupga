@@ -1,8 +1,9 @@
 /* MuPGA — guild.js  |  depende de app.js, auth.js */
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!GUILD_NAME) { renderError('No se especificó un guild.'); return; }
+  const guildName = GUILD_NAME || new URLSearchParams(window.location.search).get('name') || '';
+  if (!guildName) { renderError('No se especificó un guild.'); return; }
 
-  const data = await apiFetch(`guild.php?name=${encodeURIComponent(GUILD_NAME)}`);
+  const data = await apiFetch(`guild.php?name=${encodeURIComponent(guildName)}`);
   if (!data || data.error) { renderError(data?.error ?? 'Guild no encontrado.'); return; }
 
   document.getElementById('guild-name').textContent = data.name;

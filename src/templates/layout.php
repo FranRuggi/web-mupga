@@ -82,11 +82,10 @@ $year    = date('Y');
 
   <footer class="site-footer">
     <span class="footer-logo">MuPGA</span>
-    <span>© <?= $year ?> MuPGA · Todos los derechos reservados.</span>
+    <span>© <?= $year ?> MuPGA · Todos los derechos reservados. · <a href="<?= $base ?>/privacy/" style="color:inherit;text-decoration:underline">Privacidad</a> · <a href="<?= $base ?>/terms/" style="color:inherit;text-decoration:underline">Términos</a></span>
     <nav class="footer-links">
-      <a href="#">Discord</a>
-      <a href="#">Facebook</a>
-      <a href="#">Foro</a>
+      <a href="https://discord.com/invite/xTxFHSmVhf" target="_blank" rel="noopener">Discord</a>
+      <a href="https://chat.whatsapp.com/DqaUqom63aFALaBsK2l7of" target="_blank" rel="noopener">WhatsApp</a>
     </nav>
   </footer>
 

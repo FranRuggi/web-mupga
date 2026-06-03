@@ -98,6 +98,12 @@ function updateNav() {
   document.querySelectorAll('[data-guest-show]').forEach(el => {
     el.hidden = auth;
   });
+
+  const greeting = document.getElementById('hero-greeting');
+  if (greeting) {
+    greeting.hidden = !auth;
+    if (auth && user) greeting.textContent = `Hola, ${user.username} 👋`;
+  }
 }
 
 // Logout desde la nav

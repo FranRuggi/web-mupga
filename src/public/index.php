@@ -19,12 +19,14 @@ ob_start();
     <div class="hero-content">
       <p class="hero-eyebrow animate-in">Servidor privado · Season 6 · MuEmu</p>
       <h1 class="hero-title animate-in delay-1">MuPGA</h1>
+      <p id="hero-greeting" hidden style="font-size:1.1rem;color:var(--gold);margin-bottom:.5rem;font-weight:500"></p>
       <p class="hero-tagline animate-in delay-2">
         La experiencia clásica de MU Online, renovada.<br>
         Resets, Castle Siege y comunidad activa. Unite hoy.
       </p>
       <div class="hero-actions animate-in delay-3">
-        <a href="register/" class="btn btn-primary" id="hero-cta">Registrarme</a>
+        <a href="register/" class="btn btn-primary" id="hero-cta" data-guest-show>Registrarme</a>
+        <a href="usercp/" class="btn btn-primary" id="hero-cta-auth" data-auth-show hidden>Mi cuenta</a>
         <a href="downloads/" class="btn btn-secondary">Descargar el juego</a>
       </div>
     </div>
