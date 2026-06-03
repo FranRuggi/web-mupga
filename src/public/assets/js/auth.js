@@ -104,6 +104,12 @@ function updateNav() {
     greeting.hidden = !auth;
     if (auth && user) greeting.textContent = `Hola, ${user.username} 👋`;
   }
+
+  const heroCta = document.getElementById('hero-cta');
+  if (heroCta && auth && user) {
+    heroCta.textContent = 'Mi cuenta';
+    heroCta.href = `${BASE}/usercp/`;
+  }
 }
 
 // Logout desde la nav

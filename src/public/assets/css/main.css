@@ -505,7 +505,6 @@ h1, h2, h3, h4 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 32px var(--gold-glow));
 }
 
 .hero-tagline {
@@ -517,6 +516,94 @@ h1, h2, h3, h4 {
 }
 
 .hero-actions { display: flex; gap: var(--gap-sm); flex-wrap: wrap; }
+
+/* ── Hero social links ─────────────────────────────────────── */
+.hero-social {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.hero-social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.06);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.hero-social-link:hover { color: #fff; background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); }
+.hero-social-link--discord:hover  { color: #7289da; border-color: #7289da; background: rgba(114,137,218,0.12); }
+.hero-social-link--whatsapp:hover { color: #25d366; border-color: #25d366; background: rgba(37,211,102,0.12); }
+
+/* ── Hero greeting ─────────────────────────────────────────── */
+#hero-greeting {
+  font-size: 1rem;
+  color: var(--gold);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  animation: fadeUp 0.4s ease both;
+}
+
+/* ── Hero orbs (decorativos animados) ──────────────────────── */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(60px);
+  opacity: 0;
+  animation: orbFloat 8s ease-in-out infinite;
+}
+
+.hero-orb--1 {
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(145,71,232,0.35) 0%, transparent 70%);
+  top: -60px; right: 15%;
+  animation-delay: 0s; animation-duration: 9s;
+  opacity: 0.7;
+}
+
+.hero-orb--2 {
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(200,168,75,0.25) 0%, transparent 70%);
+  bottom: 20px; right: 30%;
+  animation-delay: 3s; animation-duration: 11s;
+  opacity: 0.5;
+}
+
+.hero-orb--3 {
+  width: 150px; height: 150px;
+  background: radial-gradient(circle, rgba(0,210,190,0.2) 0%, transparent 70%);
+  top: 40%; right: 8%;
+  animation-delay: 6s; animation-duration: 13s;
+  opacity: 0.4;
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  33%       { transform: translateY(-18px) scale(1.05); }
+  66%       { transform: translateY(10px) scale(0.97); }
+}
+
+/* ── Hero title glow pulse ─────────────────────────────────── */
+.hero-title {
+  animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both 0.08s, titleGlow 4s ease-in-out infinite 1s;
+}
+
+@keyframes titleGlow {
+  0%, 100% { filter: drop-shadow(0 0 32px var(--gold-glow)); }
+  50%       { filter: drop-shadow(0 0 52px var(--gold-glow)) drop-shadow(0 0 80px rgba(145,71,232,0.3)); }
+}
 
 /* ── Buttons ───────────────────────────────────────────────── */
 .btn {
