@@ -15,6 +15,7 @@
  * Cuentas excluidas (admins): RANKINGS_EXCLUDED_ACCOUNTS en .env (separadas por coma).
  */
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
+require_once __DIR__ . '/_cors.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache');
