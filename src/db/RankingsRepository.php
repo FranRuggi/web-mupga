@@ -11,7 +11,11 @@
  */
 class RankingsRepository {
 
-    public function __construct(private PDO $pdo) {}
+    private PDO $pdo;
+
+    public function __construct(PDO $pdo) {
+        $this->pdo = $pdo;
+    }
 
     /**
      * Construye el fragmento IN ('a','b') para exclusiones hardcoded de config.
@@ -109,14 +113,13 @@ class RankingsRepository {
         $ex    = $this->buildExcludeList($excluded);
         $excl  = empty($excluded) ? '1=1' : "AccountID NOT IN ({$ex}) AND Name NOT IN ({$ex})";
 
-        [$orderBy, $condition] = match ($type) {
-            'level'        => ['cLevel DESC',                                     '1=1'],
-            'kills'        => ['ISNULL(PkCount,0) DESC',                          'ISNULL(PkCount,0) > 0'],
-            'masterresets' => ['ISNULL(MasterResetCount,0) DESC, ResetCount DESC, cLevel DESC',
-                               'ISNULL(MasterResetCount,0) > 0'],
-            'master'       => ['ISNULL(mLevel,0) DESC, cLevel DESC',              'ISNULL(mLevel,0) > 0'],
-            default        => ['ResetCount DESC, cLevel DESC',                    'ResetCount > 0'],
-        };
+        $typeMap = [
+            'level'        => ['cLevel DESC',                                                    '1=1'],
+            'kills'        => ['ISNULL(PkCount,0) DESC',                                         'ISNULL(PkCount,0) > 0'],
+            'masterresets' => ['ISNULL(MasterResetCount,0) DESC, ResetCount DESC, cLevel DESC',  'ISNULL(MasterResetCount,0) > 0'],
+            'master'       => ['ISNULL(mLevel,0) DESC, cLevel DESC',                             'ISNULL(mLevel,0) > 0'],
+        ];
+        [$orderBy, $condition] = $typeMap[$type] ?? ['ResetCount DESC, cLevel DESC', 'ResetCount > 0'];
 
         $stmt = $this->pdo->prepare(
             "WITH ranked AS (

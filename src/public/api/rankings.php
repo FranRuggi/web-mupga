@@ -66,14 +66,14 @@ try {
             'mark'   => $r['G_Mark_Hex'] ?? null,
         ], $rows);
     } else {
-        $rows   = match ($type) {
-            'resets'       => $repo->getByResets($limit, $excludeAccounts),
-            'level'        => $repo->getByLevel($limit, $excludeAccounts),
-            'kills'        => $repo->getByKills($limit, $excludeAccounts),
-            'masterresets' => $repo->getByMasterResets($limit, $excludeAccounts),
-            'master'       => $repo->getByMasterLevel($limit, $excludeAccounts),
-            default        => [],
-        };
+        switch ($type) {
+            case 'resets':       $rows = $repo->getByResets($limit, $excludeAccounts);       break;
+            case 'level':        $rows = $repo->getByLevel($limit, $excludeAccounts);        break;
+            case 'kills':        $rows = $repo->getByKills($limit, $excludeAccounts);        break;
+            case 'masterresets': $rows = $repo->getByMasterResets($limit, $excludeAccounts); break;
+            case 'master':       $rows = $repo->getByMasterLevel($limit, $excludeAccounts);  break;
+            default:             $rows = [];
+        }
         $result = array_map('normalizePlayerRow', $rows);
     }
 
