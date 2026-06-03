@@ -561,7 +561,6 @@ h1, h2, h3, h4 {
   pointer-events: none;
   z-index: 1;
   filter: blur(60px);
-  opacity: 0;
   animation: orbFloat 8s ease-in-out infinite;
 }
 
