@@ -168,3 +168,5 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-09 — [Fix] resetstats.php: devuelve base_stats en la respuesta; getBaseStats() centralizado en CharacterRepository
 - 2026-06-09 — [Fix] usercp.js: post-mutación re-fetch de loadProfile() para sincronizar stats/puntos desde DB; populateCharSelect preserva selección
 - 2026-06-09 — [Doc] capability-matrix.md: política de online check actualizada
+- 2026-06-09 — [Fix] app.js CLASS_NAMES: agregadas 18 clases faltantes (Magic Knight, Dimension Summoner, Fist Blazer, Shining Lancer, Grand Rune Master, Majestic Rune Wizard, Master Slayer, Slaughterer, Master Gun Breaker, Heist Gun Crusher, Light Wizard family, Lemuria Mage family)
+- 2026-06-09 — [Fix] CharacterRepository.getBaseStats: agregados todos los códigos de clase faltantes con stats base correctos
