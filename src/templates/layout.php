@@ -50,6 +50,7 @@ $year    = date('Y');
       <a href="<?= $base ?>/info/"      class="nav-link">Info</a>
       <a href="<?= $base ?>/downloads/" class="nav-link">Descargas</a>
       <a href="<?= $base ?>/donate/"    class="nav-link">WCoin</a>
+      <a href="https://wiki.mupga.com.ar" class="nav-link" target="_blank" rel="noopener">Wiki</a>
       <!-- Links para usuarios NO autenticados (JS los oculta si hay sesión) -->
       <a href="<?= $base ?>/login/"     class="nav-link"     data-guest-show>Login</a>
       <a href="<?= $base ?>/register/"  class="nav-link nav-cta" data-guest-show>Registrarme</a>
