@@ -53,7 +53,9 @@
         ["/v", "Agrega puntos de vitalidad."],
         ["/e", "Agrega puntos de energia."],
         ["/c", "Agrega puntos de comando."],
-        ["/readd", "Reiniciar los puntos."]
+        ["/readd", "Reiniciar los puntos."],
+        ["/reset", "Resetea el personaje. Resetea el personaje"],
+        ["/readd", "Activa el reset automático: cuando llegás al nivel 400, el personaje se resetea solo y va a Lorencia."]
       ]
     },
     {
