@@ -39,7 +39,7 @@ function esc(str) {
 // ── Mapa de clases ───────────────────────────────────────────
 const CLASS_NAMES = {
   // Dark Wizard
-  0:  'Dark Wizard',      1:  'Soul Master',      3:  'Grand Master',     7:  'Soul Wizard',
+  0:  'Dark Wizard',      1:  'Soul Master',      2:  'Grand Master',     3:  'Grand Master',     7:  'Soul Wizard',
   // Dark Knight
   16: 'Dark Knight',      17: 'Blade Knight',     18: 'Blade Master',     19: 'Blade Master',     23: 'Dragon Knight',
   // Fairy Elf

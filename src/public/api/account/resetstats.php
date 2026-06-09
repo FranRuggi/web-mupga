@@ -59,6 +59,12 @@ try {
         ((int)($char['Energy']     ?? 0) - $bEne) +
         ((int)($char['Leadership'] ?? 0) - $bCmd);
 
+    if ($allocatedAboveBase <= 0) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Los stats ya están en los valores base, no hay puntos que recuperar.']);
+        exit;
+    }
+
     $newPoints = max(0, $currentPts + $allocatedAboveBase);
 
     $repo->resetStats($charName, [
