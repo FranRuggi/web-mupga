@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MuPGA — Formulario de configuración del servidor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f0d1a;
+      color: #d8d4ec;
+      padding: 2rem 1rem 4rem;
+      line-height: 1.6;
+    }
+
+    .container { max-width: 780px; margin: 0 auto; }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #2a2540;
+    }
+    .header h1 { font-size: 1.8rem; color: #9b6dff; margin-bottom: .4rem; }
+    .header p  { color: #8b82a8; font-size: .95rem; }
+
+    .section {
+      background: #16132a;
+      border: 1px solid #2a2540;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #9b6dff;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #2a2540;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    @media (max-width: 560px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+    .field { display: flex; flex-direction: column; gap: .35rem; }
+    .field label {
+      font-size: .82rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: #8b82a8;
+    }
+    .field label .req { color: #e05c5c; margin-left: 2px; }
+    .field label .hint {
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      color: #6a6384;
+      font-size: .78rem;
+    }
+    .field input, .field select, .field textarea {
+      background: #0d0b18;
+      border: 1px solid #2a2540;
+      border-radius: 7px;
+      color: #d8d4ec;
+      font-size: .95rem;
+      padding: .55rem .8rem;
+      outline: none;
+      transition: border-color .15s;
+      font-family: inherit;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: #7b4fd4;
+    }
+    .field input::placeholder, .field textarea::placeholder { color: #3d3860; }
+    .field select option { background: #0d0b18; }
+    .field textarea { resize: vertical; min-height: 80px; }
+
+    .row-label {
+      font-size: .85rem;
+      color: #a099be;
+      display: flex;
+      align-items: center;
+      padding-top: .4rem;
+      font-weight: 500;
+    }
+
+    .tip {
+      background: #1a1630;
+      border-left: 3px solid #7b4fd4;
+      border-radius: 0 8px 8px 0;
+      padding: .6rem .9rem;
+      font-size: .83rem;
+      color: #8b82a8;
+      margin-bottom: 1.2rem;
+    }
+
+    .inline-pair {
+      display: grid;
+      grid-template-columns: 180px 1fr 1fr;
+      gap: .5rem 1rem;
+      align-items: center;
+      margin-bottom: .5rem;
+    }
+    .inline-pair:first-of-type .col-header {
+      display: contents;
+    }
+    .col-header {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: #6a6384;
+      text-align: center;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: .85rem;
+      background: linear-gradient(135deg, #7b4fd4, #9b6dff);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity .15s;
+      margin-top: 1rem;
+    }
+    .btn-submit:hover { opacity: .88; }
+
+    #resultado {
+      display: none;
+      margin-top: 2rem;
+      background: #0d0b18;
+      border: 1px solid #7b4fd4;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    #resultado h2 { color: #9b6dff; margin-bottom: 1rem; font-size: 1rem; letter-spacing: .06em; text-transform: uppercase; }
+    #resultado pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: .85rem;
+      color: #c0b8e0;
+      background: #07060f;
+      border-radius: 8px;
+      padding: 1rem;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .btn-copy {
+      margin-top: .8rem;
+      padding: .5rem 1.2rem;
+      background: #2a2540;
+      border: 1px solid #7b4fd4;
+      border-radius: 7px;
+      color: #9b6dff;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-copy:hover { background: #3a3360; }
+    .copied { color: #4cd97b !important; border-color: #4cd97b !important; }
+
+    .divider { height: 1px; background: #2a2540; margin: 1rem 0; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>MuPGA — Info del servidor</h1>
+    <p>Completá este formulario con la configuración real del servidor.<br>
+       Al terminar, hacé clic en <strong>Generar resumen</strong> y mandáselo a Franco.</p>
+  </div>
+
+  <form id="form">
+
+    <!-- ── TASAS ── -->
+    <div class="section">
+      <div class="section-title">📊 Tasas del servidor</div>
+      <div class="tip">XP ya configurado: Normal 70x · VIP 100x. Completá solo los que faltan.</div>
+
+      <div class="inline-pair">
+        <div></div>
+        <div class="col-header">Normal</div>
+        <div class="col-header">VIP</div>
+      </div>
+
+      <div class="inline-pair">
+        <div class="row-label">Drop rate</div>
+        <input name="drop_normal" placeholder="ej. 30%" title="Drop % modo normal">
+        <input name="drop_vip"    placeholder="ej. 50%" title="Drop % modo VIP">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Zen rate</div>
+        <input name="zen_normal"  placeholder="ej. 3x"  title="Zen multiplicador normal">
+        <input name="zen_vip"     placeholder="ej. 5x"  title="Zen multiplicador VIP">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Master XP</div>
+        <input name="masterxp_normal" placeholder="ej. 20x" title="Master XP normal">
+        <input name="masterxp_vip"    placeholder="ej. 30x" title="Master XP VIP">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Max stats por nivel</div>
+        <input name="maxstats_normal" placeholder="ej. 5" title="Puntos de stats por nivel normal">
+        <input name="maxstats_vip"    placeholder="ej. 7" title="Puntos de stats por nivel VIP">
+      </div>
+    </div>
+
+    <!-- ── RESETS ── -->
+    <div class="section">
+      <div class="section-title">🔁 Sistema de resets</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Costo de reset en Zen <span class="req">*</span></label>
+          <input name="reset_zen" placeholder="ej. 0  o  10,000,000">
+        </div>
+        <div class="field">
+          <label>Puntos extra por reset <span class="req">*</span></label>
+          <input name="reset_pts" placeholder="ej. 0  o  500">
+        </div>
+        <div class="field">
+          <label>¿Resetea stats al resetear? <span class="req">*</span></label>
+          <select name="reset_stats">
+            <option value="">— Elegir —</option>
+            <option value="Sí">Sí</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>¿Vuelve al nivel 1 al resetear? <span class="req">*</span></label>
+          <select name="reset_level">
+            <option value="">— Elegir —</option>
+            <option value="Sí">Sí</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Máximo de resets
+            <span class="hint">(actualmente: 100)</span>
+          </label>
+          <input name="reset_max" placeholder="100 si no cambió">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CHAOS MACHINE ── -->
+    <div class="section">
+      <div class="section-title">⚗️ Chaos Machine — porcentajes faltantes</div>
+      <div class="tip">Solo completá los que faltan. Los que ya están configurados (Wings, Arma Chaos, etc.) se mantienen.</div>
+
+      <div class="inline-pair">
+        <div></div>
+        <div class="col-header">Normal</div>
+        <div class="col-header">VIP</div>
+      </div>
+
+      <div class="inline-pair">
+        <div class="row-label">Fragment of Horn Mix</div>
+        <input name="horn_frag_n" placeholder="ej. 60%">
+        <input name="horn_frag_v" placeholder="ej. 70%">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Broken Horn Mix</div>
+        <input name="horn_broken_n" placeholder="ej. 50%">
+        <input name="horn_broken_v" placeholder="ej. 60%">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Horn of Fenrir Mix</div>
+        <input name="horn_fenrir_n" placeholder="ej. 50%">
+        <input name="horn_fenrir_v" placeholder="ej. 60%">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Ancient Hero's Soul</div>
+        <input name="hero_soul_n" placeholder="ej. 80%">
+        <input name="hero_soul_v" placeholder="ej. 90%">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Socket Weapon Mix</div>
+        <input name="socket_n" placeholder="ej. 50%">
+        <input name="socket_v" placeholder="ej. 60%">
+      </div>
+    </div>
+
+    <!-- ── INVASIONES ── -->
+    <div class="section">
+      <div class="section-title">👾 Invasiones — recompensas</div>
+      <div class="tip">¿Qué item/box/zen se obtiene al matar al boss de cada invasión?</div>
+
+      <div class="inline-pair">
+        <div></div>
+        <div class="col-header">Recompensa</div>
+        <div class="col-header">Cantidad de bosses</div>
+      </div>
+
+      <div class="inline-pair">
+        <div class="row-label">Skeleton</div>
+        <input name="inv_skeleton_reward"  placeholder="ej. Box of Kundun +1">
+        <input name="inv_skeleton_qty"     placeholder="x2">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Red Dragon</div>
+        <input name="inv_dragon_reward"    placeholder="ej. Box of Kundun +3">
+        <input name="inv_dragon_qty"       placeholder="x4">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">White Wizard</div>
+        <input name="inv_wizard_reward"    placeholder="ej. Box of Kundun +2">
+        <input name="inv_wizard_qty"       placeholder="x3">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">New Year</div>
+        <input name="inv_newyear_reward"   placeholder="">
+        <input name="inv_newyear_qty"      placeholder="x10">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Rabbit</div>
+        <input name="inv_rabbit_reward"    placeholder="">
+        <input name="inv_rabbit_qty"       placeholder="x10">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Summer</div>
+        <input name="inv_summer_reward"    placeholder="">
+        <input name="inv_summer_qty"       placeholder="x10">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Cursed Santa</div>
+        <input name="inv_santa_reward"     placeholder="">
+        <input name="inv_santa_qty"        placeholder="x2">
+      </div>
+    </div>
+
+    <!-- ── EVENTOS ── -->
+    <div class="section">
+      <div class="section-title">🏆 Eventos — recompensas</div>
+
+      <div class="inline-pair">
+        <div></div>
+        <div class="col-header">Recompensa (1er lugar)</div>
+        <div class="col-header">Cantidad / info extra</div>
+      </div>
+
+      <div class="inline-pair">
+        <div class="row-label">Blood Castle</div>
+        <input name="evt_bc_reward"  placeholder="ej. Jewel of Bless x3">
+        <input name="evt_bc_qty"     placeholder="ej. x1">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Devil Square</div>
+        <input name="evt_ds_reward"  placeholder="">
+        <input name="evt_ds_qty"     placeholder="">
+      </div>
+      <div class="inline-pair">
+        <div class="row-label">Chaos Castle</div>
+        <input name="evt_cc_reward"  placeholder="">
+        <input name="evt_cc_qty"     placeholder="">
+      </div>
+    </div>
+
+    <!-- ── COMANDOS ── -->
+    <div class="section">
+      <div class="section-title">💬 Comandos del servidor</div>
+      <div class="tip">
+        Ya tenemos: <code>/f /a /v /e /c</code> (stats), <code>/readd</code> (reiniciar puntos), <code>/reset</code>.
+        ¿Hay otros comandos disponibles para los jugadores? Agregá uno por línea en formato: <code>/comando → descripción</code>
+      </div>
+      <div class="field">
+        <label>Comandos adicionales <span class="hint">(uno por línea)</span></label>
+        <textarea name="comandos_extra" rows="5" placeholder="/ware → Abre el almacén&#10;/post → Envía mensaje al servidor&#10;/pkclear → (si es diferente al botón del sitio)"></textarea>
+      </div>
+      <div class="divider"></div>
+      <div class="field">
+        <label>¿El comando <code>/autoreset</code> está activo?</label>
+        <select name="autoreset">
+          <option value="">— Elegir —</option>
+          <option value="Sí, se resetea solo al llegar al nivel 400">Sí, se resetea solo al llegar a nivel 400</option>
+          <option value="No, hay que usar /reset manualmente">No, hay que usar /reset manualmente</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ── INFO EXTRA ── -->
+    <div class="section">
+      <div class="section-title">🌐 Info de conexión</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>IP del servidor <span class="req">*</span></label>
+          <input name="server_ip" placeholder="ej. 190.xxx.xxx.xxx  o  play.mupga.com.ar">
+        </div>
+        <div class="field">
+          <label>Puerto de conexión</label>
+          <input name="server_port" placeholder="ej. 55901 (default MU)">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NOTAS LIBRES ── -->
+    <div class="section">
+      <div class="section-title">📝 Notas o correcciones</div>
+      <div class="field">
+        <label>¿Algo que corregir o agregar que no esté en el formulario?</label>
+        <textarea name="notas" rows="4" placeholder="Ej: el XP de nivel 1-200 es diferente al de 200-400, hay un evento Castle Siege los sábados, etc."></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit">✅ Generar resumen para mandar a Franco</button>
+  </form>
+
+  <!-- ── RESULTADO ── -->
+  <div id="resultado">
+    <h2>📋 Resumen — copiá esto y mandáselo a Franco</h2>
+    <pre id="resultado-texto"></pre>
+    <button class="btn-copy" id="btn-copy" onclick="copiar()">Copiar al portapapeles</button>
+  </div>
+
+</div>
+
+<script>
+document.getElementById('form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(this));
+  const v = k => (d[k] || '').trim() || '(sin completar)';
+  const vOpt = k => (d[k] || '').trim() || '';
+
+  const lineas = [
+    '══════════════════════════════════════',
+    '   MuPGA — Info del servidor',
+    '══════════════════════════════════════',
+    '',
+    '── TASAS ──────────────────────────────',
+    `Drop rate:       Normal ${v('drop_normal')}  |  VIP ${v('drop_vip')}`,
+    `Zen rate:        Normal ${v('zen_normal')}   |  VIP ${v('zen_vip')}`,
+    `Master XP:       Normal ${v('masterxp_normal')}  |  VIP ${v('masterxp_vip')}`,
+    `Max stats/nivel: Normal ${v('maxstats_normal')}  |  VIP ${v('maxstats_vip')}`,
+    '',
+    '── RESETS ─────────────────────────────',
+    `Costo zen:       ${v('reset_zen')}`,
+    `Puntos extra:    ${v('reset_pts')}`,
+    `Resetea stats:   ${v('reset_stats')}`,
+    `Vuelve a nivel 1:${v('reset_level')}`,
+    `Máximo resets:   ${d['reset_max'] || '100'}`,
+    '',
+    '── CHAOS MACHINE (faltantes) ──────────',
+    `Fragment of Horn:   Normal ${v('horn_frag_n')}  |  VIP ${v('horn_frag_v')}`,
+    `Broken Horn:        Normal ${v('horn_broken_n')}  |  VIP ${v('horn_broken_v')}`,
+    `Horn of Fenrir:     Normal ${v('horn_fenrir_n')}  |  VIP ${v('horn_fenrir_v')}`,
+    `Ancient Hero Soul:  Normal ${v('hero_soul_n')}  |  VIP ${v('hero_soul_v')}`,
+    `Socket Weapon Mix:  Normal ${v('socket_n')}  |  VIP ${v('socket_v')}`,
+    '',
+    '── INVASIONES ─────────────────────────',
+    `Skeleton:     ${v('inv_skeleton_reward')} (${v('inv_skeleton_qty')})`,
+    `Red Dragon:   ${v('inv_dragon_reward')} (${v('inv_dragon_qty')})`,
+    `White Wizard: ${v('inv_wizard_reward')} (${v('inv_wizard_qty')})`,
+    `New Year:     ${v('inv_newyear_reward')} (${v('inv_newyear_qty')})`,
+    `Rabbit:       ${v('inv_rabbit_reward')} (${v('inv_rabbit_qty')})`,
+    `Summer:       ${v('inv_summer_reward')} (${v('inv_summer_qty')})`,
+    `Cursed Santa: ${v('inv_santa_reward')} (${v('inv_santa_qty')})`,
+    '',
+    '── EVENTOS ────────────────────────────',
+    `Blood Castle:  ${v('evt_bc_reward')} (${v('evt_bc_qty')})`,
+    `Devil Square:  ${v('evt_ds_reward')} (${v('evt_ds_qty')})`,
+    `Chaos Castle:  ${v('evt_cc_reward')} (${v('evt_cc_qty')})`,
+    '',
+    '── COMANDOS ───────────────────────────',
+    `Autoreset: ${v('autoreset')}`,
+  ];
+
+  const extras = (d['comandos_extra'] || '').trim();
+  if (extras) {
+    lineas.push('Comandos extra:');
+    extras.split('\n').forEach(l => { if (l.trim()) lineas.push('  ' + l.trim()); });
+  } else {
+    lineas.push('Comandos extra: (sin completar)');
+  }
+
+  lineas.push('');
+  lineas.push('── CONEXIÓN ───────────────────────────');
+  lineas.push(`IP del servidor: ${v('server_ip')}`);
+  lineas.push(`Puerto:          ${d['server_port'] || '55901 (default)'}`);
+
+  const notas = (d['notas'] || '').trim();
+  if (notas) {
+    lineas.push('');
+    lineas.push('── NOTAS / CORRECCIONES ───────────────');
+    notas.split('\n').forEach(l => { if (l.trim()) lineas.push(l); });
+  }
+
+  lineas.push('');
+  lineas.push('══════════════════════════════════════');
+
+  document.getElementById('resultado-texto').textContent = lineas.join('\n');
+  const r = document.getElementById('resultado');
+  r.style.display = 'block';
+  r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const btn = document.getElementById('btn-copy');
+  btn.classList.remove('copied');
+  btn.textContent = 'Copiar al portapapeles';
+});
+
+function copiar() {
+  const texto = document.getElementById('resultado-texto').textContent;
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = document.getElementById('btn-copy');
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copiar al portapapeles';
+      btn.classList.remove('copied');
+    }, 2500);
+  });
+}
+</script>
+</body>
+</html>
