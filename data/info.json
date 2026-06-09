@@ -54,7 +54,8 @@
       "eyebrow": "Crafteo",
       "titulo": "Chaos Machine",
       "tipo": "tabla",
-      "columnas": ["Combinación", "Normal", "? VIP"],
+      "columnas": ["Combinación", "Normal", "VIP"],
+      "vip_col": 2,
       "filas": [
         ["Items +10, +11", "60% + Luck", "65% + Luck"],
         ["Items +12, +13", "50% + Luck", "55% + Luck"],

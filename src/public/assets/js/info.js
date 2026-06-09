@@ -10,24 +10,41 @@
 // ── Renderers por tipo de sección ────────────────────────────
 
 function renderTabla(section) {
-  const [col1, col2] = section.columnas;
+  const columnas  = section.columnas ?? [];
+  const cols      = columnas.length || 2;
+  const vipCol    = section.vip_col ?? -1;            // índice 0-based de la columna VIP
   const isCommandSection = section.id === 'comandos';
 
-  const rows = section.filas.map(fila => {
-    const key = fila[0] ?? '';
-    const val = fila[1] ?? '';
-    const keyClass = isCommandSection || String(key).startsWith('/')
-      ? 'cmd-name'
-      : 'info-key';
+  // Grid CSS: primera columna auto-ancho, el resto fracciones iguales
+  const colTemplate = cols === 1
+    ? '1fr'
+    : `minmax(160px, auto) repeat(${cols - 1}, 1fr)`;
 
-    return `
-      <div class="cmd-item">
-        <span class="${keyClass}">${esc(key)}</span>
-        <span class="cmd-desc">${esc(val)}</span>
-      </div>`;
+  // Encabezado solo para tablas de 3+ columnas (comparativas)
+  const header = cols >= 3 ? `
+    <div class="cmd-item cmd-header">
+      ${columnas.map((col, i) =>
+        `<span class="${i === vipCol ? 'col-vip' : 'col-label'}">${esc(col)}</span>`
+      ).join('')}
+    </div>` : '';
+
+  const rows = section.filas.map(fila => {
+    const cells = Array.from({ length: cols }, (_, i) => {
+      const val = fila[i] ?? '';
+      let cls;
+      if (i === 0) {
+        cls = isCommandSection || String(val).startsWith('/') ? 'cmd-name' : 'info-key';
+      } else if (i === vipCol) {
+        cls = 'col-vip-val';
+      } else {
+        cls = 'cmd-desc';
+      }
+      return `<span class="${cls}">${esc(val)}</span>`;
+    }).join('');
+    return `<div class="cmd-item">${cells}</div>`;
   }).join('');
 
-  return `<div class="cmd-list">${rows}</div>`;
+  return `<div class="cmd-list" style="--cmd-cols:${colTemplate}">${header}${rows}</div>`;
 }
 
 // ── Renderer principal ────────────────────────────────────────
