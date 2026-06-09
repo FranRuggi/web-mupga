@@ -19,5 +19,18 @@ const MUPGA_CONFIG = {
       return ''; // desarrollo: URLs relativas, PHP inyecta el base
     }
     return 'https://api.mupga.com.ar'; // producción VPS
+  })(),
+
+  // URL base de la API externa de pagos (currencies, quote, providers se llaman directo).
+  // PHP inyecta PAYMENTS_API_URL en data-payments-url del <html>.
+  // Sin inyección (Cloudflare Pages): usa el hardcoded de producción.
+  paymentsApi: (function () {
+    const injected = document.documentElement.dataset.paymentsUrl ?? '';
+    if (injected) return injected.replace(/\/$/, '');
+    if (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:5000';
+    }
+    return 'https://pagos-api.mupga.com.ar'; // producción — editar antes del push a Pages
   })()
 };

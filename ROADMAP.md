@@ -3,8 +3,8 @@
 > **Checklist vivo.** Claude Code lo actualiza al completar cada tarea: marcar `[x]`, y
 > agregar una línea con fecha en "Registro de cambios" al final.
 
-**Estado actual:** Fase 4 completa ✅ — iniciando Fase 5 (deploy al VPS).
-**Última actualización:** 2026-06-02
+**Estado actual:** Fase 4 completa ✅ — Fase 5 en curso + Tienda WCoin integrada.
+**Última actualización:** 2026-06-09
 
 ---
 
@@ -60,6 +60,15 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] config.js creado apuntando a `https://api.mupga.com.ar` — 2026-06-02
 - [ ] Completar `data/info.json` con valores reales del servidor (pendiente Franco)
 - [ ] Completar `data/downloads.json` con URLs reales del cliente (pendiente Franco)
+
+## Tienda WCoin — Integración con API de pagos externa
+- [x] Config: `PAYMENTS_API_URL` en `.env.example`; `paymentsApi` en `config.js`; `data-payments-url` inyectado en layout — 2026-06-09
+- [x] Proxy PHP `api/donate/order.php`: valida JWT, extrae Account, reenvía a API externa — 2026-06-09
+- [x] UI exchange: `donate/index.php` + `donate.js` (conversor estilo exchange con flujo completo) — 2026-06-09
+- [x] Páginas post-pago: `donate/success/` y `donate/error/` — 2026-06-09
+- [x] `build.php` actualizado con las 3 páginas nuevas (donate, success, error) — 2026-06-09
+- [ ] Configurar `PAYMENTS_API_URL` en `.env` del VPS cuando la API externa esté lista
+- [ ] Configurar CORS en la API externa para permitir el origen del frontend (para GETs directos)
 
 ## Fase 5 — Deploy y testing
 
@@ -170,3 +179,4 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-09 — [Doc] capability-matrix.md: política de online check actualizada
 - 2026-06-09 — [Fix] app.js CLASS_NAMES: agregadas 18 clases faltantes (Magic Knight, Dimension Summoner, Fist Blazer, Shining Lancer, Grand Rune Master, Majestic Rune Wizard, Master Slayer, Slaughterer, Master Gun Breaker, Heist Gun Crusher, Light Wizard family, Lemuria Mage family)
 - 2026-06-09 — [Fix] CharacterRepository.getBaseStats: agregados todos los códigos de clase faltantes con stats base correctos
+- 2026-06-09 — [Feat] Tienda WCoin: UI exchange (donate/index.php + donate.js), proxy PHP api/donate/order.php, páginas post-pago donate/success + donate/error, config paymentsApi en config.js + data-payments-url en layout.php, build.php actualizado
