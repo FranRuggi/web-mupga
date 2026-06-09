@@ -2,6 +2,7 @@
 require_once dirname(__DIR__) . '/bootstrap.php';
 
 $pageTitle = 'Inicio';
+$extraJs   = 'hero-slider.js';
 
 ob_start();
 ?>
@@ -10,11 +11,19 @@ ob_start();
 
   <!-- ── Hero ── -->
   <section class="hero">
-    <img class="hero-bg"
-         src="assets/img/hero-bg.jpg"
-         alt=""
-         aria-hidden="true"
-         onerror="this.style.display='none'">
+    <div class="hero-slider" aria-hidden="true">
+      <div class="hero-slide"><video src="assets/img/slider/vid-1.mp4" muted playsinline preload="auto"></video></div>
+      <div class="hero-slide"><img src="assets/img/slider/img-1.jpg" alt=""></div>
+      <div class="hero-slide"><img src="assets/img/slider/img-3.jpg" alt=""></div>
+      <div class="hero-slide"><video src="assets/img/slider/vid-2.mp4" muted playsinline preload="metadata"></video></div>
+      <div class="hero-slide"><img src="assets/img/slider/img-4.jpg" alt=""></div>
+      <div class="hero-slide"><img src="assets/img/slider/img-5.jpg" alt=""></div>
+      <div class="hero-slide"><video src="assets/img/slider/vid-3.mp4" muted playsinline preload="metadata"></video></div>
+      <div class="hero-slide"><img src="assets/img/slider/img-6.jpg" alt=""></div>
+      <div class="hero-slide"><img src="assets/img/slider/img-2.jpg" alt=""></div>
+      <div class="hero-slide"><img src="assets/img/slider/img-7.jpg" alt=""></div>
+      <div class="hero-slide"><img src="assets/img/slider/img-8.jpg" alt=""></div>
+    </div>
 
     <!-- Orbes decorativos animados -->
     <div class="hero-orb hero-orb--1" aria-hidden="true"></div>
