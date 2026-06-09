@@ -31,7 +31,12 @@ class CharacterRepository {
         $stmt = $this->pdo->prepare(
             'SELECT Name, Class, cLevel, ResetCount,
                     ISNULL(MasterResetCount,0) AS MasterResetCount,
-                    MapNumber, ISNULL(LevelUpPoint,0) AS LevelUpPoint
+                    MapNumber, ISNULL(LevelUpPoint,0) AS LevelUpPoint,
+                    ISNULL(Strength,0)   AS Strength,
+                    ISNULL(Dexterity,0)  AS Dexterity,
+                    ISNULL(Vitality,0)   AS Vitality,
+                    ISNULL(Energy,0)     AS Energy,
+                    ISNULL(Leadership,0) AS Leadership
              FROM Character WHERE AccountID = ?'
         );
         $stmt->execute([$username]);

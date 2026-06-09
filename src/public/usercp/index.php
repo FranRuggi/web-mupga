@@ -126,6 +126,7 @@ ob_start();
         Personaje seleccionado: <strong id="addstats-char-name">—</strong> ·
         Puntos disponibles: <strong id="addstats-available">—</strong>
       </p>
+      <div id="addstats-stats" class="current-stats-display" aria-label="Stats actuales"></div>
       <div id="msg-addstats" class="alert" role="alert"></div>
       <form id="form-addstats" class="addstats-form" novalidate>
         <div class="addstats-grid">

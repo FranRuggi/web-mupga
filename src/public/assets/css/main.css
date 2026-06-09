@@ -1942,6 +1942,26 @@ h1, h2, h3, h4 {
   .download-card__meta { justify-content: center; }
 }
 
+/* ── Stats actuales del personaje (addstats panel) ── */
+.current-stats-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  padding: 0.5rem var(--gap-md);
+  margin-bottom: 0.75rem;
+  background: rgba(145, 71, 232, 0.05);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius);
+}
+.current-stat { display: flex; gap: 0.3rem; align-items: baseline; }
+.current-stat__label {
+  font-size: 0.63rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.current-stat__val { font-size: 0.82rem; color: var(--text-bright); font-weight: 500; }
+
 /* ── Formulario Agregar Stats ── */
 .addstats-grid {
   display: grid;

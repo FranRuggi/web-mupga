@@ -159,3 +159,7 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-02 — [Feat] Rankings país: tabla MUPGA_ACCOUNT_COUNTRY propia; ip-api.com al registrar; emoji bandera en ranking
 - 2026-06-02 — [Feat] Navbar: enlace a Noticias agregado
 - 2026-06-02 — [Design] Tipografía: --text #e8e4f4, --text-dim #a099be, --text-bright #f5f2ff
+- 2026-06-09 — [Feat] /donate guardado detrás de login: guard en donate.js + redirect post-login con ?redirect= (anti open-redirect)
+- 2026-06-09 — [Feat] UserCP addstats: stats actuales (Fue/Agi/Vit/Ene/Lid) visibles antes de distribuir puntos; se actualizan en tiempo real tras submit exitoso
+- 2026-06-09 — [Backend] CharacterRepository.getByAccount expone Strength/Dexterity/Vitality/Energy/Leadership; profile.php los mapea como str/agi/vit/ene/cmd
+- 2026-06-09 — [Design] CSS: .current-stats-display con .current-stat, .current-stat__label, .current-stat__val

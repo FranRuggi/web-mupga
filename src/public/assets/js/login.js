@@ -38,7 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (res.ok) {
         setAuth(data.token, data.username, data.user_id);
-        window.location.href = `${BASE}/usercp/`;
+        const redir = new URLSearchParams(location.search).get('redirect') ?? '';
+        // Validar que sea ruta interna (evitar open redirect)
+        window.location.href = (redir && redir.startsWith('/') && !redir.startsWith('//'))
+          ? `${BASE}${redir}`
+          : `${BASE}/usercp/`;
       } else {
         showAlert(data.error ?? 'Error al iniciar sesión.', 'error');
         setLoading(btnSubmit, false);

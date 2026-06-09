@@ -6,6 +6,12 @@
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!isAuthenticated()) {
+    window.location.replace(
+      `${BASE}/login/?redirect=${encodeURIComponent(window.location.pathname)}`
+    );
+    return;
+  }
   await loadDonateData();
 });
 

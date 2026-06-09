@@ -38,5 +38,10 @@ echo json_encode([
         'master_resets'  => (int) ($c['MasterResetCount'] ?? 0),
         'map'            => (int) $c['MapNumber'],
         'level_up_point' => (int) ($c['LevelUpPoint'] ?? 0),
+        'str'            => (int) ($c['Strength']   ?? 0),
+        'agi'            => (int) ($c['Dexterity']  ?? 0),
+        'vit'            => (int) ($c['Vitality']   ?? 0),
+        'ene'            => (int) ($c['Energy']     ?? 0),
+        'cmd'            => (int) ($c['Leadership'] ?? 0),
     ], $characters),
 ], JSON_THROW_ON_ERROR);

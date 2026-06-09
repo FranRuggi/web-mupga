@@ -181,6 +181,21 @@ function updateAddStatsPanel() {
   const cmdRow = document.getElementById('add-cmd-row');
   if (cmdRow) cmdRow.style.display = isDarkLord ? '' : 'none';
 
+  // Stats actuales del personaje
+  const statsEl = document.getElementById('addstats-stats');
+  if (statsEl) {
+    const rows = [
+      ['Fue', char.str], ['Agi', char.agi], ['Vit', char.vit], ['Ene', char.ene],
+      ...(isDarkLord ? [['Lid', char.cmd]] : []),
+    ];
+    statsEl.innerHTML = rows.map(([label, val]) =>
+      `<span class="current-stat">
+        <span class="current-stat__label">${label}</span>
+        <span class="current-stat__val">${(val ?? 0).toLocaleString('es-AR')}</span>
+      </span>`
+    ).join('');
+  }
+
   // Resetear inputs
   document.querySelectorAll('.addstats-input').forEach(i => i.value = '0');
   recalcAddStatsTotal();
@@ -202,16 +217,16 @@ async function handleAddStats(e) {
   const btn = document.getElementById('btn-addstats');
   if (btn) { btn.disabled = true; btn.textContent = 'Aplicando...'; }
 
+  // Capturar antes del fetch para actualizar localmente si tiene éxito
+  const addStr = Math.max(0, parseInt(document.getElementById('add-str')?.value ?? 0, 10));
+  const addAgi = Math.max(0, parseInt(document.getElementById('add-agi')?.value ?? 0, 10));
+  const addVit = Math.max(0, parseInt(document.getElementById('add-vit')?.value ?? 0, 10));
+  const addEne = Math.max(0, parseInt(document.getElementById('add-ene')?.value ?? 0, 10));
+  const addCmd = Math.max(0, parseInt(document.getElementById('add-cmd')?.value ?? 0, 10));
+
   const res = await authFetch('account/addstats.php', {
     method: 'POST',
-    body: JSON.stringify({
-      character: charName,
-      str: parseInt(document.getElementById('add-str')?.value ?? 0, 10),
-      agi: parseInt(document.getElementById('add-agi')?.value ?? 0, 10),
-      vit: parseInt(document.getElementById('add-vit')?.value ?? 0, 10),
-      ene: parseInt(document.getElementById('add-ene')?.value ?? 0, 10),
-      cmd: parseInt(document.getElementById('add-cmd')?.value ?? 0, 10),
-    }),
+    body: JSON.stringify({ character: charName, str: addStr, agi: addAgi, vit: addVit, ene: addEne, cmd: addCmd }),
   });
 
   if (btn) { btn.disabled = false; btn.textContent = 'Agregar puntos'; }
@@ -222,11 +237,19 @@ async function handleAddStats(e) {
 
   if (res.ok && data.remaining !== undefined) {
     document.getElementById('addstats-available').textContent = data.remaining;
+    // Actualizar _characters para reflejar los nuevos valores
+    const char = _characters.find(c => c.name === charName);
+    if (char) {
+      char.level_up_point = data.remaining;
+      char.str = (char.str ?? 0) + addStr;
+      char.agi = (char.agi ?? 0) + addAgi;
+      char.vit = (char.vit ?? 0) + addVit;
+      char.ene = (char.ene ?? 0) + addEne;
+      char.cmd = (char.cmd ?? 0) + addCmd;
+    }
     document.querySelectorAll('.addstats-input').forEach(i => i.value = '0');
     recalcAddStatsTotal();
-    // Actualizar el pool en _characters para que el selector refleje el nuevo valor
-    const char = _characters.find(c => c.name === charName);
-    if (char) char.level_up_point = data.remaining;
+    updateAddStatsPanel(); // re-renderiza con los stats actualizados
   }
 }
 
