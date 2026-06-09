@@ -5,16 +5,15 @@
       "eyebrow": "Configuración",
       "titulo": "Rates del servidor",
       "tipo": "tabla",
-      "columnas": ["Combinación", "Normal", "VIP"],
+      "columnas": ["Concepto", "Normal", "VIP"],
       "vip_col": 2,
       "filas": [
-        ["Experiencia (XP)", "70%"],
-        ["Experiencia VIP", "100%"],
-        ["Drop rate", "PLACEHOLDER_DROP"],
-        ["Zen rate", "PLACEHOLDER_ZEN"],
-        ["Nivel máximo", "400"],
-        ["Master Experience", "PLACEHOLDER_MASTERXP"],
-        ["Max Stats por nivel", "PLACEHOLDER_MAXSTATS"]
+        ["Experiencia (XP)", "70%", "100%"],
+        ["Drop rate", "PLACEHOLDER_DROP",""],
+        ["Zen rate", "PLACEHOLDER_ZEN",""],
+        ["Nivel máximo", "400","400"],
+        ["Master Experience", "PLACEHOLDER_MASTERXP",""],
+        ["Max Stats por nivel", "PLACEHOLDER_MAXSTATS",""]
       ]
     },
     {
@@ -24,15 +23,27 @@
       "tipo": "tabla",
       "columnas": ["Comando", "Descripción"],
       "filas": [
-        ["/post", "PLACEHOLDER — descripción del comando /post"],
-        ["/reset", "PLACEHOLDER — descripción del comando /reset"],
-        ["/pkclear", "PLACEHOLDER — descripción del comando /pkclear"],
-        ["/movemap", "PLACEHOLDER — descripción del comando /movemap"],
-        ["/addstr", "PLACEHOLDER — descripción del comando /addstr"],
-        ["/addagi", "PLACEHOLDER — descripción del comando /addagi"],
-        ["/addvit", "PLACEHOLDER — descripción del comando /addvit"],
-        ["/addene", "PLACEHOLDER — descripción del comando /addene"],
-        ["/addcmd", "PLACEHOLDER — descripción del comando /addcmd (Dark Lord)"]
+        ["/f", "Agrega puntos de fuerza."],
+        ["/a", "Agrega puntos de agilidad."],
+        ["/v", "Agrega puntos de vitalidad."],
+        ["/e", "Agrega puntos de energia."],
+        ["/c", "Agrega puntos de comando."],
+        ["/readd", "Reiniciar los puntos."]
+      ]
+    },
+    {
+      "id": "resets",
+      "eyebrow": "Progresión",
+      "titulo": "Resets y configuración",
+      "tipo": "tabla",
+      "columnas": ["Concepto", "Valor"],
+      "filas": [
+        ["Nivel para resetear", "400"],
+        ["Costo de reset (Zen)", "PLACEHOLDER"],
+        ["Puntos por reset", "PLACEHOLDER"],
+        ["Máximo de resets", "100"],
+        ["Resetea stats al resetear", "PLACEHOLDER (Sí / No)"],
+        ["Resetea nivel al resetear", "PLACEHOLDER (Sí / No)"]
       ]
     },
     {
