@@ -5,7 +5,8 @@
       "eyebrow": "Configuración",
       "titulo": "Rates del servidor",
       "tipo": "tabla",
-      "columnas": ["Concepto", "Valor"],
+      "columnas": ["Combinación", "Normal", "VIP"],
+      "vip_col": 2,
       "filas": [
         ["Experiencia (XP)", "70%"],
         ["Experiencia VIP", "100%"],
