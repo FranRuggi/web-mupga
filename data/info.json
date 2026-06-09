@@ -7,10 +7,11 @@
       "tipo": "tabla",
       "columnas": ["Concepto", "Valor"],
       "filas": [
-        ["Experiencia (XP)", "PLACEHOLDER_XP"],
+        ["Experiencia (XP)", "70%"],
+        ["Experiencia VIP", "100%"],
         ["Drop rate", "PLACEHOLDER_DROP"],
         ["Zen rate", "PLACEHOLDER_ZEN"],
-        ["Nivel máximo", "PLACEHOLDER_MAXLEVEL"],
+        ["Nivel máximo", "400"],
         ["Master Experience", "PLACEHOLDER_MASTERXP"],
         ["Max Stats por nivel", "PLACEHOLDER_MAXSTATS"]
       ]
@@ -40,10 +41,10 @@
       "tipo": "tabla",
       "columnas": ["Concepto", "Valor"],
       "filas": [
-        ["Nivel para resetear", "PLACEHOLDER"],
+        ["Nivel para resetear", "400"],
         ["Costo de reset (Zen)", "PLACEHOLDER"],
         ["Puntos por reset", "PLACEHOLDER"],
-        ["Máximo de resets", "PLACEHOLDER"],
+        ["Máximo de resets", "100"],
         ["Resetea stats al resetear", "PLACEHOLDER (Sí / No)"],
         ["Resetea nivel al resetear", "PLACEHOLDER (Sí / No)"]
       ]
@@ -53,13 +54,22 @@
       "eyebrow": "Crafteo",
       "titulo": "Chaos Machine",
       "tipo": "tabla",
-      "columnas": ["Combinación", "Tasa de éxito"],
+      "columnas": ["Combinación", "Normal", "? VIP"],
       "filas": [
-        ["PLACEHOLDER — ej: Normal +10 a +11", "PLACEHOLDER %"],
-        ["PLACEHOLDER — ej: Normal +11 a +12", "PLACEHOLDER %"],
-        ["PLACEHOLDER — ej: Normal +12 a +13", "PLACEHOLDER %"],
-        ["PLACEHOLDER — ej: Excellent +10 a +11", "PLACEHOLDER %"],
-        ["PLACEHOLDER — ej: Ancient +10 a +11", "PLACEHOLDER %"]
+        ["Items +10, +11", "60% + Luck", "65% + Luck"],
+        ["Items +12, +13", "50% + Luck", "55% + Luck"],
+        ["Items +14, +15", "40% + Luck", "45% + Luck"],
+        ["Arma Chaos",      "65%",        "75%"],
+        ["Wings Level 1",   "65%",        "75%"],
+        ["Wings Level 2",   "60%",        "70%"],
+        ["Wings Level 3",   "40%",        "50%"],
+        ["Cape of Lord Mix","60%",        "70%"],
+        ["Feather of Condor","50%",       "60%"],
+        ["Fragment of Horn Mix", "x%",    "x%"],
+        ["Broken Horn Mix",  "x%",        "x%"],
+        ["Horn of Fenrir Mix","x%",       "x%"],
+        ["Ancient Hero's Soul","x%",      "x%"],
+        ["Socket Weapon Mix", "x%",       "x%"]
       ]
     }
   ]
