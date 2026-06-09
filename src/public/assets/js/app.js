@@ -41,9 +41,9 @@ const CLASS_NAMES = {
   // Dark Wizard
   0:  'Dark Wizard',      1:  'Soul Master',      3:  'Grand Master',     7:  'Soul Wizard',
   // Dark Knight
-  16: 'Dark Knight',      17: 'Blade Knight',     19: 'Blade Master',     23: 'Dragon Knight',
+  16: 'Dark Knight',      17: 'Blade Knight',     18: 'Blade Master',     19: 'Blade Master',     23: 'Dragon Knight',
   // Fairy Elf
-  32: 'Fairy Elf',        33: 'Muse Elf',         35: 'High Elf',         39: 'Noble Elf',
+  32: 'Fairy Elf',        33: 'Muse Elf',         34: 'High Elf',         35: 'High Elf',         39: 'Noble Elf',
   // Magic Gladiator
   48: 'Magic Gladiator',  50: 'Duel Master',      54: 'Magic Knight',
   // Dark Lord
@@ -68,8 +68,8 @@ const CLASS_NAMES = {
 
 const CLASS_AVATAR = {
   0:'dw.jpg',  1:'dw.jpg',   3:'dw.jpg',   7:'dw.jpg',
-  16:'dk.jpg', 17:'dk.jpg',  19:'dk.jpg',  23:'dk.jpg',
-  32:'elf.jpg',33:'elf.jpg', 35:'elf.jpg', 39:'elf.jpg',
+  16:'dk.jpg', 17:'dk.jpg',  18:'dk.jpg',  19:'dk.jpg',  23:'dk.jpg',
+  32:'elf.jpg',33:'elf.jpg', 34:'elf.jpg', 35:'elf.jpg', 39:'elf.jpg',
   48:'mg.jpg', 50:'mg.jpg',  54:'mg.jpg',
   64:'dl.jpg', 66:'dl.jpg',  70:'dl.jpg',
   80:'sum.jpg',81:'sum.jpg', 83:'sum.jpg', 87:'sum.jpg',
