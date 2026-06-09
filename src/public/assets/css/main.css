@@ -126,6 +126,8 @@ h1, h2, h3, h4 {
     "main    sidebar"
     "footer  footer";
   min-height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 /* ── Header ────────────────────────────────────────────────── */
@@ -438,7 +440,7 @@ h1, h2, h3, h4 {
   position: relative;
   min-height: clamp(540px, 70vh, 860px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   overflow: hidden;
   padding: var(--gap-xl) var(--gap-lg);
   /* Fallback CSS gradient if no hero image */

@@ -23,6 +23,9 @@ ob_start();
       <div class="hero-slide"><img src="assets/img/slider/img-2.jpg" alt=""></div>
       <div class="hero-slide"><img src="assets/img/slider/img-7.jpg" alt=""></div>
       <div class="hero-slide"><img src="assets/img/slider/img-8.jpg" alt=""></div>
+      <div class="hero-slide"><img src="assets/img/slider/img-9.jpg" alt=""></div>
+      <div class="hero-slide"><img src="assets/img/slider/img-10.jpg" alt=""></div>
+      <div class="hero-slide"><video src="assets/img/slider/vid-4.mp4" muted playsinline preload="metadata"></video></div>
     </div>
 
     <!-- Orbes decorativos animados -->
