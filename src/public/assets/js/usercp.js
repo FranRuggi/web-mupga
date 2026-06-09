@@ -116,25 +116,29 @@ function populateCharSelect(chars) {
   const sel = document.getElementById('char-select');
   if (!sel) return;
 
+  const prevSelection = sel.value; // preservar personaje seleccionado
+
+  const actionBtns = ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml', 'btn-resetchar'];
+
   if (!chars.length) {
     sel.innerHTML = '<option value="">Sin personajes</option>';
-    ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml'].forEach(id =>
-      document.getElementById(id)?.toggleAttribute('disabled', true)
-    );
+    actionBtns.forEach(id => document.getElementById(id)?.toggleAttribute('disabled', true));
     const card = document.getElementById('addstats-card');
     if (card) card.style.display = 'none';
     return;
   }
 
   sel.innerHTML = chars.map(c =>
-    `<option value="${esc(c.name)}">${esc(c.name)} — ${esc(className(c.class))} Nv${c.level}</option>`
+    `<option value="${esc(c.name)}">${esc(c.name)} — ${esc(className(c.class))} Nv${c.level} (${c.resets} RST)</option>`
   ).join('');
 
-  ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml'].forEach(id =>
-    document.getElementById(id)?.toggleAttribute('disabled', false)
-  );
+  // Restaurar selección previa si el personaje aún existe
+  if (prevSelection && chars.some(c => c.name === prevSelection)) {
+    sel.value = prevSelection;
+  }
 
-  // Mostrar el panel de stats con el primer personaje seleccionado
+  actionBtns.forEach(id => document.getElementById(id)?.toggleAttribute('disabled', false));
+
   updateAddStatsPanel();
 }
 
@@ -144,6 +148,7 @@ function initGameOptions() {
     ['btn-clearpk',    'account/clearpk.php',    'msg-clearpk',    'Limpiar PK'],
     ['btn-resetstats', 'account/resetstats.php', 'msg-resetstats', 'Resetear Stats'],
     ['btn-resetml',    'account/resetml.php',    'msg-resetml',    'Resetear Árbol ML'],
+    ['btn-resetchar',  'account/resetchar.php',  'msg-resetchar',  'Reset personaje'],
   ];
   actions.forEach(([id, endpoint, msgId, label]) => {
     document.getElementById(id)?.addEventListener('click', () =>
@@ -235,21 +240,11 @@ async function handleAddStats(e) {
   const data = await res.json();
   showGameMsg('msg-addstats', data.message ?? data.error, res.ok ? 'success' : 'error');
 
-  if (res.ok && data.remaining !== undefined) {
-    document.getElementById('addstats-available').textContent = data.remaining;
-    // Actualizar _characters para reflejar los nuevos valores
-    const char = _characters.find(c => c.name === charName);
-    if (char) {
-      char.level_up_point = data.remaining;
-      char.str = (char.str ?? 0) + addStr;
-      char.agi = (char.agi ?? 0) + addAgi;
-      char.vit = (char.vit ?? 0) + addVit;
-      char.ene = (char.ene ?? 0) + addEne;
-      char.cmd = (char.cmd ?? 0) + addCmd;
-    }
+  if (res.ok) {
     document.querySelectorAll('.addstats-input').forEach(i => i.value = '0');
     recalcAddStatsTotal();
-    updateAddStatsPanel(); // re-renderiza con los stats actualizados
+    // Re-sincronizar con la DB para que stats y puntos queden exactos
+    await loadProfile();
   }
 }
 
@@ -261,19 +256,15 @@ async function runCharAction(actionId, endpoint, msgId, btnLabel) {
   const btn = document.getElementById(`btn-${actionId}`);
   if (btn) { btn.disabled = true; btn.querySelector('strong').textContent = '...'; }
 
-  const res  = await authFetch(endpoint, { method: 'POST', body: JSON.stringify({ character: charName }) });
+  const res = await authFetch(endpoint, { method: 'POST', body: JSON.stringify({ character: charName }) });
   if (btn) { btn.disabled = false; btn.querySelector('strong').textContent = btnLabel; }
 
   if (!res) return;
   const data = await res.json();
   showGameMsg(msgId, data.message ?? data.error, res.ok ? 'success' : 'error');
 
-  // Si la acción devuelve new_points (resetstats / resetml), refrescar el contador
-  if (res.ok && data.new_points !== undefined) {
-    const char = _characters.find(c => c.name === charName);
-    if (char) char.level_up_point = data.new_points;
-    document.getElementById('addstats-available').textContent = data.new_points;
-  }
+  // Re-sincronizar con la DB para que stats y puntos queden exactos
+  if (res.ok) await loadProfile();
 }
 
 function showGameMsg(id, msg, type) {

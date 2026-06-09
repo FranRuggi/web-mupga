@@ -116,6 +116,17 @@ ob_start();
           <div id="msg-resetml" class="alert" role="alert"></div>
         </div>
 
+        <div class="game-option-btn-group">
+          <button class="btn btn-secondary game-option-btn game-option-btn--reset" id="btn-resetchar" disabled>
+            <span class="game-option-icon">🔁</span>
+            <span class="game-option-text">
+              <strong>Reset de personaje</strong>
+              <small>Nivel 400 requerido — volvés al nivel 1</small>
+            </span>
+          </button>
+          <div id="msg-resetchar" class="alert" role="alert"></div>
+        </div>
+
       </div>
     </div>
 

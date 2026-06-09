@@ -54,10 +54,10 @@ Estas escrituras son seguras tanto si el jugador está online como offline en Mu
 Algunas afectan tablas del CMS web (WEBENGINE_*), otras escriben directamente sobre datos de juego —
 verificado en producción sin casos de corrupción.
 
-> **Nota sobre WebEngine:** el CMS original añade un chequeo de estado offline antes de escribir
-> en `Character` y `MEMB_INFO`. En MuPGA ese chequeo **no es necesario** y se omite. Los cambios
-> en campos como stats, resets o PK pueden hacerse con el jugador conectado; el jugador verá el
-> efecto cuando el servidor lo sincronice (inmediato en la mayoría de casos, o al reconectar en algunos).
+> **Nota sobre el chequeo online (actualizado 2026-06-09):** todos los endpoints de escritura sobre
+> `Character` verifican `MEMB_STAT.ConnectStat` antes de ejecutar. Si la cuenta está conectada
+> devuelven HTTP 409 con el mensaje "Cuenta en línea. Desconectate del servidor para continuar."
+> Esto sigue el mismo criterio que WebEngine y es la política adoptada para MuPGA.
 
 | Operación                                          | Tabla(s)                                        |
 |----------------------------------------------------|-------------------------------------------------|

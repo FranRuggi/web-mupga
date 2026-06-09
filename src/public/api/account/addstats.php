@@ -45,6 +45,12 @@ try {
     $db   = Database::get();
     $repo = new CharacterRepository($db);
 
+    if ((new AccountRepository($db))->isOnline($auth['usr'])) {
+        http_response_code(409);
+        echo json_encode(['error' => 'Cuenta en línea. Desconectate del servidor para continuar.']);
+        exit;
+    }
+
     if (!$repo->belongsToAccount($charName, $auth['usr'])) {
         http_response_code(403);
         echo json_encode(['error' => 'El personaje no pertenece a tu cuenta.']);

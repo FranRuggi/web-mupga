@@ -1551,6 +1551,8 @@ h1, h2, h3, h4 {
   padding: 0.875rem 1rem;
 }
 .game-option-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.game-option-btn--reset { border-left: 3px solid rgba(232, 71, 71, 0.5); }
+.game-option-btn--reset:hover:not(:disabled) { border-color: rgba(232, 71, 71, 0.85); }
 .game-option-icon { font-size: 1.4rem; flex-shrink: 0; line-height: 1; }
 .game-option-text { flex: 1; min-width: 0; }
 .game-option-btn strong { display: block; font-size: 0.85rem; margin-bottom: 2px; white-space: nowrap; }

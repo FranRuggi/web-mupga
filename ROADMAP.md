@@ -163,3 +163,8 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-09 — [Feat] UserCP addstats: stats actuales (Fue/Agi/Vit/Ene/Lid) visibles antes de distribuir puntos; se actualizan en tiempo real tras submit exitoso
 - 2026-06-09 — [Backend] CharacterRepository.getByAccount expone Strength/Dexterity/Vitality/Energy/Leadership; profile.php los mapea como str/agi/vit/ene/cmd
 - 2026-06-09 — [Design] CSS: .current-stats-display con .current-stat, .current-stat__label, .current-stat__val
+- 2026-06-09 — [Seguridad] Online check en los 5 endpoints de escritura (unstick/clearpk/resetstats/resetml/addstats): HTTP 409 si ConnectStat=1
+- 2026-06-09 — [Feat] resetchar.php: reset de personaje (nivel 400→1, ResetCount+1, stats base); config vía RESET_* en .env
+- 2026-06-09 — [Fix] resetstats.php: devuelve base_stats en la respuesta; getBaseStats() centralizado en CharacterRepository
+- 2026-06-09 — [Fix] usercp.js: post-mutación re-fetch de loadProfile() para sincronizar stats/puntos desde DB; populateCharSelect preserva selección
+- 2026-06-09 — [Doc] capability-matrix.md: política de online check actualizada
