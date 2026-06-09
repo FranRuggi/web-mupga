@@ -204,7 +204,6 @@ async function loadInfoCards() {
     { icon: '🌍',  value: data.season,         label: 'Temporada'      },
     { icon: '👥',  value: data.players_total,  label: 'Registrados'    },
     { icon: '🟢',  value: data.players_online, label: 'Online ahora'   },
-    { icon: '🏰',  value: 'Semanal',           label: 'Castle Siege'   },
   ];
 
   el.innerHTML = cards.map((c, i) => `
