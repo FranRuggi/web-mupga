@@ -2,63 +2,19 @@
   "secciones": [
     {
       "id": "rates",
-      "eyebrow": "Configuración",
-      "titulo": "Rates del servidor",
+      "eyebrow": "Información",
+      "titulo": "Información general del servidor",
       "tipo": "tabla",
       "columnas": ["Concepto", "Normal", "VIP"],
       "vip_col": 2,
       "filas": [
+        ["Version del servidor", "Season 6", "Season 6"],
         ["Experiencia (XP)", "70%", "100%"],
-        ["Drop rate", "PLACEHOLDER_DROP",""],
-        ["Zen rate", "PLACEHOLDER_ZEN",""],
+        ["Drop rate", "PLACEHOLDER_DROP","PLACEHOLDER_DROP_VIP"],
+        ["Zen rate", "PLACEHOLDER_ZEN","PLACEHOLDER_ZEN_VIP"],
         ["Nivel máximo", "400","400"],
-        ["Master Experience", "PLACEHOLDER_MASTERXP",""],
-        ["Max Stats por nivel", "PLACEHOLDER_MAXSTATS",""]
-      ]
-    },
-    {
-      "id": "comandos",
-      "eyebrow": "In-game",
-      "titulo": "Comandos disponibles",
-      "tipo": "tabla",
-      "columnas": ["Comando", "Descripción"],
-      "filas": [
-        ["/f", "Agrega puntos de fuerza."],
-        ["/a", "Agrega puntos de agilidad."],
-        ["/v", "Agrega puntos de vitalidad."],
-        ["/e", "Agrega puntos de energia."],
-        ["/c", "Agrega puntos de comando."],
-        ["/readd", "Reiniciar los puntos."]
-      ]
-    },
-    {
-      "id": "resets",
-      "eyebrow": "Progresión",
-      "titulo": "Resets y configuración",
-      "tipo": "tabla",
-      "columnas": ["Concepto", "Valor"],
-      "filas": [
-        ["Nivel para resetear", "400"],
-        ["Costo de reset (Zen)", "PLACEHOLDER"],
-        ["Puntos por reset", "PLACEHOLDER"],
-        ["Máximo de resets", "100"],
-        ["Resetea stats al resetear", "PLACEHOLDER (Sí / No)"],
-        ["Resetea nivel al resetear", "PLACEHOLDER (Sí / No)"]
-      ]
-    },
-    {
-      "id": "resets",
-      "eyebrow": "Progresión",
-      "titulo": "Resets y configuración",
-      "tipo": "tabla",
-      "columnas": ["Concepto", "Valor"],
-      "filas": [
-        ["Nivel para resetear", "400"],
-        ["Costo de reset (Zen)", "PLACEHOLDER"],
-        ["Puntos por reset", "PLACEHOLDER"],
-        ["Máximo de resets", "100"],
-        ["Resetea stats al resetear", "PLACEHOLDER (Sí / No)"],
-        ["Resetea nivel al resetear", "PLACEHOLDER (Sí / No)"]
+        ["Master Experience", "PLACEHOLDER_MASTERXP","PLACEHOLDER_MASTERXP_VIP"],
+        ["Max Stats por nivel", "PLACEHOLDER_MAXSTATS","PLACEHOLDER_MAXSTATS_VIP"]
       ]
     },
     {
@@ -84,6 +40,78 @@
         ["Ancient Hero's Soul","x%",      "x%"],
         ["Socket Weapon Mix", "x%",       "x%"]
       ]
+    },
+    {
+      "id": "comandos",
+      "eyebrow": "In-game",
+      "titulo": "Comandos disponibles",
+      "tipo": "tabla",
+      "columnas": ["Comando", "Descripción"],
+      "filas": [
+        ["/f", "Agrega puntos de fuerza."],
+        ["/a", "Agrega puntos de agilidad."],
+        ["/v", "Agrega puntos de vitalidad."],
+        ["/e", "Agrega puntos de energia."],
+        ["/c", "Agrega puntos de comando."],
+        ["/readd", "Reiniciar los puntos."]
+      ]
+    },
+    {
+      "id": "Party Bonus",
+      "eyebrow": "Party Bonus",
+      "titulo": "Experiencia en party",
+      "tipo": "tabla",
+      "columnas": ["Concepto", "Valor"],
+      "filas": [
+        ["2 players", "EXP% + 5%"],
+        ["3 players", "EXP% + 5%"],
+        ["4 players", "EXP% + 7%"],
+        ["5 players", "EXP% + 10%"]
+      ]
+    },
+    {
+      "id": "resets",
+      "eyebrow": "Progresión",
+      "titulo": "Resets y configuración",
+      "tipo": "tabla",
+      "columnas": ["Concepto", "Valor"],
+      "filas": [
+        ["Nivel para resetear", "400"],
+        ["Costo de reset (Zen)", "PLACEHOLDER"],
+        ["Puntos por reset", "PLACEHOLDER"],
+        ["Máximo de resets", "100"],
+        ["Resetea stats al resetear", "PLACEHOLDER (Sí / No)"],
+        ["Resetea nivel al resetear", "PLACEHOLDER (Sí / No)"]
+      ]
+    },
+    {
+      "id": "invasiones",
+      "eyebrow": "Eventos",
+      "titulo": "Invasiones",
+      "tipo": "tabla",
+      "columnas": ["Invasión", "Recompensa", "Cantidad"],
+      "filas": [
+        ["Skeleton",     "PLACEHOLDER_RECOMPENSA", "x2"],
+        ["Red Dragon",   "PLACEHOLDER_RECOMPENSA", "x4"],
+        ["White Wizard", "PLACEHOLDER_RECOMPENSA", "x3"],
+        ["New Year",     "PLACEHOLDER_RECOMPENSA", "x10"],
+        ["Rabbit",       "PLACEHOLDER_RECOMPENSA", "x10"],
+        ["Summer",       "PLACEHOLDER_RECOMPENSA", "x10"],
+        ["Cursed Santa", "PLACEHOLDER_RECOMPENSA", "x2"]
+      ]
+    },
+    {
+      "id": "eventos",
+      "eyebrow": "Eventos",
+      "titulo": "Eventos",
+      "tipo": "tabla",
+      "columnas": ["Evento", "Recompensa", "Cantidad"],
+      "filas": [
+        ["Blood Castle",  "PLACEHOLDER_RECOMPENSA", "PLACEHOLDER_CANTIDAD"],
+        ["Devil Square",  "PLACEHOLDER_RECOMPENSA", "PLACEHOLDER_CANTIDAD"],
+        ["Chaos Castle",  "PLACEHOLDER_RECOMPENSA", "PLACEHOLDER_CANTIDAD"]
+      ]
     }
+    
   ]
 }
