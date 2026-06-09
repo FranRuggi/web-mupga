@@ -12,19 +12,16 @@
 function renderTabla(section) {
   const columnas  = section.columnas ?? [];
   const cols      = columnas.length || 2;
-  const vipCol    = section.vip_col ?? -1;            // índice 0-based de la columna VIP
+  const vipCol    = section.vip_col ?? -1;
   const isCommandSection = section.id === 'comandos';
 
-  // Grid CSS: primera columna auto-ancho, el resto fracciones iguales
-  const colTemplate = cols === 1
-    ? '1fr'
-    : `minmax(160px, auto) repeat(${cols - 1}, 1fr)`;
-
-  // Encabezado solo para tablas de 3+ columnas (comparativas)
+  // Encabezado solo para tablas comparativas (3+ columnas)
   const header = cols >= 3 ? `
     <div class="cmd-item cmd-header">
       ${columnas.map((col, i) =>
-        `<span class="${i === vipCol ? 'col-vip' : 'col-label'}">${esc(col)}</span>`
+        i === vipCol
+          ? `<span class="col-vip">${esc('✦ ' + col)}</span>`
+          : `<span>${esc(col)}</span>`
       ).join('')}
     </div>` : '';
 
@@ -44,7 +41,7 @@ function renderTabla(section) {
     return `<div class="cmd-item">${cells}</div>`;
   }).join('');
 
-  return `<div class="cmd-list" style="--cmd-cols:${colTemplate}">${header}${rows}</div>`;
+  return `<div class="cmd-list" style="--cmd-cols:${cols}">${header}${rows}</div>`;
 }
 
 // ── Renderer principal ────────────────────────────────────────

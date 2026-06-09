@@ -1143,7 +1143,7 @@ h1, h2, h3, h4 {
 
 .cmd-item {
   display: grid;
-  grid-template-columns: var(--cmd-cols, minmax(160px, auto) 1fr);
+  grid-template-columns: repeat(var(--cmd-cols, 2), 1fr);
   gap: var(--gap-md);
   align-items: baseline;
   padding: 0.625rem var(--gap-md);
@@ -1159,12 +1159,14 @@ h1, h2, h3, h4 {
   border-color: transparent;
   padding-bottom: 0.2rem;
 }
-.col-label {
+.cmd-header span {
   font-size: 0.62rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-dim);
 }
+/* Especificidad mayor para que el dorado no lo pise .cmd-header span */
+.cmd-header .col-vip,
 .col-vip {
   font-size: 0.62rem;
   letter-spacing: 0.15em;
