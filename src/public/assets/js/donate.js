@@ -408,7 +408,7 @@ async function onBuy() {
     QuoteCurrency:       $selTo.value,
     QuoteCurrencyAmount: parseFloat(_quote.ConvertedAmount),
     PaymentProviderId:   providerId,
-    Email:               email,
+    userEmail:           email,
     // Account es inyectado por el proxy PHP desde el JWT
   };
 
