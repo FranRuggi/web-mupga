@@ -76,7 +76,9 @@ async function loadCurrencies() {
       headers: PAYMENTS_HEADERS,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    data = await res.json();
+    const raw = await res.json();
+    // La API puede devolver array directo o { currencies: [...] }
+    data = Array.isArray(raw) ? raw : (raw.currencies ?? raw.Currencies ?? []);
   } catch {
     showStoreUnavailable('La tienda no está disponible en este momento. Intentá más tarde.');
     return;
@@ -88,8 +90,16 @@ async function loadCurrencies() {
     return;
   }
 
-  const gameCurrencies = data.filter(c => c.Type === 'Game');
-  const fiatCurrencies = data.filter(c => c.Type === 'Fiat' || c.Type === 'Crypto');
+  // Normalizar: acepta type/Type, code/Code, name/Name
+  const norm = arr => arr.map(c => ({
+    type: c.type ?? c.Type ?? '',
+    code: c.code ?? c.Code ?? '',
+    name: c.name ?? c.Name ?? '',
+  }));
+  data = norm(data);
+
+  const gameCurrencies = data.filter(c => c.type === 'Game');
+  const fiatCurrencies = data.filter(c => c.type === 'Fiat' || c.type === 'Crypto');
 
   // Paso 2.2 — sin monedas suficientes para ambos desplegables
   if (!gameCurrencies.length || !fiatCurrencies.length) {
@@ -100,12 +110,12 @@ async function loadCurrencies() {
   // Poblar desplegables
   $selFrom.innerHTML = '<option value="">Seleccioná moneda...</option>' +
     gameCurrencies.map(c =>
-      `<option value="${esc(c.Code)}">${esc(c.Name)} (${esc(c.Code)})</option>`
+      `<option value="${esc(c.code)}">${esc(c.name)} (${esc(c.code)})</option>`
     ).join('');
 
   $selTo.innerHTML = '<option value="">Seleccioná destino...</option>' +
     fiatCurrencies.map(c =>
-      `<option value="${esc(c.Code)}">${esc(c.Name)} (${esc(c.Code)})</option>`
+      `<option value="${esc(c.code)}">${esc(c.name)} (${esc(c.code)})</option>`
     ).join('');
 
   $selFrom.disabled  = false;
@@ -177,17 +187,21 @@ async function onCalculate() {
       throw new Error(err.Message || `Error ${res.status}`);
     }
 
-    const data = await res.json();
-    _quote = data;
+    const raw = await res.json();
+    // Normalizar: acepta ConvertedAmount/convertedAmount, CurrencyCode/currencyCode
+    _quote = {
+      ConvertedAmount: raw.ConvertedAmount ?? raw.convertedAmount,
+      CurrencyCode:    raw.CurrencyCode    ?? raw.currencyCode,
+    };
 
     // Paso 4 — mostrar monto cotizado
-    $quotedAmt.textContent = fmtAmount(data.ConvertedAmount, data.CurrencyCode);
+    $quotedAmt.textContent = fmtAmount(_quote.ConvertedAmount, _quote.CurrencyCode);
 
     $quoteResult.hidden = false;
     $quoteResult.innerHTML =
       `<span>${amount.toLocaleString('es-AR')} ${esc(from)}</span>` +
       `<span class="quote-equals">=</span>` +
-      `<strong>${fmtAmount(data.ConvertedAmount, data.CurrencyCode)}</strong>`;
+      `<strong>${fmtAmount(_quote.ConvertedAmount, _quote.CurrencyCode)}</strong>`;
 
     // Paso 5 — cargar proveedores
     await loadProviders(to);
@@ -214,7 +228,14 @@ async function loadProviders(currency) {
       throw new Error(err.Message || `Error ${res.status}`);
     }
 
-    _providers = await res.json();
+    const rawProviders = await res.json();
+    // Normalizar: acepta Id/id, Name/name, MaxAmount/maxAmount, CurrencyCode/currencyCode
+    _providers = rawProviders.map(p => ({
+      Id:           p.Id           ?? p.id,
+      Name:         p.Name         ?? p.name,
+      CurrencyCode: p.CurrencyCode ?? p.currencyCode,
+      MaxAmount:    p.MaxAmount    ?? p.maxAmount,
+    }));
 
     if (!_providers.length) {
       showBuyError('No hay medios de pago disponibles para esta moneda.');
