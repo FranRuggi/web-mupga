@@ -58,7 +58,7 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] Perfil público de jugador (`/player/?name=X`) — 2026-06-02
 - [x] Página de descargas (`/downloads/`) con `data/downloads.json` — 2026-06-02
 - [x] config.js creado apuntando a `https://api.mupga.com.ar` — 2026-06-02
-- [ ] Completar `data/info.json` con valores reales del servidor (pendiente Franco)
+- [x] Completar `data/info.json` con valores reales del servidor — 2026-06-09
 - [ ] Completar `data/downloads.json` con URLs reales del cliente (pendiente Franco)
 
 ## Tienda WCoin — Integración con API de pagos externa

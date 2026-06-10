@@ -8,13 +8,13 @@
       "columnas": ["Concepto", "Normal", "VIP"],
       "vip_col": 2,
       "filas": [
-        ["Version del servidor", "Season 6", "Season 6"],
-        ["Experiencia (XP)", "70%", "100%"],
-        ["Drop rate", "PLACEHOLDER_DROP","PLACEHOLDER_DROP_VIP"],
-        ["Zen rate", "PLACEHOLDER_ZEN","PLACEHOLDER_ZEN_VIP"],
-        ["Nivel máximo", "400","400"],
-        ["Master Experience", "PLACEHOLDER_MASTERXP","PLACEHOLDER_MASTERXP_VIP"],
-        ["Max Stats por nivel", "PLACEHOLDER_MAXSTATS","PLACEHOLDER_MAXSTATS_VIP"]
+        ["Versión",             "Season 6",  "Season 6"],
+        ["Experiencia (XP)",    "70x",       "100x"],
+        ["Drop rate",           "30%",       "50%"],
+        ["Zen rate",            "20x",       "30x"],
+        ["Nivel máximo",        "400",       "400"],
+        ["Master Experience",   "30x",       "50x"],
+        ["Max Stats por nivel", "5",         "5"]
       ]
     },
     {
@@ -25,20 +25,20 @@
       "columnas": ["Combinación", "Normal", "VIP"],
       "vip_col": 2,
       "filas": [
-        ["Items +10, +11", "60% + Luck", "65% + Luck"],
-        ["Items +12, +13", "50% + Luck", "55% + Luck"],
-        ["Items +14, +15", "40% + Luck", "45% + Luck"],
-        ["Arma Chaos",      "65%",        "75%"],
-        ["Wings Level 1",   "65%",        "75%"],
-        ["Wings Level 2",   "60%",        "70%"],
-        ["Wings Level 3",   "40%",        "50%"],
-        ["Cape of Lord Mix","60%",        "70%"],
-        ["Feather of Condor","50%",       "60%"],
-        ["Fragment of Horn Mix", "x%",    "x%"],
-        ["Broken Horn Mix",  "x%",        "x%"],
-        ["Horn of Fenrir Mix","x%",       "x%"],
-        ["Ancient Hero's Soul","x%",      "x%"],
-        ["Socket Weapon Mix", "x%",       "x%"]
+        ["Items +10, +11",       "60% + Luck", "65% + Luck"],
+        ["Items +12, +13",       "50% + Luck", "55% + Luck"],
+        ["Items +14, +15",       "40% + Luck", "45% + Luck"],
+        ["Arma Chaos",           "65%",        "75%"],
+        ["Wings Level 1",        "65%",        "75%"],
+        ["Wings Level 2",        "60%",        "70%"],
+        ["Wings Level 3",        "40%",        "50%"],
+        ["Cape of Lord Mix",     "60%",        "70%"],
+        ["Feather of Condor",    "50%",        "60%"],
+        ["Fragment of Horn Mix", "40%",        "50%"],
+        ["Broken Horn Mix",      "40%",        "50%"],
+        ["Horn of Fenrir Mix",   "40%",        "50%"],
+        ["Ancient Hero's Soul",  "40%",        "50%"],
+        ["Socket Weapon Mix",    "40%",        "50%"]
       ]
     },
     {
@@ -48,14 +48,15 @@
       "tipo": "tabla",
       "columnas": ["Comando", "Descripción"],
       "filas": [
-        ["/f", "Agrega puntos de fuerza."],
-        ["/a", "Agrega puntos de agilidad."],
-        ["/v", "Agrega puntos de vitalidad."],
-        ["/e", "Agrega puntos de energia."],
-        ["/c", "Agrega puntos de comando."],
-        ["/readd", "Reiniciar los puntos."],
-        ["/reset", "Resetea el personaje. Resetea el personaje"],
-        ["/readd", "Activa el reset automático: cuando llegás al nivel 400, el personaje se resetea solo y va a Lorencia."]
+        ["/f",          "Agrega puntos de Fuerza."],
+        ["/a",          "Agrega puntos de Agilidad."],
+        ["/v",          "Agrega puntos de Vitalidad."],
+        ["/e",          "Agrega puntos de Energía."],
+        ["/c",          "Agrega puntos de Comando (Dark Lord)."],
+        ["/readd",      "Redistribuye todos los puntos de estadística."],
+        ["/reset",      "Resetea el personaje al nivel 1 (requiere Nv400 y 10.000.000 Zen)."],
+        ["/reset auto", "Activa el reset automático: al llegar al nivel 400 el personaje se resetea solo."],
+        ["/bar",        "Comando disponible en el servidor."]
       ]
     },
     {
@@ -65,25 +66,25 @@
       "tipo": "tabla",
       "columnas": ["Concepto", "Valor"],
       "filas": [
-        ["2 players", "EXP% + 5%"],
-        ["3 players", "EXP% + 5%"],
-        ["4 players", "EXP% + 7%"],
-        ["5 players", "EXP% + 10%"]
+        ["2 jugadores", "EXP% + 5%"],
+        ["3 jugadores", "EXP% + 5%"],
+        ["4 jugadores", "EXP% + 7%"],
+        ["5 jugadores", "EXP% + 10%"]
       ]
     },
     {
       "id": "resets",
       "eyebrow": "Progresión",
-      "titulo": "Resets y configuración",
+      "titulo": "Sistema de resets",
       "tipo": "tabla",
       "columnas": ["Concepto", "Valor"],
       "filas": [
-        ["Nivel para resetear", "400"],
-        ["Costo de reset (Zen)", "PLACEHOLDER"],
-        ["Puntos por reset", "PLACEHOLDER"],
-        ["Máximo de resets", "100"],
-        ["Resetea stats al resetear", "PLACEHOLDER (Sí / No)"],
-        ["Resetea nivel al resetear", "PLACEHOLDER (Sí / No)"]
+        ["Nivel para resetear",      "400"],
+        ["Costo de reset (Zen)",     "10.000.000"],
+        ["Puntos extra por reset",   "350"],
+        ["Máximo de resets",         "300"],
+        ["Resetea stats al resetear","Sí"],
+        ["Vuelve al nivel 1",        "Sí"]
       ]
     },
     {
@@ -91,15 +92,15 @@
       "eyebrow": "Eventos",
       "titulo": "Invasiones",
       "tipo": "tabla",
-      "columnas": ["Invasión", "Recompensa", "Cantidad"],
+      "columnas": ["Invasión", "Recompensa (drop x mob)", "Mobs"],
       "filas": [
-        ["Skeleton",     "PLACEHOLDER_RECOMPENSA", "x2"],
-        ["Red Dragon",   "PLACEHOLDER_RECOMPENSA", "x4"],
-        ["White Wizard", "PLACEHOLDER_RECOMPENSA", "x3"],
-        ["New Year",     "PLACEHOLDER_RECOMPENSA", "x10"],
-        ["Rabbit",       "PLACEHOLDER_RECOMPENSA", "x10"],
-        ["Summer",       "PLACEHOLDER_RECOMPENSA", "x10"],
-        ["Cursed Santa", "PLACEHOLDER_RECOMPENSA", "x2"]
+        ["Skeleton",     "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)",  "x4"],
+        ["Red Dragon",   "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)",  "x6"],
+        ["White Wizard", "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)",  "x2"],
+        ["New Year",     "1× Jewel (Soul/Bless/Life/Chaos/Creation)",      "x10"],
+        ["Rabbit",       "1× Jewel (Soul/Bless/Life/Chaos/Creation)",      "x10"],
+        ["Summer",       "1× Jewel (Soul/Bless/Life/Chaos/Creation)",      "x10"],
+        ["Cursed Santa", "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)",  "x1"]
       ]
     },
     {
@@ -107,13 +108,12 @@
       "eyebrow": "Eventos",
       "titulo": "Eventos",
       "tipo": "tabla",
-      "columnas": ["Evento", "Recompensa", "Cantidad"],
+      "columnas": ["Evento", "Recompensa"],
       "filas": [
-        ["Blood Castle",  "PLACEHOLDER_RECOMPENSA", "PLACEHOLDER_CANTIDAD"],
-        ["Devil Square",  "PLACEHOLDER_RECOMPENSA", "PLACEHOLDER_CANTIDAD"],
-        ["Chaos Castle",  "PLACEHOLDER_RECOMPENSA", "PLACEHOLDER_CANTIDAD"]
+        ["Blood Castle",  "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)"],
+        ["Devil Square",  "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)"],
+        ["Chaos Castle",  "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)"]
       ]
     }
-    
   ]
 }
