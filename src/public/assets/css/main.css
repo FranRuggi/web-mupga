@@ -2175,6 +2175,176 @@ h1, h2, h3, h4 {
 }
 .exchange-error ul { margin: 0.5rem 0 0 1.25rem; padding: 0; }
 
+/* ── Currency Picker (selector con ícono) ───────────────────── */
+.currency-picker {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.currency-picker__btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-raised);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: border-color var(--t), background var(--t);
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+.currency-picker__btn:hover:not(:disabled) {
+  border-color: var(--purple);
+  background: var(--bg-mid);
+}
+.currency-picker__btn:disabled { opacity: 0.45; cursor: default; }
+
+.currency-picker__content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.currency-picker__placeholder {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+
+.currency-picker__name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.currency-picker__chevron {
+  width: 12px;
+  height: 8px;
+  flex-shrink: 0;
+  color: var(--text-dim);
+  transition: transform var(--t);
+}
+.currency-picker__btn[aria-expanded="true"] .currency-picker__chevron {
+  transform: rotate(180deg);
+}
+
+.currency-picker__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.currency-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--t);
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+.currency-option:hover { background: var(--bg-raised); }
+
+.currency-option__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.currency-option__name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-bright);
+}
+.currency-option__code {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.currency-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+.currency-icon--initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--purple-glow);
+  border: 1px solid var(--purple-border);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.currency-option .currency-icon,
+.currency-option .currency-icon--initial {
+  width: 28px;
+  height: 28px;
+}
+
+/* ── Email field (en el exchange) ───────────────────────────── */
+.exchange-email-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.exchange-email-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-raised);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 0.625rem 0.875rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  transition: border-color var(--t);
+}
+.exchange-email-input::placeholder { color: var(--text-dim); }
+.exchange-email-input:focus { outline: none; border-color: var(--purple); }
+
+.exchange-email-hint {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+/* Aviso de límite de monto */
+.amount-limit-warn {
+  font-size: 0.78rem;
+  color: var(--gold);
+  margin-top: 0.35rem;
+}
+
 /* ── Páginas post-pago (donate/success, donate/error) ─────── */
 .payment-result {
   max-width: 520px;

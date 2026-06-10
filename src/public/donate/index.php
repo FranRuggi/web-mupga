@@ -22,15 +22,42 @@ ob_start();
     <!-- Exchange principal -->
     <div id="exchange-main" class="exchange-wrapper">
 
-      <!-- Card DE (moneda del juego) -->
+      <!-- Email -->
+      <div class="exchange-card">
+        <p class="exchange-label">Tu email</p>
+        <div class="exchange-email-section">
+          <input id="inp-email" type="email" class="exchange-email-input"
+                 placeholder="nombre@mail.com" autocomplete="email">
+          <p class="exchange-email-hint">
+            Usamos este email para enviarte la confirmación y cualquier novedad sobre tu compra.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card DE (moneda del juego, ej: WCoin) -->
       <div class="exchange-card">
         <p class="exchange-label">De</p>
         <div class="exchange-row">
-          <select id="sel-from" class="exchange-select" disabled>
-            <option value="">Cargando...</option>
-          </select>
+          <!-- Custom picker con ícono -->
+          <div class="currency-picker" id="picker-from">
+            <button type="button" class="currency-picker__btn" id="btn-picker-from" disabled>
+              <span id="picker-from-content" class="currency-picker__content">
+                <span class="currency-picker__placeholder">Cargando…</span>
+              </span>
+              <svg class="currency-picker__chevron" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="currency-picker__dropdown" id="dropdown-from" hidden></div>
+          </div>
+          <!-- Input oculto para mantener el value (el JS actual lo lee como $selFrom.value) -->
+          <input type="hidden" id="sel-from" value="">
           <input id="inp-amount" type="number" class="exchange-input"
-                 min="1" step="1" placeholder="Cantidad" disabled>
+                 min="1" max="100000" step="1" placeholder="0" disabled>
+        </div>
+        <!-- Aviso de límite -->
+        <div id="amount-limit-warn" class="amount-limit-warn" hidden>
+          Máximo 100,000 WC por compra.
         </div>
       </div>
 
@@ -39,13 +66,22 @@ ob_start();
         <div class="exchange-arrow">&#8595;</div>
       </div>
 
-      <!-- Card A (moneda fiat / crypto) -->
+      <!-- Card A (fiat / crypto, ej: ARS, USDT) -->
       <div class="exchange-card">
         <p class="exchange-label">A</p>
         <div class="exchange-row">
-          <select id="sel-to" class="exchange-select" disabled>
-            <option value="">Cargando...</option>
-          </select>
+          <div class="currency-picker" id="picker-to">
+            <button type="button" class="currency-picker__btn" id="btn-picker-to" disabled>
+              <span id="picker-to-content" class="currency-picker__content">
+                <span class="currency-picker__placeholder">Cargando…</span>
+              </span>
+              <svg class="currency-picker__chevron" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="currency-picker__dropdown" id="dropdown-to" hidden></div>
+          </div>
+          <input type="hidden" id="sel-to" value="">
           <div id="quoted-amount" class="exchange-quote-display">—</div>
         </div>
       </div>

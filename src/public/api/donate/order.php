@@ -12,6 +12,7 @@
  *   QuoteCurrency       string
  *   QuoteCurrencyAmount decimal
  *   PaymentProviderId   guid
+ *   Email               string   (para notificaciones de la orden)
  */
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once dirname(__DIR__) . '/_cors.php';
