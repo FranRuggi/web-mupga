@@ -116,12 +116,22 @@ ob_start();
           <div id="msg-resetml" class="alert" role="alert"></div>
         </div>
 
+        <?php
+          $rstLevel  = (int) ($_ENV['RESET_LEVEL_REQUIRED'] ?? 400);
+          $rstZen    = (int) ($_ENV['RESET_COST_ZEN']        ?? 0);
+          $rstBonus  = (int) ($_ENV['RESET_BONUS_POINTS']    ?? 0);
+          $rstMax    = (int) ($_ENV['RESET_MAX_RESETS']       ?? 0);
+          $rstInfo   = 'Nv' . $rstLevel . ' requerido';
+          if ($rstZen > 0)   $rstInfo .= ' · ' . number_format($rstZen, 0, ',', '.') . ' Zen';
+          if ($rstBonus > 0) $rstInfo .= ' · +' . $rstBonus . ' pts';
+          if ($rstMax > 0)   $rstInfo .= ' · Máx ' . $rstMax . ' RST';
+        ?>
         <div class="game-option-btn-group">
           <button class="btn btn-secondary game-option-btn game-option-btn--reset" id="btn-resetchar" disabled>
             <span class="game-option-icon">🔁</span>
             <span class="game-option-text">
               <strong>Reset de personaje</strong>
-              <small>Nivel 400 requerido — volvés al nivel 1</small>
+              <small><?= htmlspecialchars($rstInfo) ?></small>
             </span>
           </button>
           <div id="msg-resetchar" class="alert" role="alert"></div>

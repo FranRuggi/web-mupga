@@ -43,5 +43,6 @@ echo json_encode([
         'vit'            => (int) ($c['Vitality']   ?? 0),
         'ene'            => (int) ($c['Energy']     ?? 0),
         'cmd'            => (int) ($c['Leadership'] ?? 0),
+        'zen'            => (int) ($c['Money']      ?? 0),
     ], $characters),
 ], JSON_THROW_ON_ERROR);

@@ -36,7 +36,8 @@ class CharacterRepository {
                     ISNULL(Dexterity,0)  AS Dexterity,
                     ISNULL(Vitality,0)   AS Vitality,
                     ISNULL(Energy,0)     AS Energy,
-                    ISNULL(Leadership,0) AS Leadership
+                    ISNULL(Leadership,0) AS Leadership,
+                    ISNULL(Money,0)      AS Money
              FROM Character WHERE AccountID = ?'
         );
         $stmt->execute([$username]);

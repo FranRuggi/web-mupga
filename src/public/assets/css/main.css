@@ -1604,6 +1604,7 @@ h1, h2, h3, h4 {
 }
 
 .char-stats span { color: var(--gold); font-weight: 600; }
+.char-zen { opacity: .65; }
 
 /* Balance WCoin */
 .balance-grid {

@@ -40,6 +40,7 @@ $levelRequired = (int) ($_ENV['RESET_LEVEL_REQUIRED'] ?? 400);
 $costZen       = (int) ($_ENV['RESET_COST_ZEN']       ?? 0);
 $resetStats    = ($_ENV['RESET_STATS']                 ?? 'true') !== 'false';
 $bonusPoints   = (int) ($_ENV['RESET_BONUS_POINTS']   ?? 0);
+$maxResets     = (int) ($_ENV['RESET_MAX_RESETS']      ?? 0);
 
 try {
     $db       = Database::get();
@@ -75,10 +76,18 @@ try {
         exit;
     }
 
+    if ($maxResets > 0 && $currentResets >= $maxResets) {
+        http_response_code(400);
+        echo json_encode([
+            'error' => "Alcanzaste el máximo de resets permitidos ({$maxResets}).",
+        ]);
+        exit;
+    }
+
     if ($costZen > 0 && $currentZen < $costZen) {
         http_response_code(400);
         echo json_encode([
-            'error' => 'Zen insuficiente. Necesitás ' . number_format($costZen, 0, ',', '.') . ' Zen.',
+            'error' => 'Zen insuficiente. Necesitás ' . number_format($costZen, 0, ',', '.') . ' Zen para resetear.',
         ]);
         exit;
     }

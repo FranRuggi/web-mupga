@@ -102,6 +102,7 @@ function renderCharacters(chars) {
       </div>
       <div class="char-stats">
         Nv <span>${c.level}</span> · <span>${c.resets}</span> RST
+        <span class="char-zen">· ${(c.zen ?? 0).toLocaleString('es-AR')} Zen</span>
       </div>
     </div>
   `).join('');
@@ -129,7 +130,7 @@ function populateCharSelect(chars) {
   }
 
   sel.innerHTML = chars.map(c =>
-    `<option value="${esc(c.name)}">${esc(c.name)} — ${esc(className(c.class))} Nv${c.level} (${c.resets} RST)</option>`
+    `<option value="${esc(c.name)}">${esc(c.name)} — ${esc(className(c.class))} Nv${c.level} (${c.resets} RST) · ${(c.zen ?? 0).toLocaleString('es-AR')} Zen</option>`
   ).join('');
 
   // Restaurar selección previa si el personaje aún existe
