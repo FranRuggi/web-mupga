@@ -56,6 +56,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadCurrencies();
 });
 
+// Headers comunes para todos los GETs a la API externa.
+// ngrok-skip-browser-warning evita la interstitial de ngrok (ignorado por APIs reales).
+const PAYMENTS_HEADERS = {
+  Accept: 'application/json',
+  'ngrok-skip-browser-warning': 'true',
+};
+
 // ── Paso 1 — Cargar monedas ───────────────────────────────────
 async function loadCurrencies() {
   if (!PAYMENTS_API) {
@@ -66,7 +73,7 @@ async function loadCurrencies() {
   let data;
   try {
     const res = await fetch(`${PAYMENTS_API}/api/currencies`, {
-      headers: { Accept: 'application/json' },
+      headers: PAYMENTS_HEADERS,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     data = await res.json();
@@ -163,7 +170,7 @@ async function onCalculate() {
       `&amount=${amount}` +
       `&quotecurrency=${encodeURIComponent(to)}`;
 
-    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    const res = await fetch(url, { headers: PAYMENTS_HEADERS });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -199,7 +206,7 @@ async function loadProviders(currency) {
   try {
     const res = await fetch(
       `${PAYMENTS_API}/api/payments/providers?currency=${encodeURIComponent(currency)}`,
-      { headers: { Accept: 'application/json' } }
+      { headers: PAYMENTS_HEADERS }
     );
 
     if (!res.ok) {
