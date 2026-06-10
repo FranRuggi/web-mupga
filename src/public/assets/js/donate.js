@@ -425,8 +425,9 @@ async function onBuy() {
 
   if (res.status === 201) {
     const data = await res.json().catch(() => ({}));
-    if (data.redirectionUrl) {
-      window.location.href = data.redirectionUrl;
+    const url = data.paymentUrl ?? data.redirectionUrl ?? data.PaymentUrl ?? data.RedirectionUrl;
+    if (url) {
+      window.location.href = url;
     }
     return;
   }
