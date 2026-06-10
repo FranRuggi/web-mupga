@@ -228,7 +228,9 @@ async function loadProviders(currency) {
       throw new Error(err.Message || `Error ${res.status}`);
     }
 
-    const rawProviders = await res.json();
+    const rawRes = await res.json();
+    // API puede devolver array directo o { providers: [...] }
+    const rawProviders = Array.isArray(rawRes) ? rawRes : (rawRes.providers ?? rawRes.Providers ?? []);
     // Normalizar: acepta Id/id, Name/name, MaxAmount/maxAmount, CurrencyCode/currencyCode
     _providers = rawProviders.map(p => ({
       Id:           p.Id           ?? p.id,
