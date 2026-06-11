@@ -106,7 +106,7 @@ try {
         $resetData['vit']    = $bVit;
         $resetData['ene']    = $bEne;
         $resetData['cmd']    = $bCmd;
-        $resetData['points'] = $bonusPoints;
+        $resetData['points'] = $bonusPoints * $newResets;
     }
 
     $charRepo->reset($charName, $resetData);
