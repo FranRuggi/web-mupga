@@ -97,6 +97,26 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 
 ---
 
+## Fase 6 — Módulo Prode MuPGA
+
+- [x] Schema SQL `prode` con 4 tablas: config, matches, predictions, scores — 2026-06-12
+- [x] `database/prode_setup.sql` — script re-ejecutable con usuario, permisos y tablas — 2026-06-12
+- [x] `src/config/prode_db.php` — conexión PDO con prode_user (PRODE_DB_* env vars) — 2026-06-12
+- [x] `src/db/ProdeRepository.php` — getConfig, getMatchesWithPredictions, savePrediction, getRanking, resolveMatch — 2026-06-12
+- [x] `GET  /api/prode/matches.php` — partidos + predicción del usuario autenticado — 2026-06-12
+- [x] `POST /api/prode/predict.php` — UPSERT predicción con validación 1h + estado del partido — 2026-06-12
+- [x] `GET  /api/prode/ranking.php` — top 50 público — 2026-06-12
+- [x] `POST /api/prode/admin_match.php` — crear partido (X-Admin-Token) — 2026-06-12
+- [x] `POST /api/prode/admin_result.php` — cargar resultado + premios automáticos (X-Admin-Token) — 2026-06-12
+- [x] `src/public/mudial/index.php` + `mudial.js` — página completa con tabs Partidos/Ranking — 2026-06-12
+- [x] CSS del módulo prode agregado a main.css — 2026-06-12
+- [x] Navbar: enlace "Prode" en layout.php — 2026-06-12
+- [x] `.env.example`: variables PRODE_DB_* y ADMIN_TOKEN documentadas — 2026-06-12
+- [x] `PASOS_MANUALES_PRODE.md` creado con instrucciones paso a paso para el deploy — 2026-06-12
+- [ ] Ejecutar `database/prode_setup.sql` en SQL Server del VPS (manual — ver PASOS_MANUALES_PRODE.md)
+- [ ] Configurar variables PRODE_DB_* y ADMIN_TOKEN en el .env del VPS (manual)
+- [ ] Cargar primeros partidos vía admin_match.php (manual)
+
 ## Registro de cambios
 <!-- Claude Code agrega acá una línea por tarea completada. Formato:
      - YYYY-MM-DD — [Fase X] qué se hizo -->
@@ -159,3 +179,4 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-02 — [Feat] Rankings país: tabla MUPGA_ACCOUNT_COUNTRY propia; ip-api.com al registrar; emoji bandera en ranking
 - 2026-06-02 — [Feat] Navbar: enlace a Noticias agregado
 - 2026-06-02 — [Design] Tipografía: --text #e8e4f4, --text-dim #a099be, --text-bright #f5f2ff
+- 2026-06-12 — [Fase 6] Módulo Prode MuPGA completo: schema SQL, ProdeRepository, 5 endpoints, página /mudial/, CSS, navbar, docs

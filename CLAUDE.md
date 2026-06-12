@@ -58,6 +58,33 @@ Fase activa: **Fase 1 — Ingeniería inversa** (ver roadmap).
 - `htdocs/` — código WebEngine actual (referencia, solo lectura).
 - `src/` — el sitio custom nuevo.
 
+## Módulo Prode
+
+Página `/mudial/` donde jugadores logueados predicen resultados de partidos y ganan WCoins y días VIP
+automáticamente al cargar cada resultado.
+
+**Schema DB:** `prode` (separado de `dbo` para aislar el módulo y poder limpiarlo al terminar el mundial).
+Tablas: `prode.config` (key/value), `prode.matches`, `prode.predictions`, `prode.scores`.
+
+**Usuario SQL:** `prode_user`. Permisos: CONTROL en schema `prode`; SELECT en `dbo.ACCOUNT_TBL`,
+`dbo.Character`, `dbo.MEMB_INFO`; EXECUTE en `dbo.sp_AddWCoinWithLog` y `dbo.sp_SetAccountVIP`.
+Los SPs de premios se ejecutan a través de la conexión principal (`Database::get()`) para mayor seguridad.
+
+**Archivos API:** `src/public/api/prode/` (matches, predict, ranking, admin_match, admin_result).
+**Frontend:** `src/public/mudial/index.php` + `src/public/assets/js/mudial.js`.
+**Conexión prode:** `src/config/prode_db.php` + `src/db/ProdeRepository.php`.
+
+**Variables de entorno necesarias:** `PRODE_DB_HOST`, `PRODE_DB_PORT`, `PRODE_DB_NAME`,
+`PRODE_DB_USER`, `PRODE_DB_PASS`, `ADMIN_TOKEN`.
+
+**Regla:** nunca hardcodear valores de premios — siempre leer de `prode.config` con `getConfig()`.
+
+**Endpoints admin** (`/api/prode/admin_*.php`): protegidos con header `X-Admin-Token: <ADMIN_TOKEN>`.
+
+**Cierre del mundial:** ejecutar `DROP SCHEMA prode CASCADE`, `DROP USER prode_user`,
+`DROP LOGIN prode_user`, borrar las variables `PRODE_*` del `.env` y eliminar
+`/api/prode/` y `/mudial/` del repo.
+
 ## Objetivo del producto
 
 Con base en la matriz de capacidades, definir qué features se le pueden ofrecer al cliente de
