@@ -29,6 +29,7 @@ $pages = [
     'donate/index.html'         => 'src/public/donate/index.php',
     'donate/success/index.html' => 'src/public/donate/success/index.php',
     'donate/error/index.html'   => 'src/public/donate/error/index.php',
+    'mudial/index.html'         => 'src/public/mudial/index.php',
     'privacy/index.html'        => 'src/public/privacy/index.php',
     'terms/index.html'          => 'src/public/terms/index.php',
 ];
