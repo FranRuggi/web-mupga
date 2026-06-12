@@ -19,5 +19,19 @@ const MUPGA_CONFIG = {
       return ''; // desarrollo: URLs relativas, PHP inyecta el base
     }
     return 'https://api.mupga.com.ar'; // producción VPS
+  })(),
+
+  // URL base de la API externa de pagos.
+  // Fuente de verdad: PAYMENTS_API_URL en .env del VPS.
+  // build.php lo bake en data-payments-url del <html> al generar el dist/.
+  // Si no está configurado, donate.js muestra "tienda no disponible".
+  paymentsApi: (function () {
+    const injected = document.documentElement.dataset.paymentsUrl ?? '';
+    if (injected) return injected.replace(/\/$/, '');
+    if (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:5000'; // dev local sin .env
+    }
+    return ''; // sin .env configurado → tienda muestra "no disponible"
   })()
 };

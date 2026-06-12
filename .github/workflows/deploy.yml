@@ -21,6 +21,11 @@ jobs:
           php-version: '8.0'
           extensions: none
 
+      - name: Crear .env de build
+        run: |
+          echo "PAYMENTS_API_URL=${{ secrets.PAYMENTS_API_URL }}" >> .env
+          echo "TURNSTILE_SITE_KEY=${{ secrets.TURNSTILE_SITE_KEY }}" >> .env
+
       - name: Generar dist/
         run: php build.php
 

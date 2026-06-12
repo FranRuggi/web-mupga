@@ -2,17 +2,43 @@
   "secciones": [
     {
       "id": "rates",
-      "eyebrow": "Configuración",
-      "titulo": "Rates del servidor",
+      "eyebrow": "Información",
+      "titulo": "Información general del servidor",
       "tipo": "tabla",
-      "columnas": ["Concepto", "Valor"],
+      "columnas": ["Concepto", "Normal", "VIP"],
+      "vip_col": 2,
       "filas": [
-        ["Experiencia (XP)", "PLACEHOLDER_XP"],
-        ["Drop rate", "PLACEHOLDER_DROP"],
-        ["Zen rate", "PLACEHOLDER_ZEN"],
-        ["Nivel máximo", "PLACEHOLDER_MAXLEVEL"],
-        ["Master Experience", "PLACEHOLDER_MASTERXP"],
-        ["Max Stats por nivel", "PLACEHOLDER_MAXSTATS"]
+        ["Versión",             "Season 6",  "Season 6"],
+        ["Experiencia (XP)",    "70x",       "100x"],
+        ["Drop rate",           "30%",       "50%"],
+        ["Zen rate",            "20x",       "30x"],
+        ["Nivel máximo",        "400",       "400"],
+        ["Master Experience",   "30x",       "50x"],
+        ["Max Stats por nivel", "5",         "5"]
+      ]
+    },
+    {
+      "id": "chaos",
+      "eyebrow": "Crafteo",
+      "titulo": "Chaos Machine",
+      "tipo": "tabla",
+      "columnas": ["Combinación", "Normal", "VIP"],
+      "vip_col": 2,
+      "filas": [
+        ["Items +10, +11",       "60% + Luck", "65% + Luck"],
+        ["Items +12, +13",       "50% + Luck", "55% + Luck"],
+        ["Items +14, +15",       "40% + Luck", "45% + Luck"],
+        ["Arma Chaos",           "65%",        "75%"],
+        ["Wings Level 1",        "65%",        "75%"],
+        ["Wings Level 2",        "60%",        "70%"],
+        ["Wings Level 3",        "40%",        "50%"],
+        ["Cape of Lord Mix",     "60%",        "70%"],
+        ["Feather of Condor",    "50%",        "60%"],
+        ["Fragment of Horn Mix", "40%",        "50%"],
+        ["Broken Horn Mix",      "40%",        "50%"],
+        ["Horn of Fenrir Mix",   "40%",        "50%"],
+        ["Ancient Hero's Soul",  "40%",        "50%"],
+        ["Socket Weapon Mix",    "40%",        "50%"]
       ]
     },
     {
@@ -22,44 +48,71 @@
       "tipo": "tabla",
       "columnas": ["Comando", "Descripción"],
       "filas": [
-        ["/post", "PLACEHOLDER — descripción del comando /post"],
-        ["/reset", "PLACEHOLDER — descripción del comando /reset"],
-        ["/pkclear", "PLACEHOLDER — descripción del comando /pkclear"],
-        ["/movemap", "PLACEHOLDER — descripción del comando /movemap"],
-        ["/addstr", "PLACEHOLDER — descripción del comando /addstr"],
-        ["/addagi", "PLACEHOLDER — descripción del comando /addagi"],
-        ["/addvit", "PLACEHOLDER — descripción del comando /addvit"],
-        ["/addene", "PLACEHOLDER — descripción del comando /addene"],
-        ["/addcmd", "PLACEHOLDER — descripción del comando /addcmd (Dark Lord)"]
+        ["/f",          "Agrega puntos de Fuerza."],
+        ["/a",          "Agrega puntos de Agilidad."],
+        ["/v",          "Agrega puntos de Vitalidad."],
+        ["/e",          "Agrega puntos de Energía."],
+        ["/c",          "Agrega puntos de Comando (Dark Lord)."],
+        ["/readd",      "Redistribuye todos los puntos de estadística."],
+        ["/reset",      "Resetea el personaje al nivel 1 (requiere Nv400 y 10.000.000 Zen)."],
+        ["/reset auto", "Activa el reset automático: al llegar al nivel 400 el personaje se resetea solo."],
+        ["/bar",        "Comando disponible en el servidor."]
+      ]
+    },
+    {
+      "id": "Party Bonus",
+      "eyebrow": "Party Bonus",
+      "titulo": "Experiencia en party",
+      "tipo": "tabla",
+      "columnas": ["Concepto", "Valor"],
+      "filas": [
+        ["2 jugadores", "EXP% + 5%"],
+        ["3 jugadores", "EXP% + 5%"],
+        ["4 jugadores", "EXP% + 7%"],
+        ["5 jugadores", "EXP% + 10%"]
       ]
     },
     {
       "id": "resets",
       "eyebrow": "Progresión",
-      "titulo": "Resets y configuración",
+      "titulo": "Sistema de resets",
       "tipo": "tabla",
       "columnas": ["Concepto", "Valor"],
       "filas": [
-        ["Nivel para resetear", "PLACEHOLDER"],
-        ["Costo de reset (Zen)", "PLACEHOLDER"],
-        ["Puntos por reset", "PLACEHOLDER"],
-        ["Máximo de resets", "PLACEHOLDER"],
-        ["Resetea stats al resetear", "PLACEHOLDER (Sí / No)"],
-        ["Resetea nivel al resetear", "PLACEHOLDER (Sí / No)"]
+        ["Nivel para resetear",      "400"],
+        ["Costo de reset (Zen)",     "10.000.000"],
+        ["Puntos extra por reset",   "350"],
+        ["Máximo de resets",         "300"],
+        ["Resetea stats al resetear","Sí"],
+        ["Vuelve al nivel 1",        "Sí"]
       ]
     },
     {
-      "id": "chaos",
-      "eyebrow": "Crafteo",
-      "titulo": "Chaos Machine",
+      "id": "invasiones",
+      "eyebrow": "Eventos",
+      "titulo": "Invasiones",
       "tipo": "tabla",
-      "columnas": ["Combinación", "Tasa de éxito"],
+      "columnas": ["Invasión", "Recompensa (drop x mob)", "Mobs"],
       "filas": [
-        ["PLACEHOLDER — ej: Normal +10 a +11", "PLACEHOLDER %"],
-        ["PLACEHOLDER — ej: Normal +11 a +12", "PLACEHOLDER %"],
-        ["PLACEHOLDER — ej: Normal +12 a +13", "PLACEHOLDER %"],
-        ["PLACEHOLDER — ej: Excellent +10 a +11", "PLACEHOLDER %"],
-        ["PLACEHOLDER — ej: Ancient +10 a +11", "PLACEHOLDER %"]
+        ["Skeleton",     "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)",  "x4"],
+        ["Red Dragon",   "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)",  "x6"],
+        ["White Wizard", "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)",  "x2"],
+        ["New Year",     "1× Jewel (Soul/Bless/Life/Chaos/Creation)",      "x10"],
+        ["Rabbit",       "1× Jewel (Soul/Bless/Life/Chaos/Creation)",      "x10"],
+        ["Summer",       "1× Jewel (Soul/Bless/Life/Chaos/Creation)",      "x10"],
+        ["Cursed Santa", "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)",  "x1"]
+      ]
+    },
+    {
+      "id": "eventos",
+      "eyebrow": "Eventos",
+      "titulo": "Eventos",
+      "tipo": "tabla",
+      "columnas": ["Evento", "Recompensa"],
+      "filas": [
+        ["Blood Castle",  "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)"],
+        ["Devil Square",  "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)"],
+        ["Chaos Castle",  "4× Jewel (Soul/Bless/Life/Chaos/Creation/Key)"]
       ]
     }
   ]

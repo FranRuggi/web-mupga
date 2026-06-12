@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "id": "client-full",
+      "title": "Cliente MuPGA — Instalación completa via OneDrive",
+      "description": "Instalador completo del cliente del juego. Incluye todos los archivos necesarios para jugar desde cero.",
+      "version": "1.0",
+      "size": "710 MB",
+      "url": "https://onedrive.live.com/?redeem=aHR0cHM6Ly8xZHJ2Lm1zL2YvYy8yZTczMTRiN2RhMDk2NjY0L0lnRGpfWlBpaHVJYlM3X3FYTDhTZ0N2VkFWQ0szWGppdEljTFZBdG9PMnFGQTJNP2U9bmFvdkdO&id=2E7314B7DA096664%21se293fde3e2864b1bbfea5cbf12802bd5&cid=2E7314B7DA096664"
+    },
+    {
+      "id": "client-full",
+      "title": "Cliente MuPGA — Instalación completa via DropBox",
+      "description": "Instalador completo del cliente del juego. Incluye todos los archivos necesarios para jugar desde cero.",
+      "version": "1.0",
+      "size": "710.35 MB",
+      "url": "https://www.dropbox.com/scl/fi/uh8q0tp4tz8kafcccqndt/ClientePGA.zip?rlkey=edmn63tqz1iseggmlk9p1a3nk&e=1&st=3hnuzfe3&dl=0"
+    }
+  ]
+}

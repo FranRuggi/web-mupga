@@ -102,6 +102,7 @@ function renderCharacters(chars) {
       </div>
       <div class="char-stats">
         Nv <span>${c.level}</span> · <span>${c.resets}</span> RST
+        <span class="char-zen">· ${(c.zen ?? 0).toLocaleString('es-AR')} Zen</span>
       </div>
     </div>
   `).join('');
@@ -116,25 +117,29 @@ function populateCharSelect(chars) {
   const sel = document.getElementById('char-select');
   if (!sel) return;
 
+  const prevSelection = sel.value; // preservar personaje seleccionado
+
+  const actionBtns = ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml', 'btn-resetchar'];
+
   if (!chars.length) {
     sel.innerHTML = '<option value="">Sin personajes</option>';
-    ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml'].forEach(id =>
-      document.getElementById(id)?.toggleAttribute('disabled', true)
-    );
+    actionBtns.forEach(id => document.getElementById(id)?.toggleAttribute('disabled', true));
     const card = document.getElementById('addstats-card');
     if (card) card.style.display = 'none';
     return;
   }
 
   sel.innerHTML = chars.map(c =>
-    `<option value="${esc(c.name)}">${esc(c.name)} — ${esc(className(c.class))} Nv${c.level}</option>`
+    `<option value="${esc(c.name)}">${esc(c.name)} — ${esc(className(c.class))} Nv${c.level} (${c.resets} RST) · ${(c.zen ?? 0).toLocaleString('es-AR')} Zen</option>`
   ).join('');
 
-  ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml'].forEach(id =>
-    document.getElementById(id)?.toggleAttribute('disabled', false)
-  );
+  // Restaurar selección previa si el personaje aún existe
+  if (prevSelection && chars.some(c => c.name === prevSelection)) {
+    sel.value = prevSelection;
+  }
 
-  // Mostrar el panel de stats con el primer personaje seleccionado
+  actionBtns.forEach(id => document.getElementById(id)?.toggleAttribute('disabled', false));
+
   updateAddStatsPanel();
 }
 
@@ -144,6 +149,7 @@ function initGameOptions() {
     ['btn-clearpk',    'account/clearpk.php',    'msg-clearpk',    'Limpiar PK'],
     ['btn-resetstats', 'account/resetstats.php', 'msg-resetstats', 'Resetear Stats'],
     ['btn-resetml',    'account/resetml.php',    'msg-resetml',    'Resetear Árbol ML'],
+    ['btn-resetchar',  'account/resetchar.php',  'msg-resetchar',  'Reset personaje'],
   ];
   actions.forEach(([id, endpoint, msgId, label]) => {
     document.getElementById(id)?.addEventListener('click', () =>
@@ -181,6 +187,21 @@ function updateAddStatsPanel() {
   const cmdRow = document.getElementById('add-cmd-row');
   if (cmdRow) cmdRow.style.display = isDarkLord ? '' : 'none';
 
+  // Stats actuales del personaje
+  const statsEl = document.getElementById('addstats-stats');
+  if (statsEl) {
+    const rows = [
+      ['Fue', char.str], ['Agi', char.agi], ['Vit', char.vit], ['Ene', char.ene],
+      ...(isDarkLord ? [['Lid', char.cmd]] : []),
+    ];
+    statsEl.innerHTML = rows.map(([label, val]) =>
+      `<span class="current-stat">
+        <span class="current-stat__label">${label}</span>
+        <span class="current-stat__val">${(val ?? 0).toLocaleString('es-AR')}</span>
+      </span>`
+    ).join('');
+  }
+
   // Resetear inputs
   document.querySelectorAll('.addstats-input').forEach(i => i.value = '0');
   recalcAddStatsTotal();
@@ -202,16 +223,16 @@ async function handleAddStats(e) {
   const btn = document.getElementById('btn-addstats');
   if (btn) { btn.disabled = true; btn.textContent = 'Aplicando...'; }
 
+  // Capturar antes del fetch para actualizar localmente si tiene éxito
+  const addStr = Math.max(0, parseInt(document.getElementById('add-str')?.value ?? 0, 10));
+  const addAgi = Math.max(0, parseInt(document.getElementById('add-agi')?.value ?? 0, 10));
+  const addVit = Math.max(0, parseInt(document.getElementById('add-vit')?.value ?? 0, 10));
+  const addEne = Math.max(0, parseInt(document.getElementById('add-ene')?.value ?? 0, 10));
+  const addCmd = Math.max(0, parseInt(document.getElementById('add-cmd')?.value ?? 0, 10));
+
   const res = await authFetch('account/addstats.php', {
     method: 'POST',
-    body: JSON.stringify({
-      character: charName,
-      str: parseInt(document.getElementById('add-str')?.value ?? 0, 10),
-      agi: parseInt(document.getElementById('add-agi')?.value ?? 0, 10),
-      vit: parseInt(document.getElementById('add-vit')?.value ?? 0, 10),
-      ene: parseInt(document.getElementById('add-ene')?.value ?? 0, 10),
-      cmd: parseInt(document.getElementById('add-cmd')?.value ?? 0, 10),
-    }),
+    body: JSON.stringify({ character: charName, str: addStr, agi: addAgi, vit: addVit, ene: addEne, cmd: addCmd }),
   });
 
   if (btn) { btn.disabled = false; btn.textContent = 'Agregar puntos'; }
@@ -220,13 +241,11 @@ async function handleAddStats(e) {
   const data = await res.json();
   showGameMsg('msg-addstats', data.message ?? data.error, res.ok ? 'success' : 'error');
 
-  if (res.ok && data.remaining !== undefined) {
-    document.getElementById('addstats-available').textContent = data.remaining;
+  if (res.ok) {
     document.querySelectorAll('.addstats-input').forEach(i => i.value = '0');
     recalcAddStatsTotal();
-    // Actualizar el pool en _characters para que el selector refleje el nuevo valor
-    const char = _characters.find(c => c.name === charName);
-    if (char) char.level_up_point = data.remaining;
+    // Re-sincronizar con la DB para que stats y puntos queden exactos
+    await loadProfile();
   }
 }
 
@@ -238,19 +257,15 @@ async function runCharAction(actionId, endpoint, msgId, btnLabel) {
   const btn = document.getElementById(`btn-${actionId}`);
   if (btn) { btn.disabled = true; btn.querySelector('strong').textContent = '...'; }
 
-  const res  = await authFetch(endpoint, { method: 'POST', body: JSON.stringify({ character: charName }) });
+  const res = await authFetch(endpoint, { method: 'POST', body: JSON.stringify({ character: charName }) });
   if (btn) { btn.disabled = false; btn.querySelector('strong').textContent = btnLabel; }
 
   if (!res) return;
   const data = await res.json();
   showGameMsg(msgId, data.message ?? data.error, res.ok ? 'success' : 'error');
 
-  // Si la acción devuelve new_points (resetstats / resetml), refrescar el contador
-  if (res.ok && data.new_points !== undefined) {
-    const char = _characters.find(c => c.name === charName);
-    if (char) char.level_up_point = data.new_points;
-    document.getElementById('addstats-available').textContent = data.new_points;
-  }
+  // Re-sincronizar con la DB para que stats y puntos queden exactos
+  if (res.ok) await loadProfile();
 }
 
 function showGameMsg(id, msg, type) {

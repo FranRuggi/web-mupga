@@ -3,8 +3,8 @@
 > **Checklist vivo.** Claude Code lo actualiza al completar cada tarea: marcar `[x]`, y
 > agregar una línea con fecha en "Registro de cambios" al final.
 
-**Estado actual:** Fase 4 completa ✅ — iniciando Fase 5 (deploy al VPS).
-**Última actualización:** 2026-06-02
+**Estado actual:** Fase 4 completa ✅ — Fase 5 en curso + Tienda WCoin integrada.
+**Última actualización:** 2026-06-09
 
 ---
 
@@ -58,8 +58,17 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] Perfil público de jugador (`/player/?name=X`) — 2026-06-02
 - [x] Página de descargas (`/downloads/`) con `data/downloads.json` — 2026-06-02
 - [x] config.js creado apuntando a `https://api.mupga.com.ar` — 2026-06-02
-- [ ] Completar `data/info.json` con valores reales del servidor (pendiente Franco)
+- [x] Completar `data/info.json` con valores reales del servidor — 2026-06-09
 - [ ] Completar `data/downloads.json` con URLs reales del cliente (pendiente Franco)
+
+## Tienda WCoin — Integración con API de pagos externa
+- [x] Config: `PAYMENTS_API_URL` en `.env.example`; `paymentsApi` en `config.js`; `data-payments-url` inyectado en layout — 2026-06-09
+- [x] Proxy PHP `api/donate/order.php`: valida JWT, extrae Account, reenvía a API externa — 2026-06-09
+- [x] UI exchange: `donate/index.php` + `donate.js` (conversor estilo exchange con flujo completo) — 2026-06-09
+- [x] Páginas post-pago: `donate/success/` y `donate/error/` — 2026-06-09
+- [x] `build.php` actualizado con las 3 páginas nuevas (donate, success, error) — 2026-06-09
+- [ ] Configurar `PAYMENTS_API_URL` en `.env` del VPS cuando la API externa esté lista
+- [ ] Configurar CORS en la API externa para permitir el origen del frontend (para GETs directos)
 
 ## Fase 5 — Deploy y testing
 
@@ -179,4 +188,16 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-02 — [Feat] Rankings país: tabla MUPGA_ACCOUNT_COUNTRY propia; ip-api.com al registrar; emoji bandera en ranking
 - 2026-06-02 — [Feat] Navbar: enlace a Noticias agregado
 - 2026-06-02 — [Design] Tipografía: --text #e8e4f4, --text-dim #a099be, --text-bright #f5f2ff
+- 2026-06-09 — [Feat] /donate guardado detrás de login: guard en donate.js + redirect post-login con ?redirect= (anti open-redirect)
+- 2026-06-09 — [Feat] UserCP addstats: stats actuales (Fue/Agi/Vit/Ene/Lid) visibles antes de distribuir puntos; se actualizan en tiempo real tras submit exitoso
+- 2026-06-09 — [Backend] CharacterRepository.getByAccount expone Strength/Dexterity/Vitality/Energy/Leadership; profile.php los mapea como str/agi/vit/ene/cmd
+- 2026-06-09 — [Design] CSS: .current-stats-display con .current-stat, .current-stat__label, .current-stat__val
+- 2026-06-09 — [Seguridad] Online check en los 5 endpoints de escritura (unstick/clearpk/resetstats/resetml/addstats): HTTP 409 si ConnectStat=1
+- 2026-06-09 — [Feat] resetchar.php: reset de personaje (nivel 400→1, ResetCount+1, stats base); config vía RESET_* en .env
+- 2026-06-09 — [Fix] resetstats.php: devuelve base_stats en la respuesta; getBaseStats() centralizado en CharacterRepository
+- 2026-06-09 — [Fix] usercp.js: post-mutación re-fetch de loadProfile() para sincronizar stats/puntos desde DB; populateCharSelect preserva selección
+- 2026-06-09 — [Doc] capability-matrix.md: política de online check actualizada
+- 2026-06-09 — [Fix] app.js CLASS_NAMES: agregadas 18 clases faltantes (Magic Knight, Dimension Summoner, Fist Blazer, Shining Lancer, Grand Rune Master, Majestic Rune Wizard, Master Slayer, Slaughterer, Master Gun Breaker, Heist Gun Crusher, Light Wizard family, Lemuria Mage family)
+- 2026-06-09 — [Fix] CharacterRepository.getBaseStats: agregados todos los códigos de clase faltantes con stats base correctos
+- 2026-06-09 — [Feat] Tienda WCoin: UI exchange (donate/index.php + donate.js), proxy PHP api/donate/order.php, páginas post-pago donate/success + donate/error, config paymentsApi en config.js + data-payments-url en layout.php, build.php actualizado
 - 2026-06-12 — [Fase 6] Módulo Prode MuPGA completo: schema SQL, ProdeRepository, 5 endpoints, página /mudial/, CSS, navbar, docs

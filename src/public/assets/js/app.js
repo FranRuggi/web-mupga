@@ -38,32 +38,48 @@ function esc(str) {
 
 // ── Mapa de clases ───────────────────────────────────────────
 const CLASS_NAMES = {
-  0:  'Dark Wizard',      1:  'Soul Master',    3:  'Grand Master',
-  7:  'Soul Wizard',
-  16: 'Dark Knight',      17: 'Blade Knight',   19: 'Blade Master',   23: 'Dragon Knight',
-  32: 'Fairy Elf',        33: 'Muse Elf',       35: 'High Elf',       39: 'Noble Elf',
-  48: 'Magic Gladiator',  50: 'Duel Master',
-  64: 'Dark Lord',        66: 'Lord Emperor',   70: 'Empire Lord',
-  80: 'Summoner',         81: 'Bloody Summoner',83: 'Dimension Master',
-  96: 'Rage Fighter',     98: 'Fist Master',
-  112:'Grow Lancer',      114:'Mirage Lancer',
-  128:'Rune Mage',        129:'Rune Spell Master',
-  144:'Slayer',           145:'Royal Slayer',
-  160:'Gun Crusher',      161:'Gun Breaker',
+  // Dark Wizard
+  0:  'Dark Wizard',      1:  'Soul Master',      2:  'Grand Master',     3:  'Grand Master',     7:  'Soul Wizard',
+  // Dark Knight
+  16: 'Dark Knight',      17: 'Blade Knight',     18: 'Blade Master',     19: 'Blade Master',     23: 'Dragon Knight',
+  // Fairy Elf
+  32: 'Fairy Elf',        33: 'Muse Elf',         34: 'High Elf',         35: 'High Elf',         39: 'Noble Elf',
+  // Magic Gladiator
+  48: 'Magic Gladiator',  50: 'Duel Master',      54: 'Magic Knight',
+  // Dark Lord
+  64: 'Dark Lord',        66: 'Lord Emperor',     70: 'Empire Lord',
+  // Summoner
+  80: 'Summoner',         81: 'Bloody Summoner',  83: 'Dimension Master', 87: 'Dimension Summoner',
+  // Rage Fighter
+  96: 'Rage Fighter',     98: 'Fist Master',      102:'Fist Blazer',
+  // Grow Lancer
+  112:'Grow Lancer',      114:'Mirage Lancer',    118:'Shining Lancer',
+  // Rune Mage
+  128:'Rune Mage',        129:'Rune Spell Master', 131:'Grand Rune Master', 135:'Majestic Rune Wizard',
+  // Slayer
+  144:'Slayer',           145:'Royal Slayer',     147:'Master Slayer',    151:'Slaughterer',
+  // Gun Crusher
+  160:'Gun Crusher',      161:'Gun Breaker',      163:'Master Gun Breaker', 167:'Heist Gun Crusher',
+  // Light Wizard
+  176:'Light Wizard',     177:'Light Master',     179:'Shining Wizard',   183:'Luminous Wizard',
+  // Lemuria Mage
+  192:'Lemuria Mage',     193:'Warmage',          195:'Archmage',         199:'Mystic Mage',
 };
 
 const CLASS_AVATAR = {
   0:'dw.jpg',  1:'dw.jpg',   3:'dw.jpg',   7:'dw.jpg',
-  16:'dk.jpg', 17:'dk.jpg',  19:'dk.jpg',  23:'dk.jpg',
-  32:'elf.jpg',33:'elf.jpg', 35:'elf.jpg', 39:'elf.jpg',
-  48:'mg.jpg', 50:'mg.jpg',
+  16:'dk.jpg', 17:'dk.jpg',  18:'dk.jpg',  19:'dk.jpg',  23:'dk.jpg',
+  32:'elf.jpg',33:'elf.jpg', 34:'elf.jpg', 35:'elf.jpg', 39:'elf.jpg',
+  48:'mg.jpg', 50:'mg.jpg',  54:'mg.jpg',
   64:'dl.jpg', 66:'dl.jpg',  70:'dl.jpg',
-  80:'sum.jpg',81:'sum.jpg', 83:'sum.jpg',
-  96:'rf.jpg', 98:'rf.jpg',
-  112:'gl.jpg',114:'gl.jpg',
-  128:'rw.jpg',129:'rw.jpg',
-  144:'sl.jpg',145:'sl.jpg',
-  160:'avatar.jpg',161:'avatar.jpg',
+  80:'sum.jpg',81:'sum.jpg', 83:'sum.jpg', 87:'sum.jpg',
+  96:'rf.jpg', 98:'rf.jpg',  102:'rf.jpg',
+  112:'gl.jpg',114:'gl.jpg', 118:'gl.jpg',
+  128:'rw.jpg',129:'rw.jpg', 131:'rw.jpg', 135:'rw.jpg',
+  144:'sl.jpg',145:'sl.jpg', 147:'sl.jpg', 151:'sl.jpg',
+  160:'avatar.jpg',161:'avatar.jpg',163:'avatar.jpg',167:'avatar.jpg',
+  176:'avatar.jpg',177:'avatar.jpg',179:'avatar.jpg',183:'avatar.jpg',
+  192:'avatar.jpg',193:'avatar.jpg',195:'avatar.jpg',199:'avatar.jpg',
 };
 
 function avatarSrc(classCode) {
@@ -204,7 +220,7 @@ async function loadInfoCards() {
     { icon: '🌍',  value: data.season,         label: 'Temporada'      },
     { icon: '👥',  value: data.players_total,  label: 'Registrados'    },
     { icon: '🟢',  value: data.players_online, label: 'Online ahora'   },
-    { icon: '🏰',  value: 'Semanal',           label: 'Castle Siege'   },
+    { icon: '🎮',  value: 'Eventos',           label: 'Semanales'   },
   ];
 
   el.innerHTML = cards.map((c, i) => `

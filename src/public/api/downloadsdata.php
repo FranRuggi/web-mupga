@@ -9,7 +9,7 @@ require_once __DIR__ . '/_cors.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: public, max-age=300');
 
-$file = SRC_ROOT . '/public/data/downloads.json';
+$file = PROJECT_ROOT . '/data/downloads.json';
 
 if (!file_exists($file)) {
     echo json_encode(['items' => []]);
