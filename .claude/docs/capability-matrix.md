@@ -65,7 +65,7 @@ verificado en producción sin casos de corrupción.
 | Cambiar contraseña                                 | `MEMB_INFO` (`memb__pwd`)                       |
 | Cambiar email                                      | `MEMB_INFO` (`mail_addr`)                       |
 | Bloquear / desbloquear cuenta                      | `MEMB_INFO` (`bloc_code`)                       |
-| Activar / modificar VIP (`sp_SetAccountVIP`)       | `MEMB_INFO` (`AccountLevel`, `AccountExpireDate`)|
+| Activar / modificar VIP (`sp_SetAccountGOLDVIP`)   | `MEMB_INFO` (`AccountLevel`, `AccountExpireDate`)|
 | Agregar WCoin (`sp_AddWCoinWithLog`)               | `CashShopData` (`WCoinC`), `CashLog`            |
 | Modificar WCoinP / GoblinPoint (`WZ_SetCoin`)      | `CashShopData` (`WCoinP`, `GoblinPoint`)        |
 | Unstick (mover personaje al mapa de Lorencia)      | `Character` (`MapNumber`, `MapPosX`, `MapPosY`) |
@@ -130,7 +130,7 @@ es demasiado alto o el impacto en el GameServer sería impredecible.
 
 ### Features de escritura sobre datos de juego (SEGURAS, online u offline)
 - **Recarga de WCoin** (donaciones) — vía `sp_AddWCoinWithLog`
-- **Activación de VIP** — vía `sp_SetAccountVIP`
+- **Activación de VIP** — vía `sp_SetAccountGOLDVIP`
 - **Reset de personaje** — escritura en `Character`
 - **Reset de stats** — escritura en `Character`
 - **Add stats** — escritura en `Character`

@@ -217,7 +217,7 @@ class AccountRepository {
      * @param string $expireDate Formato 'YYYY-MM-DD HH:MM:SS'
      */
     public function setVIP(string $username, int $level, string $expireDate): bool {
-        $stmt = $this->pdo->prepare('EXEC sp_SetAccountVIP ?, ?, ?');
+        $stmt = $this->pdo->prepare('EXEC sp_SetAccountGOLDVIP ?, ?, ?');
         $stmt->execute([$username, $level, $expireDate]);
         return true;
     }

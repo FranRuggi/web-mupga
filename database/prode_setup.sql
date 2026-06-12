@@ -37,7 +37,7 @@ GRANT SELECT ON dbo.MEMB_INFO   TO prode_user;
 
 -- Nombres exactos de los SPs confirmados en el código del proyecto:
 GRANT EXECUTE ON dbo.sp_AddWCoinWithLog TO prode_user;
-GRANT EXECUTE ON dbo.sp_SetAccountVIP   TO prode_user;
+GRANT EXECUTE ON dbo.sp_SetAccountGOLDVIP  TO prode_user;
 
 -- ── Bloque C — Control total del schema prode ────────────────
 GRANT CONTROL ON SCHEMA::prode TO prode_user;

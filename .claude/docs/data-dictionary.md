@@ -333,7 +333,6 @@ Escrita en: `api/auth/register.php` via ip-api.com al crear la cuenta.
 | SP                          | Descripción                                              | Tablas que toca                          |
 |-----------------------------|----------------------------------------------------------|------------------------------------------|
 | `sp_AddWCoinWithLog`        | Agrega WCoin a una cuenta con log transaccional          | `CashShopData`, `CashLog`, `MEMB_INFO`   |
-| `sp_SetAccountVIP`          | Activa VIP en una cuenta (nivel + fecha expiración)      | `MEMB_INFO`                              |
 | `sp_SetAccountGOLDVIP`      | Activa VIP Gold en una cuenta                            | `MEMB_INFO`                              |
 
 ### SPs del GameServer (WebEngine los llama también)

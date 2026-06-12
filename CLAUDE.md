@@ -67,7 +67,7 @@ automáticamente al cargar cada resultado.
 Tablas: `prode.config` (key/value), `prode.matches`, `prode.predictions`, `prode.scores`.
 
 **Usuario SQL:** `prode_user`. Permisos: CONTROL en schema `prode`; SELECT en `dbo.ACCOUNT_TBL`,
-`dbo.Character`, `dbo.MEMB_INFO`; EXECUTE en `dbo.sp_AddWCoinWithLog` y `dbo.sp_SetAccountVIP`.
+`dbo.Character`, `dbo.MEMB_INFO`; EXECUTE en `dbo.sp_AddWCoinWithLog` y `dbo.sp_SetAccountGOLDVIP`.
 Los SPs de premios se ejecutan a través de la conexión principal (`Database::get()`) para mayor seguridad.
 
 **Archivos API:** `src/public/api/prode/` (matches, predict, ranking, admin_match, admin_result).
