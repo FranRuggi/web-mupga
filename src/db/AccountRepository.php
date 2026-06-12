@@ -212,13 +212,10 @@ class AccountRepository {
         return (bool) $stmt->rowCount();
     }
 
-    /**
-     * Activa o modifica el VIP de una cuenta vía stored procedure.
-     * @param string $expireDate Formato 'YYYY-MM-DD HH:MM:SS'
-     */
-    public function setVIP(string $username, int $level, string $expireDate): bool {
-        $stmt = $this->pdo->prepare('EXEC sp_SetAccountGOLDVIP ?, ?, ?');
-        $stmt->execute([$username, $level, $expireDate]);
+   
+    public function setVIP(string $AccountID, int $DaysToAdd): bool {
+        $stmt = $this->pdo->prepare('EXEC sp_SetAccountGOLDVIP ?, ?');
+        $stmt->execute([$AccountID, $DaysToAdd]);
         return true;
     }
 }

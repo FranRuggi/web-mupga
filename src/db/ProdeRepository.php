@@ -312,7 +312,7 @@ class ProdeRepository {
             // Premio VIP — mismo patrón que AccountRepository::setVIP()
             if ($vipDays > 0) {
                 $newExpire = $this->computeVipExpiry($account, $vipDays);
-                $sp = $this->main->prepare('EXEC sp_SetAccountGOLDVIP ?, 3, ?');
+                $sp = $this->main->prepare('EXEC sp_SetAccountGOLDVIP ?, ?');
                 $sp->execute([$account, $newExpire]);
             }
 
