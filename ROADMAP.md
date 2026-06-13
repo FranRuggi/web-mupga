@@ -209,3 +209,7 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-12 — [Fase 6] Módulo Prode MuPGA completo: schema SQL, ProdeRepository, 5 endpoints, página /mudial/, CSS, navbar, docs
 - 2026-06-12 — [Prode] Banderas emoji por equipo, badges "EN VIVO" y "se juega pronto", banderas en encabezado de grupo, orden por fecha
 - 2026-06-12 — [Rankings] Indicador online (punto cyan) en todos los rankings de personaje vía JOIN MEMB_STAT
+- 2026-06-12 — [Ajuste] Rankings: indicador "En línea" con texto pulsante (rank-online-badge) reemplaza el punto cyan
+- 2026-06-12 — [Ajuste] Prode: banderas reemplazadas por imágenes flagcdn.com (24x18px, ISO 3166-1 alpha-2, gb-eng/gb-sct para Ing/Esco)
+- 2026-06-12 — [Ajuste] Prode: orden de grupos por STAGE_ORDER canónico (A→L, luego fases elim.) en vez de por fecha
+- 2026-06-12 — [Ajuste] Creado database/resultados_jornada1.sql con UPDATEs directos para los partidos ya jugados (sin resolveMatch, sin premios)

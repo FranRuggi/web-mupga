@@ -36,7 +36,7 @@ const TABS = [
 function renderPlayerRow(p, pos, statKey, statLabel) {
   const isMe      = p.isPlayer === true;
   const onlineDot = p.is_online
-    ? '<span class="online-dot" title="En línea"></span>'
+    ? '<span class="rank-online-badge">En línea</span>'
     : '';
   return `
     <div class="rank-item animate-in${isMe ? ' rank-item--me' : ''}" style="animation-delay:${Math.min(pos - 1, 8) * 0.04}s">

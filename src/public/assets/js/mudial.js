@@ -6,25 +6,26 @@
 
 const CUTOFF_SECS = 60 * 60; // 1 hora en segundos
 
-// ── Banderas de equipos y composición de grupos ───────────────
+// ── Banderas (flagcdn.com) y composición de grupos ────────────
 
+// Código ISO 3166-1 alpha-2 para cada equipo (gb-eng/gb-sct son excepciones de flagcdn)
 const TEAM_FLAGS = {
-  'Alemania': '🇩🇪', 'Curazao': '🇨🇼', 'Costa de Marfil': '🇨🇮',
-  'Ecuador': '🇪🇨', 'Países Bajos': '🇳🇱', 'Japón': '🇯🇵',
-  'Suecia': '🇸🇪', 'Túnez': '🇹🇳', 'España': '🇪🇸',
-  'Cabo Verde': '🇨🇻', 'Arabia Saudita': '🇸🇦', 'Uruguay': '🇺🇾',
-  'Bélgica': '🇧🇪', 'Egipto': '🇪🇬', 'Irán': '🇮🇷',
-  'Nueva Zelanda': '🇳🇿', 'Francia': '🇫🇷', 'Senegal': '🇸🇳',
-  'Irak': '🇮🇶', 'Noruega': '🇳🇴', 'Argentina': '🇦🇷',
-  'Argelia': '🇩🇿', 'Austria': '🇦🇹', 'Jordania': '🇯🇴',
-  'Portugal': '🇵🇹', 'RD Congo': '🇨🇩', 'Uzbekistán': '🇺🇿',
-  'Colombia': '🇨🇴', 'Inglaterra': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Croacia': '🇭🇷',
-  'Ghana': '🇬🇭', 'Panamá': '🇵🇦', 'Chequia': '🇨🇿',
-  'Sudáfrica': '🇿🇦', 'Corea del Sur': '🇰🇷', 'Suiza': '🇨🇭',
-  'Bosnia y Herz.': '🇧🇦', 'Canadá': '🇨🇦', 'Qatar': '🇶🇦',
-  'México': '🇲🇽', 'EE.UU.': '🇺🇸', 'Australia': '🇦🇺',
-  'Escocia': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Brasil': '🇧🇷', 'Haití': '🇭🇹',
-  'Turquía': '🇹🇷', 'Paraguay': '🇵🇾', 'Marruecos': '🇲🇦',
+  'Alemania': 'de',       'Curazao': 'cw',       'Costa de Marfil': 'ci',
+  'Ecuador': 'ec',        'Países Bajos': 'nl',   'Japón': 'jp',
+  'Suecia': 'se',         'Túnez': 'tn',          'España': 'es',
+  'Cabo Verde': 'cv',     'Arabia Saudita': 'sa', 'Uruguay': 'uy',
+  'Bélgica': 'be',        'Egipto': 'eg',         'Irán': 'ir',
+  'Nueva Zelanda': 'nz',  'Francia': 'fr',        'Senegal': 'sn',
+  'Irak': 'iq',           'Noruega': 'no',        'Argentina': 'ar',
+  'Argelia': 'dz',        'Austria': 'at',        'Jordania': 'jo',
+  'Portugal': 'pt',       'RD Congo': 'cd',       'Uzbekistán': 'uz',
+  'Colombia': 'co',       'Inglaterra': 'gb-eng', 'Croacia': 'hr',
+  'Ghana': 'gh',          'Panamá': 'pa',         'Chequia': 'cz',
+  'Sudáfrica': 'za',      'Corea del Sur': 'kr',  'Suiza': 'ch',
+  'Bosnia y Herz.': 'ba', 'Canadá': 'ca',         'Qatar': 'qa',
+  'México': 'mx',         'EE.UU.': 'us',         'Australia': 'au',
+  'Escocia': 'gb-sct',    'Brasil': 'br',         'Haití': 'ht',
+  'Turquía': 'tr',        'Paraguay': 'py',       'Marruecos': 'ma',
 };
 
 const GROUP_TEAMS = {
@@ -42,9 +43,18 @@ const GROUP_TEAMS = {
   'Grupo L': ['Inglaterra', 'Croacia', 'Panamá', 'Ghana'],
 };
 
+// Orden canónico de stages (grupos primero, luego fases eliminatorias)
+const STAGE_ORDER = [
+  'Grupo A', 'Grupo B', 'Grupo C', 'Grupo D', 'Grupo E', 'Grupo F',
+  'Grupo G', 'Grupo H', 'Grupo I', 'Grupo J', 'Grupo K', 'Grupo L',
+  'Ronda de 32', 'Ronda de 16', 'Cuartos de Final', 'Semifinal',
+  'Tercer Puesto', 'Final',
+];
+
 function teamFlag(name) {
-  const flag = TEAM_FLAGS[name];
-  return flag ? `${flag} ` : '';
+  const code = TEAM_FLAGS[name];
+  if (!code) return '';
+  return `<img src="https://flagcdn.com/24x18/${code}.png" alt="${esc(name)}" title="${esc(name)}" class="prode-flag-img">`;
 }
 
 // ── Utilidades ────────────────────────────────────────────────
@@ -109,9 +119,9 @@ function pointsBadge(points) {
 // ── Renderizado de partidos ────────────────────────────────────
 
 function renderMatch(match) {
-  const open  = isMatchOpen(match);
-  const pred  = match.prediction;
-  const done  = match.status === 'finished';
+  const open   = isMatchOpen(match);
+  const pred   = match.prediction;
+  const done   = match.status === 'finished';
   const timing = timingBadge(match);
 
   let scoreBlock = '';
@@ -144,8 +154,8 @@ function renderMatch(match) {
         <div class="prode-score-label"><span class="prode-badge prode-badge--locked">Cerrado · Sin predicción</span></div>
       </div>`;
   } else {
-    const homeVal = pred ? pred.pred_score_home : '';
-    const awayVal = pred ? pred.pred_score_away : '';
+    const homeVal  = pred ? pred.pred_score_home : '';
+    const awayVal  = pred ? pred.pred_score_away : '';
     const btnLabel = pred ? 'Actualizar' : 'Predecir';
 
     scoreBlock = `
@@ -181,7 +191,14 @@ function renderMatch(match) {
 function renderMatchGroup(stage, matches) {
   const teams = GROUP_TEAMS[stage] ?? [];
   const flagsHtml = teams.length
-    ? ` <span class="prode-stage-flags">${teams.map(t => TEAM_FLAGS[t] ?? '').join(' ')}</span>`
+    ? ` <span class="prode-stage-flags">${
+        teams.map(t => {
+          const code = TEAM_FLAGS[t];
+          return code
+            ? `<img src="https://flagcdn.com/24x18/${code}.png" alt="${esc(t)}" title="${esc(t)}" class="prode-flag-img">`
+            : '';
+        }).join('')
+      }</span>`
     : '';
 
   return `
@@ -213,11 +230,13 @@ function renderMatches(data) {
     );
   }
 
-  // Ordenar grupos por la fecha del primer partido de cada uno
+  // Ordenar grupos según STAGE_ORDER; stages desconocidos van al final
   container.innerHTML = Object.entries(groups)
-    .sort(([, a], [, b]) =>
-      new Date(a[0].match_datetime_utc + 'Z') - new Date(b[0].match_datetime_utc + 'Z')
-    )
+    .sort(([stageA], [stageB]) => {
+      const ia = STAGE_ORDER.indexOf(stageA);
+      const ib = STAGE_ORDER.indexOf(stageB);
+      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+    })
     .map(([stage, matches]) => renderMatchGroup(stage, matches))
     .join('');
 
@@ -258,7 +277,7 @@ async function handlePredict(e) {
 
   if (res.ok) {
     showAlert('¡Predicción guardada!', 'success');
-    loadMatches(); // Recargar para ver el estado actualizado
+    loadMatches();
   } else {
     const data = await res.json().catch(() => ({}));
     showAlert(data.error ?? 'Error al guardar la predicción.', 'error');

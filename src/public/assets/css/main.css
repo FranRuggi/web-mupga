@@ -855,6 +855,28 @@ h1, h2, h3, h4 {
   margin-left: 6px;
 }
 
+.rank-online-badge {
+  display: inline-block;
+  font-size: 0.58rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cyan) 35%, transparent);
+  border-radius: 3px;
+  padding: 1px 4px;
+  vertical-align: middle;
+  margin-left: 5px;
+  animation: rank-online-pulse 2s ease-in-out infinite;
+}
+
+@keyframes rank-online-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
 /* Separador "Tu posición" entre el top y la entrada del jugador */
 .rank-separator {
   text-align: center;
@@ -2602,11 +2624,17 @@ h1, h2, h3, h4 {
 }
 
 .prode-stage-flags {
-  font-style: normal;
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: 1rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.prode-flag-img {
+  height: 18px;
+  width: auto;
+  vertical-align: middle;
+  border-radius: 2px;
+  display: block;
 }
 
 .prode-match-header-right {
