@@ -34,7 +34,10 @@ const TABS = [
 
 // ── Renderizadores ────────────────────────────────────────
 function renderPlayerRow(p, pos, statKey, statLabel) {
-  const isMe = p.isPlayer === true;
+  const isMe      = p.isPlayer === true;
+  const onlineDot = p.is_online
+    ? '<span class="online-dot" title="En línea"></span>'
+    : '';
   return `
     <div class="rank-item animate-in${isMe ? ' rank-item--me' : ''}" style="animation-delay:${Math.min(pos - 1, 8) * 0.04}s">
       <span class="rank-pos">${pos}</span>
@@ -47,6 +50,7 @@ function renderPlayerRow(p, pos, statKey, statLabel) {
         <div class="rank-name">
           ${p.country ? `<span title="${esc(p.country)}">${flag(p.country)}</span> ` : ''}
           <a class="rank-name-link" href="${BASE}/player/?name=${encodeURIComponent(p.name)}">${esc(p.name)}</a>
+          ${onlineDot}
           ${isMe ? '<span class="rank-me-badge">vos</span>' : ''}
         </div>
         <div class="rank-class">${esc(className(p.class))}</div>

@@ -49,6 +49,7 @@ function normalizePlayerRow(array $r): array {
         'pkLevel'      => (int) ($r['PkLevel']      ?? 0),
         'map'          => (int) ($r['MapNumber']    ?? 0),
         'country'      => $r['CountryCode']         ?? null,
+        'is_online'    => (bool) ($r['is_online']   ?? false),
     ];
 }
 

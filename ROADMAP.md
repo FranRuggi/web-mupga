@@ -122,6 +122,12 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] Navbar: enlace "Prode" en layout.php — 2026-06-12
 - [x] `.env.example`: variables PRODE_DB_* y ADMIN_TOKEN documentadas — 2026-06-12
 - [x] `PASOS_MANUALES_PRODE.md` creado con instrucciones paso a paso para el deploy — 2026-06-12
+- [x] Prode: mapa de banderas (emoji) para los 48 equipos del Mundial 2026 — 2026-06-12
+- [x] Prode: badge "⏰ En Xh Ymin" cuando faltan menos de 3 horas y el partido sigue abierto — 2026-06-12
+- [x] Prode: badge "🟢 EN VIVO" pulsante cuando el partido arrancó hace menos de 110 min — 2026-06-12
+- [x] Prode: banderas de los 4 equipos en el encabezado de cada grupo (Grupo A–L) — 2026-06-12
+- [x] Prode: partidos ordenados por fecha ASC dentro de cada grupo; grupos ordenados por fecha de su primer partido — 2026-06-12
+- [x] Rankings: indicador de jugador online (punto cyan) via JOIN MEMB_STAT.ConnectStat — 2026-06-12
 - [ ] Ejecutar `database/prode_setup.sql` en SQL Server del VPS (manual — ver PASOS_MANUALES_PRODE.md)
 - [ ] Configurar variables PRODE_DB_* y ADMIN_TOKEN en el .env del VPS (manual)
 - [ ] Cargar primeros partidos vía admin_match.php (manual)
@@ -201,3 +207,5 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-09 — [Fix] CharacterRepository.getBaseStats: agregados todos los códigos de clase faltantes con stats base correctos
 - 2026-06-09 — [Feat] Tienda WCoin: UI exchange (donate/index.php + donate.js), proxy PHP api/donate/order.php, páginas post-pago donate/success + donate/error, config paymentsApi en config.js + data-payments-url en layout.php, build.php actualizado
 - 2026-06-12 — [Fase 6] Módulo Prode MuPGA completo: schema SQL, ProdeRepository, 5 endpoints, página /mudial/, CSS, navbar, docs
+- 2026-06-12 — [Prode] Banderas emoji por equipo, badges "EN VIVO" y "se juega pronto", banderas en encabezado de grupo, orden por fecha
+- 2026-06-12 — [Rankings] Indicador online (punto cyan) en todos los rankings de personaje vía JOIN MEMB_STAT

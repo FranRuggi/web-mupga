@@ -45,9 +45,11 @@ class RankingsRepository {
         return $this->pdo->query(
             "SELECT TOP {$limit} c.Name, c.Class, c.cLevel, c.ResetCount,
                     ISNULL(c.MasterResetCount,0) AS MasterResetCount, c.MapNumber,
-                    mac.CountryCode
+                    mac.CountryCode,
+                    ISNULL(ms.ConnectStat, 0) AS is_online
              FROM Character c
              LEFT JOIN MUPGA_ACCOUNT_COUNTRY mac ON mac.Username = c.AccountID
+             LEFT JOIN MEMB_STAT ms ON ms.memb___id = c.AccountID
              WHERE {$where}
              ORDER BY c.cLevel DESC"
         )->fetchAll();
@@ -58,9 +60,11 @@ class RankingsRepository {
         return $this->pdo->query(
             "SELECT TOP {$limit} c.Name, c.Class, c.cLevel, c.ResetCount,
                     ISNULL(c.MasterResetCount,0) AS MasterResetCount, c.MapNumber,
-                    mac.CountryCode
+                    mac.CountryCode,
+                    ISNULL(ms.ConnectStat, 0) AS is_online
              FROM Character c
              LEFT JOIN MUPGA_ACCOUNT_COUNTRY mac ON mac.Username = c.AccountID
+             LEFT JOIN MEMB_STAT ms ON ms.memb___id = c.AccountID
              WHERE {$where} AND c.ResetCount > 0
              ORDER BY c.ResetCount DESC, c.cLevel DESC"
         )->fetchAll();
@@ -71,9 +75,11 @@ class RankingsRepository {
         return $this->pdo->query(
             "SELECT TOP {$limit} c.Name, c.Class, c.cLevel, c.ResetCount,
                     ISNULL(c.MasterResetCount,0) AS MasterResetCount, c.MapNumber,
-                    mac.CountryCode
+                    mac.CountryCode,
+                    ISNULL(ms.ConnectStat, 0) AS is_online
              FROM Character c
              LEFT JOIN MUPGA_ACCOUNT_COUNTRY mac ON mac.Username = c.AccountID
+             LEFT JOIN MEMB_STAT ms ON ms.memb___id = c.AccountID
              WHERE {$where} AND ISNULL(c.MasterResetCount,0) > 0
              ORDER BY c.MasterResetCount DESC, c.ResetCount DESC, c.cLevel DESC"
         )->fetchAll();
@@ -84,9 +90,11 @@ class RankingsRepository {
         return $this->pdo->query(
             "SELECT TOP {$limit} c.Name, c.Class, c.cLevel,
                     ISNULL(c.PkCount,0) AS PkCount, ISNULL(c.PkLevel,3) AS PkLevel, c.MapNumber,
-                    mac.CountryCode
+                    mac.CountryCode,
+                    ISNULL(ms.ConnectStat, 0) AS is_online
              FROM Character c
              LEFT JOIN MUPGA_ACCOUNT_COUNTRY mac ON mac.Username = c.AccountID
+             LEFT JOIN MEMB_STAT ms ON ms.memb___id = c.AccountID
              WHERE {$where} AND ISNULL(c.PkCount,0) > 0
              ORDER BY c.PkCount DESC"
         )->fetchAll();
@@ -97,9 +105,11 @@ class RankingsRepository {
         return $this->pdo->query(
             "SELECT TOP {$limit} c.Name, c.Class, c.cLevel,
                     ISNULL(c.mLevel,0) AS mLevel, c.ResetCount, c.MapNumber,
-                    mac.CountryCode
+                    mac.CountryCode,
+                    ISNULL(ms.ConnectStat, 0) AS is_online
              FROM Character c
              LEFT JOIN MUPGA_ACCOUNT_COUNTRY mac ON mac.Username = c.AccountID
+             LEFT JOIN MEMB_STAT ms ON ms.memb___id = c.AccountID
              WHERE {$where} AND ISNULL(c.mLevel,0) > 0
              ORDER BY c.mLevel DESC, c.cLevel DESC"
         )->fetchAll();
@@ -135,7 +145,8 @@ class RankingsRepository {
                 WHERE {$excl} AND {$condition}
              )
              SELECT TOP 1 Name, Class, cLevel, ResetCount, MasterResetCount,
-                    mLevel, PkCount, PkLevel, position
+                    mLevel, PkCount, PkLevel, position,
+                    ISNULL((SELECT ConnectStat FROM MEMB_STAT WHERE memb___id = ranked.AccountID), 0) AS is_online
              FROM ranked
              WHERE AccountID = ?
              ORDER BY position ASC"

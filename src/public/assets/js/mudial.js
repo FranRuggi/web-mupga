@@ -6,6 +6,47 @@
 
 const CUTOFF_SECS = 60 * 60; // 1 hora en segundos
 
+// ── Banderas de equipos y composición de grupos ───────────────
+
+const TEAM_FLAGS = {
+  'Alemania': '🇩🇪', 'Curazao': '🇨🇼', 'Costa de Marfil': '🇨🇮',
+  'Ecuador': '🇪🇨', 'Países Bajos': '🇳🇱', 'Japón': '🇯🇵',
+  'Suecia': '🇸🇪', 'Túnez': '🇹🇳', 'España': '🇪🇸',
+  'Cabo Verde': '🇨🇻', 'Arabia Saudita': '🇸🇦', 'Uruguay': '🇺🇾',
+  'Bélgica': '🇧🇪', 'Egipto': '🇪🇬', 'Irán': '🇮🇷',
+  'Nueva Zelanda': '🇳🇿', 'Francia': '🇫🇷', 'Senegal': '🇸🇳',
+  'Irak': '🇮🇶', 'Noruega': '🇳🇴', 'Argentina': '🇦🇷',
+  'Argelia': '🇩🇿', 'Austria': '🇦🇹', 'Jordania': '🇯🇴',
+  'Portugal': '🇵🇹', 'RD Congo': '🇨🇩', 'Uzbekistán': '🇺🇿',
+  'Colombia': '🇨🇴', 'Inglaterra': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Croacia': '🇭🇷',
+  'Ghana': '🇬🇭', 'Panamá': '🇵🇦', 'Chequia': '🇨🇿',
+  'Sudáfrica': '🇿🇦', 'Corea del Sur': '🇰🇷', 'Suiza': '🇨🇭',
+  'Bosnia y Herz.': '🇧🇦', 'Canadá': '🇨🇦', 'Qatar': '🇶🇦',
+  'México': '🇲🇽', 'EE.UU.': '🇺🇸', 'Australia': '🇦🇺',
+  'Escocia': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Brasil': '🇧🇷', 'Haití': '🇭🇹',
+  'Turquía': '🇹🇷', 'Paraguay': '🇵🇾', 'Marruecos': '🇲🇦',
+};
+
+const GROUP_TEAMS = {
+  'Grupo A': ['México', 'Sudáfrica', 'Corea del Sur', 'Chequia'],
+  'Grupo B': ['Canadá', 'Bosnia y Herz.', 'Suiza', 'Qatar'],
+  'Grupo C': ['Brasil', 'Marruecos', 'Escocia', 'Haití'],
+  'Grupo D': ['EE.UU.', 'Paraguay', 'Australia', 'Turquía'],
+  'Grupo E': ['Alemania', 'Ecuador', 'Costa de Marfil', 'Curazao'],
+  'Grupo F': ['Países Bajos', 'Japón', 'Suecia', 'Túnez'],
+  'Grupo G': ['Bélgica', 'Irán', 'Egipto', 'Nueva Zelanda'],
+  'Grupo H': ['España', 'Cabo Verde', 'Arabia Saudita', 'Uruguay'],
+  'Grupo I': ['Francia', 'Senegal', 'Irak', 'Noruega'],
+  'Grupo J': ['Argentina', 'Argelia', 'Austria', 'Jordania'],
+  'Grupo K': ['Portugal', 'Colombia', 'Uzbekistán', 'RD Congo'],
+  'Grupo L': ['Inglaterra', 'Croacia', 'Panamá', 'Ghana'],
+};
+
+function teamFlag(name) {
+  const flag = TEAM_FLAGS[name];
+  return flag ? `${flag} ` : '';
+}
+
 // ── Utilidades ────────────────────────────────────────────────
 
 function showAlert(msg, type = 'error') {
@@ -34,6 +75,30 @@ function formatMatchDate(utcStr) {
   });
 }
 
+function timingBadge(match) {
+  const now    = Date.now();
+  const kick   = new Date(match.match_datetime_utc + 'Z').getTime();
+  const diffMs = kick - now;
+
+  // EN VIVO: ya arrancó, menos de 110 min transcurridos, todavía pending
+  if (diffMs < 0 && -diffMs < 110 * 60 * 1000 && match.status === 'pending') {
+    return '<span class="prode-badge prode-badge--live">🟢 EN VIVO</span>';
+  }
+
+  // SE JUEGA PRONTO: abierto para predecir y faltan menos de 3 horas
+  if (isMatchOpen(match) && diffMs > 0 && diffMs < 3 * 60 * 60 * 1000) {
+    const totalMins = Math.floor(diffMs / 60000);
+    const hours     = Math.floor(totalMins / 60);
+    const mins      = totalMins % 60;
+    const label     = hours > 0
+      ? `⏰ En ${hours}h${mins > 0 ? ` ${mins}min` : ''}`
+      : `⏰ En ${mins}min`;
+    return `<span class="prode-badge prode-badge--soon">${label}</span>`;
+  }
+
+  return '';
+}
+
 function pointsBadge(points) {
   if (points === null || points === undefined) return '';
   if (points === 3) return '<span class="prode-badge prode-badge--exact">+3 Exacto</span>';
@@ -47,12 +112,11 @@ function renderMatch(match) {
   const open  = isMatchOpen(match);
   const pred  = match.prediction;
   const done  = match.status === 'finished';
-  const soon  = !open && match.status === 'pending';
+  const timing = timingBadge(match);
 
   let scoreBlock = '';
 
   if (done) {
-    // Partido terminado: mostrar resultado real vs predicción
     const realScore = `${match.score_home} - ${match.score_away}`;
     const predScore = pred
       ? `${pred.pred_score_home} - ${pred.pred_score_away}`
@@ -69,20 +133,17 @@ function renderMatch(match) {
         <div class="prode-score-label">Tu predicción ${pred ? pointsBadge(pred.points_earned) : ''}</div>
       </div>`;
   } else if (pred && !open) {
-    // Cerrado con predicción
     scoreBlock = `
       <div class="prode-match-score">
         <div class="prode-score-pred">${esc(pred.pred_score_home)} - ${esc(pred.pred_score_away)}</div>
         <div class="prode-score-label">Tu predicción <span class="prode-badge prode-badge--locked">Cerrado</span></div>
       </div>`;
   } else if (!pred && !open) {
-    // Cerrado sin predicción
     scoreBlock = `
       <div class="prode-match-score">
         <div class="prode-score-label"><span class="prode-badge prode-badge--locked">Cerrado · Sin predicción</span></div>
       </div>`;
   } else {
-    // Abierto: formulario de predicción
     const homeVal = pred ? pred.pred_score_home : '';
     const awayVal = pred ? pred.pred_score_away : '';
     const btnLabel = pred ? 'Actualizar' : 'Predecir';
@@ -104,20 +165,28 @@ function renderMatch(match) {
     <div class="prode-match-card animate-in${done ? ' prode-match-card--done' : ''}">
       <div class="prode-match-header">
         <span class="prode-stage-label">${esc(match.stage)}</span>
-        <span class="prode-match-date">${esc(formatMatchDate(match.match_datetime_utc))}</span>
+        <div class="prode-match-header-right">
+          <span class="prode-match-date">${esc(formatMatchDate(match.match_datetime_utc))}</span>
+          ${timing}
+        </div>
       </div>
       <div class="prode-match-body">
-        <div class="prode-team prode-team--home">${esc(match.team_home)}</div>
+        <div class="prode-team prode-team--home">${teamFlag(match.team_home)}${esc(match.team_home)}</div>
         <div class="prode-match-center">${scoreBlock}</div>
-        <div class="prode-team prode-team--away">${esc(match.team_away)}</div>
+        <div class="prode-team prode-team--away">${teamFlag(match.team_away)}${esc(match.team_away)}</div>
       </div>
     </div>`;
 }
 
 function renderMatchGroup(stage, matches) {
+  const teams = GROUP_TEAMS[stage] ?? [];
+  const flagsHtml = teams.length
+    ? ` <span class="prode-stage-flags">${teams.map(t => TEAM_FLAGS[t] ?? '').join(' ')}</span>`
+    : '';
+
   return `
     <div class="prode-stage-group">
-      <h2 class="prode-stage-title">${esc(stage)}</h2>
+      <h2 class="prode-stage-title">${esc(stage)}${flagsHtml}</h2>
       ${matches.map(renderMatch).join('')}
     </div>`;
 }
@@ -131,18 +200,27 @@ function renderMatches(data) {
     return;
   }
 
-  // Agrupar por stage
   const groups = {};
   for (const m of all) {
     if (!groups[m.stage]) groups[m.stage] = [];
     groups[m.stage].push(m);
   }
 
+  // Ordenar partidos dentro de cada grupo por fecha ASC
+  for (const stage of Object.keys(groups)) {
+    groups[stage].sort((a, b) =>
+      new Date(a.match_datetime_utc + 'Z') - new Date(b.match_datetime_utc + 'Z')
+    );
+  }
+
+  // Ordenar grupos por la fecha del primer partido de cada uno
   container.innerHTML = Object.entries(groups)
+    .sort(([, a], [, b]) =>
+      new Date(a[0].match_datetime_utc + 'Z') - new Date(b[0].match_datetime_utc + 'Z')
+    )
     .map(([stage, matches]) => renderMatchGroup(stage, matches))
     .join('');
 
-  // Eventos de formularios
   container.querySelectorAll('.prode-predict-form').forEach(form => {
     form.addEventListener('submit', handlePredict);
   });
