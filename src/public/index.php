@@ -12,10 +12,9 @@ ob_start();
   <!-- ── Hero ── -->
   <section class="hero">
     <div class="hero-slider" aria-hidden="true">
-      <div class="hero-slide"><video src="assets/img/slider/vid-1.mp4" muted playsinline preload="auto"></video></div>
+      <div class="hero-slide"><video src="assets/img/slider/vid-2.mp4" muted playsinline preload="metadata"></video></div>
       <div class="hero-slide"><img src="assets/img/slider/img-1.jpg" alt=""></div>
       <div class="hero-slide"><img src="assets/img/slider/img-3.jpg" alt=""></div>
-      <div class="hero-slide"><video src="assets/img/slider/vid-2.mp4" muted playsinline preload="metadata"></video></div>
       <div class="hero-slide"><img src="assets/img/slider/img-4.jpg" alt=""></div>
       <div class="hero-slide"><img src="assets/img/slider/img-5.jpg" alt=""></div>
       <div class="hero-slide"><video src="assets/img/slider/vid-3.mp4" muted playsinline preload="metadata"></video></div>
