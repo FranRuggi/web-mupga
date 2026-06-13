@@ -311,9 +311,8 @@ class ProdeRepository {
 
             // Premio VIP — mismo patrón que AccountRepository::setVIP()
             if ($vipDays > 0) {
-                $newExpire = $this->computeVipExpiry($account, $vipDays);
                 $sp = $this->main->prepare('EXEC sp_SetAccountGOLDVIP ?, ?');
-                $sp->execute([$account, $newExpire]);
+                $sp->execute([$account, $vipDays]);
             }
 
             // Marcar como aplicado
@@ -335,27 +334,4 @@ class ProdeRepository {
         return 'D';
     }
 
-    /**
-     * Calcula la nueva fecha de expiración VIP extendiendo desde
-     * max(ahora, expiración actual) + $days días.
-     */
-    private function computeVipExpiry(string $account, int $days): string {
-        $stmt = $this->main->prepare(
-            'SELECT AccountExpireDate FROM MEMB_INFO WHERE memb___id = ?'
-        );
-        $stmt->execute([$account]);
-        $row = $stmt->fetch();
-
-        $now = new DateTime('now', new DateTimeZone('UTC'));
-
-        if ($row && !empty($row['AccountExpireDate'])) {
-            $current = new DateTime($row['AccountExpireDate'], new DateTimeZone('UTC'));
-            $base    = $current > $now ? $current : $now;
-        } else {
-            $base = $now;
-        }
-
-        $base->modify("+{$days} days");
-        return $base->format('Y-m-d H:i:s');
-    }
 }
