@@ -2432,6 +2432,101 @@ h1, h2, h3, h4 {
 
 /* ── Módulo Prode ────────────────────────────────────────────── */
 
+/* Reglamento colapsable */
+.prode-rules {
+  background: var(--bg-surface);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--gap-md);
+  overflow: hidden;
+}
+
+.prode-rules-toggle {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.1rem;
+  cursor: pointer;
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  user-select: none;
+  transition: background 0.15s;
+}
+.prode-rules-toggle::-webkit-details-marker { display: none; }
+.prode-rules-toggle:hover { background: color-mix(in srgb, var(--cyan) 5%, transparent); }
+
+.prode-rules-chevron {
+  font-size: 1rem;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+details[open] .prode-rules-chevron { transform: rotate(90deg); }
+
+.prode-rules-body {
+  padding: 0.25rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.prode-rules-section { margin-top: 1rem; }
+
+.prode-rules-heading {
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.55rem;
+}
+
+.prode-rules-text {
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+.prode-rules-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.prode-rules-list li {
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.55;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.prode-rules-note {
+  color: var(--text-dim) !important;
+  font-size: 0.8rem !important;
+}
+
+.prode-rules-pts {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--gold);
+  min-width: 2.8rem;
+  flex-shrink: 0;
+}
+
+.prode-rules-divider {
+  height: 1px;
+  background: var(--border);
+  margin-top: 1rem;
+}
+
 .prode-stage-group { margin-bottom: var(--gap-lg); }
 
 .prode-stage-title {

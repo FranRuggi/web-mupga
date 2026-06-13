@@ -213,3 +213,4 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-12 — [Ajuste] Prode: banderas reemplazadas por imágenes flagcdn.com (24x18px, ISO 3166-1 alpha-2, gb-eng/gb-sct para Ing/Esco)
 - 2026-06-12 — [Ajuste] Prode: orden de grupos por STAGE_ORDER canónico (A→L, luego fases elim.) en vez de por fecha
 - 2026-06-12 — [Ajuste] Creado database/resultados_jornada1.sql con UPDATEs directos para los partidos ya jugados (sin resolveMatch, sin premios)
+- 2026-06-13 — [Prode] Sección de reglamento colapsable en /mudial/: toggle nativo <details>/<summary>, premios, puntos, reglas
