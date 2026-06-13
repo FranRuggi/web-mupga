@@ -110,6 +110,12 @@ echo "→ assets/\n";
 $n = copyDir($root . '/src/public/assets', $dist . '/assets');
 echo "  $n archivos copiados a dist/assets/\n\n";
 
+// ── Generar _headers (Cloudflare Pages) ─────────────────────
+echo "→ _headers\n";
+$headersContent = "/*\n  Cache-Control: no-cache, must-revalidate\n";
+file_put_contents($dist . '/_headers', $headersContent);
+echo "  Cache-Control: no-cache, must-revalidate para /*\n\n";
+
 // ── Resumen ──────────────────────────────────────────────────
 $built = glob($dist . '/**/*.html');
 $built = array_merge($built, glob($dist . '/*.html'));
