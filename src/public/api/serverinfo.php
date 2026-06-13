@@ -15,8 +15,8 @@ header('Cache-Control: no-store, no-cache');
 
 // ── Configuración del servidor (editar según el servidor) ──
 const SERVER_SEASON    = 'Season 6';
-const SERVER_EXP_RATE  = '100x';
-const SERVER_DROP_RATE = '40%';
+const SERVER_EXP_RATE  = '70x';
+const SERVER_DROP_RATE = '30%';
 
 try {
     $db   = Database::get();

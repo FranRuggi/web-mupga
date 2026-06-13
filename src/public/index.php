@@ -32,7 +32,7 @@ ob_start();
     <div class="hero-orb hero-orb--3" aria-hidden="true"></div>
 
     <div class="hero-content">
-      <p class="hero-eyebrow animate-in">Servidor privado · Season 6 · MuEmu</p>
+      <p class="hero-eyebrow animate-in">Servidor privado · Season 6 </p>
       <h1 class="hero-title animate-in delay-1">MuPGA</h1>
       <p id="hero-greeting" hidden></p>
       <p class="hero-tagline animate-in delay-2">
