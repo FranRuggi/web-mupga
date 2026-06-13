@@ -1,0 +1,60 @@
+{
+  "info": {
+    "_postman_id": "8cc718d7-18d6-43b3-8aef-d098e823a8bf",
+    "name": "My Collection",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55877743",
+    "_collection_link": "https://go.postman.co/collection/55877743-8cc718d7-18d6-43b3-8aef-d098e823a8bf?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Prode PGA",
+      "item": [
+        {
+          "name": "Actualiza Prode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Admin-Token",
+                "value": "810c767df895d68c4b94087755aae2471137b30b35e2d0b8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"match_id\": X, \"score_home\": X, \"score_away\": X}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://api.mupga.com.ar/api/prode/admin_result.php",
+              "protocol": "https",
+              "host": [
+                "api",
+                "mupga",
+                "com",
+                "ar"
+              ],
+              "path": [
+                "api",
+                "prode",
+                "admin_result.php"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
