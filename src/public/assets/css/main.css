@@ -2503,8 +2503,18 @@ h1, h2, h3, h4 {
   color: var(--text-bright);
 }
 
-.prode-team--home { text-align: right; }
-.prode-team--away { text-align: left; }
+.prode-team--home {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+}
+.prode-team--away {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+}
 
 .prode-match-center { text-align: center; }
 
@@ -2632,9 +2642,8 @@ h1, h2, h3, h4 {
 .prode-flag-img {
   height: 18px;
   width: auto;
-  vertical-align: middle;
   border-radius: 2px;
-  display: block;
+  flex-shrink: 0;
 }
 
 .prode-match-header-right {
@@ -2718,7 +2727,7 @@ h1, h2, h3, h4 {
     text-align: center;
   }
   .prode-team--home,
-  .prode-team--away { text-align: center; }
+  .prode-team--away { justify-content: center; }
 
   .prode-rank-header,
   .prode-rank-row {

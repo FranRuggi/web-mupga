@@ -49,7 +49,7 @@ const CLASS_NAMES = {
   // Dark Lord
   64: 'Dark Lord',        66: 'Lord Emperor',     70: 'Empire Lord',
   // Summoner
-  80: 'Summoner',         81: 'Bloody Summoner',  83: 'Dimension Master', 87: 'Dimension Summoner',
+  80: 'Summoner',         81: 'Bloody Summoner',  82: 'Dimension Master', 83: 'Dimension Master', 87: 'Dimension Summoner',
   // Rage Fighter
   96: 'Rage Fighter',     98: 'Fist Master',      102:'Fist Blazer',
   // Grow Lancer
@@ -72,7 +72,7 @@ const CLASS_AVATAR = {
   32:'elf.jpg',33:'elf.jpg', 34:'elf.jpg', 35:'elf.jpg', 39:'elf.jpg',
   48:'mg.jpg', 50:'mg.jpg',  54:'mg.jpg',
   64:'dl.jpg', 66:'dl.jpg',  70:'dl.jpg',
-  80:'sum.jpg',81:'sum.jpg', 83:'sum.jpg', 87:'sum.jpg',
+  80:'sum.jpg',81:'sum.jpg', 82:'sum.jpg', 83:'sum.jpg', 87:'sum.jpg',
   96:'rf.jpg', 98:'rf.jpg',  102:'rf.jpg',
   112:'gl.jpg',114:'gl.jpg', 118:'gl.jpg',
   128:'rw.jpg',129:'rw.jpg', 131:'rw.jpg', 135:'rw.jpg',
