@@ -216,4 +216,4 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-12 — [Ajuste] Creado database/resultados_jornada1.sql con UPDATEs directos para los partidos ya jugados (sin resolveMatch, sin premios)
 - 2026-06-13 — [Prode] Sección de reglamento colapsable en /mudial/: toggle nativo <details>/<summary>, premios, puntos, reglas
 - 2026-06-13 — [Feat] /donate2/: página informativa estática de compra de WCoins; data/donate.json configurable; nav y usercp redirigen a /donate2/
-- 2026-06-13 — [Build] minifyJs() en build.php: elimina comentarios y espacios en JS al copiar a dist/
+- 2026-06-13 — [Build] minifyJs() en build.php revertida — JS se copia sin modificar; minificación pendiente para más adelante

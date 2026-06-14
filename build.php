@@ -40,20 +40,6 @@ function ensureDir(string $path): void {
     if (!is_dir($path)) mkdir($path, 0755, true);
 }
 
-function minifyJs(string $js): string {
-    // Eliminar comentarios de bloque /* ... */
-    $js = preg_replace('!/\*.*?\*/!s', '', $js);
-    // Eliminar comentarios de línea // ... (negativo lookbehind evita http://)
-    $js = preg_replace('!(?<!:)//[^\n]*$!m', '', $js);
-    // Colapsar espacios y tabs múltiples en uno solo
-    $js = preg_replace('/[ \t]+/', ' ', $js);
-    // Eliminar espacios al inicio y fin de cada línea
-    $js = preg_replace('/^\s+|\s+$/m', '', $js);
-    // Colapsar líneas vacías múltiples
-    $js = preg_replace('/\n{2,}/', "\n", $js);
-    return trim($js);
-}
-
 function copyDir(string $src, string $dst): int {
     $count = 0;
     if (!is_dir($src)) return 0;
@@ -65,13 +51,7 @@ function copyDir(string $src, string $dst): int {
         $rel    = substr($file->getPathname(), strlen($src) + 1);
         $target = $dst . '/' . $rel;
         ensureDir(dirname($target));
-        if ($file->getExtension() === 'js') {
-            $original  = file_get_contents($file->getPathname());
-            $minified  = minifyJs($original);
-            file_put_contents($target, $minified);
-        } else {
-            copy($file->getPathname(), $target);
-        }
+        copy($file->getPathname(), $target);
         $count++;
     }
     return $count;
@@ -126,7 +106,7 @@ foreach ($pages as $dest => $src) {
     echo '  ' . number_format(strlen($html)) . " bytes → dist/$dest\n\n";
 }
 
-// ── Copiar assets (JS minificado) ────────────────────────────
+// ── Copiar assets ────────────────────────────────────────────
 echo "→ assets/\n";
 $n = copyDir($root . '/src/public/assets', $dist . '/assets');
 echo "  $n archivos copiados a dist/assets/\n\n";
