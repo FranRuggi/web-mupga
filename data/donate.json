@@ -1,0 +1,19 @@
+{
+  "description": "Comprá WCoins y acreditálas directamente en tu cuenta de MuPGA. Los WCoins se usan en el Cash Shop para ítems, buffs y servicios exclusivos del servidor.",
+  "rates": [
+    {
+      "provider": "Mercado Pago",
+      "icon": "💳",
+      "rate": "$1 ARS = 1 WCoin",
+      "notes": "Sin mínimo ni máximo"
+    },
+    {
+      "provider": "Binance Pay",
+      "icon": "₿",
+      "rate": "1 USDT = 1.000 WCoins",
+      "notes": "Sin mínimo ni máximo"
+    }
+  ],
+  "how_it_works": "Realizá tu compra por el medio de pago que prefieras y avisanos por Discord con el comprobante. En las próximas 2 a 6 horas tendrás tus WCoins acreditadas en tu cuenta.",
+  "contact_url": "https://discord.gg/mupga"
+}

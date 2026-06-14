@@ -69,6 +69,7 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] `build.php` actualizado con las 3 páginas nuevas (donate, success, error) — 2026-06-09
 - [ ] Configurar `PAYMENTS_API_URL` en `.env` del VPS cuando la API externa esté lista
 - [ ] Configurar CORS en la API externa para permitir el origen del frontend (para GETs directos)
+- [ ] **Revertir /donate2 (TEMPORAL):** cuando la API de pagos esté activa, eliminar `src/public/donate2/`, `src/public/assets/js/donate2.js` y `data/donate.json`; restaurar el enlace a `/donate/` en `layout.php` y `usercp/index.php`; quitar `donate2/index.html` de `build.php`
 
 ## Fase 5 — Deploy y testing
 
@@ -214,3 +215,5 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-12 — [Ajuste] Prode: orden de grupos por STAGE_ORDER canónico (A→L, luego fases elim.) en vez de por fecha
 - 2026-06-12 — [Ajuste] Creado database/resultados_jornada1.sql con UPDATEs directos para los partidos ya jugados (sin resolveMatch, sin premios)
 - 2026-06-13 — [Prode] Sección de reglamento colapsable en /mudial/: toggle nativo <details>/<summary>, premios, puntos, reglas
+- 2026-06-13 — [Feat] /donate2/: página informativa estática de compra de WCoins; data/donate.json configurable; nav y usercp redirigen a /donate2/
+- 2026-06-13 — [Build] minifyJs() en build.php: elimina comentarios y espacios en JS al copiar a dist/
