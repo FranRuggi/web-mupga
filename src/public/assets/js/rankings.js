@@ -6,7 +6,7 @@
    ============================================================ */
 
 const RANKINGS_LIMIT   = 100;
-const REFRESH_INTERVAL = 2 * 60 * 1000;
+const REFRESH_INTERVAL = 1 * 60 * 1000;
 let   currentType      = 'resets';
 
 // Caché en memoria: evita re-fetch al cambiar de tab en los primeros 2 min
