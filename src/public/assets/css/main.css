@@ -2090,8 +2090,6 @@ h1, h2, h3, h4 {
   border: 1px solid var(--purple-border);
   border-radius: var(--radius);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 .dl-guide-card__head {
@@ -2104,30 +2102,32 @@ h1, h2, h3, h4 {
   color: var(--cyan);
 }
 
-.dl-guide-steps {
-  list-style: none;
-  counter-reset: dl-step;
+.dl-guide-card__body {
+  padding: 0.9rem 1.1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  padding: 1rem 1.1rem 0.75rem;
-  margin: 0;
-  flex: 1;
+  gap: 0.75rem;
 }
 
-.dl-guide-steps li {
-  counter-increment: dl-step;
-  display: grid;
-  grid-template-columns: 1.5rem 1fr;
+.dl-inst-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dl-inst-list li {
+  display: flex;
+  align-items: baseline;
   gap: 0.6rem;
-  align-items: start;
   font-size: 0.86rem;
   color: var(--text);
   line-height: 1.5;
 }
 
-.dl-guide-steps li::before {
-  content: counter(dl-step);
+.dl-inst-num {
   font-family: var(--font-title);
   font-size: 0.65rem;
   font-weight: 700;
@@ -2135,37 +2135,33 @@ h1, h2, h3, h4 {
   background: var(--gold-glow);
   border: 1px solid var(--gold-border);
   border-radius: 50%;
-  width: 1.4rem;
+  min-width: 1.4rem;
   height: 1.4rem;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  margin-top: 0.05rem;
-}
-
-.dl-guide-card__foot {
-  padding: 0 1.1rem 1rem;
-  border-top: 1px solid var(--border);
-  padding-top: 0.75rem;
-  margin-top: 0.25rem;
-}
-
-.dl-guide-yt-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  justify-content: center;
+  flex-shrink: 0;
+  font-style: normal;
+}
+
+.dl-yt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   background: #c4302b;
-  color: #fff !important;
   font-family: var(--font-title);
   font-size: 0.68rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   padding: 0.45rem 0.85rem;
   border-radius: var(--radius);
-  text-decoration: none !important;
+  text-decoration: none;
   transition: background var(--t);
+  align-self: flex-start;
 }
-.dl-guide-yt-btn:hover { background: #a02520; }
+a.dl-yt-btn,
+a.dl-yt-btn:visited { color: #fff; }
+a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 
 /* ── Callout actualización del launcher ── */
 .dl-update-card {

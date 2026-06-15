@@ -27,22 +27,22 @@ ob_start();
   </section>
 
   <!-- Instrucciones paso a paso -->
-  <section class="section section--alt">
+  <section class="section">
     <div class="dl-guide">
       <h2 class="section-title">&#191;C&#243;mo descargar y empezar a jugar?</h2>
       <div class="dl-guide-grid">
 
         <div class="dl-guide-card">
           <div class="dl-guide-card__head">Si ya ten&#233;s el juego instalado</div>
-          <ol class="dl-guide-steps">
-            <li><span>Descarg&#225; el launcher desde mupga.com.ar</span></li>
-            <li><span>Copialo donde quieras (escritorio, carpeta del juego, donde prefieras)</span></li>
-            <li><span>Abrilo y elegi&#769; <strong>&#34;Ya tengo el juego&#34;</strong></span></li>
-            <li><span>Seleccion&#225; la carpeta donde ten&#233;s el juego instalado</span></li>
-            <li><span>&#161;Listo! Dale a <strong>JUGAR</strong></span></li>
-          </ol>
-          <div class="dl-guide-card__foot">
-            <a href="#" class="dl-guide-yt-btn">
+          <div class="dl-guide-card__body">
+            <ul class="dl-inst-list">
+              <li><b class="dl-inst-num">1</b><span>Descarg&#225; el launcher desde mupga.com.ar</span></li>
+              <li><b class="dl-inst-num">2</b><span>Copialo donde quieras (escritorio, carpeta del juego, donde prefieras)</span></li>
+              <li><b class="dl-inst-num">3</b><span>Abrilo y elegi&#769; <strong>&#34;Ya tengo el juego&#34;</strong></span></li>
+              <li><b class="dl-inst-num">4</b><span>Seleccion&#225; la carpeta donde ten&#233;s el juego instalado</span></li>
+              <li><b class="dl-inst-num">5</b><span>&#161;Listo! Dale a <strong>JUGAR</strong></span></li>
+            </ul>
+            <a href="#" class="dl-yt-btn">
               <span aria-hidden="true">&#9658;</span> Ver tutorial en YouTube
             </a>
           </div>
@@ -50,15 +50,15 @@ ob_start();
 
         <div class="dl-guide-card">
           <div class="dl-guide-card__head">Si es tu primera vez</div>
-          <ol class="dl-guide-steps">
-            <li><span>Descarg&#225; el launcher desde mupga.com.ar</span></li>
-            <li><span>Copialo donde quieras</span></li>
-            <li><span>Abrilo y elegi&#769; <strong>&#34;Descargar el juego&#34;</strong></span></li>
-            <li><span>Esper&#225; que termine la descarga (~1&nbsp;GB). Los archivos del juego se descargar&#225;n en la misma carpeta donde est&#225; el launcher</span></li>
-            <li><span>&#161;Listo! Dale a <strong>JUGAR</strong></span></li>
-          </ol>
-          <div class="dl-guide-card__foot">
-            <a href="#" class="dl-guide-yt-btn">
+          <div class="dl-guide-card__body">
+            <ul class="dl-inst-list">
+              <li><b class="dl-inst-num">1</b><span>Descarg&#225; el launcher desde mupga.com.ar</span></li>
+              <li><b class="dl-inst-num">2</b><span>Copialo donde quieras</span></li>
+              <li><b class="dl-inst-num">3</b><span>Abrilo y elegi&#769; <strong>&#34;Descargar el juego&#34;</strong></span></li>
+              <li><b class="dl-inst-num">4</b><span>Esper&#225; que termine la descarga (~1&nbsp;GB). Los archivos del juego se descargar&#225;n en la misma carpeta donde est&#225; el launcher</span></li>
+              <li><b class="dl-inst-num">5</b><span>&#161;Listo! Dale a <strong>JUGAR</strong></span></li>
+            </ul>
+            <a href="#" class="dl-yt-btn">
               <span aria-hidden="true">&#9658;</span> Ver tutorial en YouTube
             </a>
           </div>
