@@ -28,6 +28,7 @@ const TABS = [
   { type: 'resets',       label: 'Resets',       stat: 'resets',       statLabel: 'Resets'    },
   { type: 'level',        label: 'Nivel',         stat: 'level',        statLabel: 'Nivel'     },
   { type: 'masterresets', label: 'Master Resets', stat: 'masterResets', statLabel: 'M. Resets' },
+  { type: 'master',       label: 'Master Level',  stat: 'masterLevel',  statLabel: 'M. Level'  },
   { type: 'kills',        label: 'PK Killers',    stat: 'pkCount',      statLabel: 'Kills'     },
   { type: 'guilds',       label: 'Guilds',        stat: 'score',        statLabel: 'Resets'    },
 ];
