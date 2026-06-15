@@ -4,7 +4,7 @@
  * Devuelve el perfil público de un personaje (solo lectura).
  *
  * Respuesta: {
- *   name, class, level, master_level, resets, master_resets,
+ *   name, class, level, resets, master_resets,
  *   str, agi, vit, ene, cmd, pk_count, pk_level,
  *   guild, guild_level, map, is_online, account_created
  * }
@@ -57,7 +57,6 @@ try {
         'name'           => $char['Name']                    ?? '',
         'class'          => (int)($char['Class']             ?? 0),
         'level'          => (int)($char['cLevel']            ?? 0),
-        'master_level'   => (int)($char['mLevel']            ?? 0),
         'resets'         => (int)($char['ResetCount']        ?? 0),
         'master_resets'  => (int)($char['MasterResetCount']  ?? 0),
         'str'            => (int)($char['Strength']          ?? 0),

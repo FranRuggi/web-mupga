@@ -58,9 +58,8 @@ function renderProfile(p) {
 
       <div class="profile-stats-grid">
         ${statRow('Clase',         className(p.class))}
-        ${statRow('Nivel',         p.level.toLocaleString('es-AR'))}
-        ${statRow('Nivel Maestro', p.master_level.toLocaleString('es-AR'))}
-        ${statRow('Resets',        p.resets.toLocaleString('es-AR'))}
+        ${statRow('Nivel',        p.level.toLocaleString('es-AR'))}
+        ${statRow('Resets',       p.resets.toLocaleString('es-AR'))}
         ${statRow('Grand Resets',  p.master_resets.toLocaleString('es-AR'))}
       </div>
 
