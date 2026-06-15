@@ -17,7 +17,7 @@ ob_start();
   <section class="section">
     <div class="rankings-header">
       <div id="tab-nav" class="tab-nav"></div>
-      <p class="refresh-info">Actualización automática cada 2 min · Última: <span id="refresh-ts">—</span></p>
+      <p class="refresh-info">Actualización automática cada 1 min · Última: <span id="refresh-ts">—</span></p>
     </div>
     <div id="rankings-container"></div>
   </section>
