@@ -26,40 +26,42 @@ ob_start();
     </div>
   </section>
 
-  <!-- Instrucciones de instalación -->
+  <!-- Instrucciones paso a paso -->
   <section class="section section--alt">
-    <div class="dl-howto">
+    <div class="dl-guide">
       <h2 class="section-title">&#191;C&#243;mo descargar y empezar a jugar?</h2>
-      <div class="dl-howto-grid">
+      <div class="dl-guide-grid">
 
-        <div class="dl-howto-card">
-          <h3 class="dl-howto-card__title">Si ya ten&#233;s el juego instalado</h3>
-          <ol class="dl-steps">
-            <li>Descarg&#225; el launcher desde mupga.com.ar</li>
-            <li>Copialo donde quieras (escritorio, carpeta del juego, donde prefieras)</li>
-            <li>Abrilo y elegi&#769; <strong>&#34;Ya tengo el juego&#34;</strong></li>
-            <li>Seleccion&#225; la carpeta donde ten&#233;s el juego instalado</li>
-            <li>&#161;Listo! Dale a <strong>JUGAR</strong></li>
+        <div class="dl-guide-card">
+          <div class="dl-guide-card__head">Si ya ten&#233;s el juego instalado</div>
+          <ol class="dl-guide-steps">
+            <li><span>Descarg&#225; el launcher desde mupga.com.ar</span></li>
+            <li><span>Copialo donde quieras (escritorio, carpeta del juego, donde prefieras)</span></li>
+            <li><span>Abrilo y elegi&#769; <strong>&#34;Ya tengo el juego&#34;</strong></span></li>
+            <li><span>Seleccion&#225; la carpeta donde ten&#233;s el juego instalado</span></li>
+            <li><span>&#161;Listo! Dale a <strong>JUGAR</strong></span></li>
           </ol>
-          <a href="#" class="dl-yt-btn">
-            <span class="dl-yt-btn__icon" aria-hidden="true">&#9658;</span>
-            Ver tutorial en YouTube
-          </a>
+          <div class="dl-guide-card__foot">
+            <a href="#" class="dl-guide-yt-btn">
+              <span aria-hidden="true">&#9658;</span> Ver tutorial en YouTube
+            </a>
+          </div>
         </div>
 
-        <div class="dl-howto-card">
-          <h3 class="dl-howto-card__title">Si es tu primera vez</h3>
-          <ol class="dl-steps">
-            <li>Descarg&#225; el launcher desde mupga.com.ar</li>
-            <li>Copialo donde quieras</li>
-            <li>Abrilo y elegi&#769; <strong>&#34;Descargar el juego&#34;</strong></li>
-            <li>Esper&#225; que termine la descarga (~1&nbsp;GB). Los archivos del juego se descargar&#225;n en la misma carpeta donde est&#225; el launcher</li>
-            <li>&#161;Listo! Dale a <strong>JUGAR</strong></li>
+        <div class="dl-guide-card">
+          <div class="dl-guide-card__head">Si es tu primera vez</div>
+          <ol class="dl-guide-steps">
+            <li><span>Descarg&#225; el launcher desde mupga.com.ar</span></li>
+            <li><span>Copialo donde quieras</span></li>
+            <li><span>Abrilo y elegi&#769; <strong>&#34;Descargar el juego&#34;</strong></span></li>
+            <li><span>Esper&#225; que termine la descarga (~1&nbsp;GB). Los archivos del juego se descargar&#225;n en la misma carpeta donde est&#225; el launcher</span></li>
+            <li><span>&#161;Listo! Dale a <strong>JUGAR</strong></span></li>
           </ol>
-          <a href="#" class="dl-yt-btn">
-            <span class="dl-yt-btn__icon" aria-hidden="true">&#9658;</span>
-            Ver tutorial en YouTube
-          </a>
+          <div class="dl-guide-card__foot">
+            <a href="#" class="dl-guide-yt-btn">
+              <span aria-hidden="true">&#9658;</span> Ver tutorial en YouTube
+            </a>
+          </div>
         </div>
 
       </div>
@@ -68,12 +70,9 @@ ob_start();
 
   <!-- Aviso de actualización del launcher -->
   <section class="section">
-    <div class="dl-update-callout">
-      <div class="dl-update-callout__icon" aria-hidden="true">&#8593;</div>
-      <div class="dl-update-callout__body">
-        <h3 class="dl-update-callout__title">&#191;El launcher te pide actualizar?</h3>
-        <p class="dl-update-callout__text">De vez en cuando lanzamos mejoras al launcher. Cuando haya una nueva versi&#243;n disponible, vas a ver un aviso al abrirlo. Simplemente hac&#233; click en <strong>&#34;Descargar&#34;</strong>, esper&#225; que termine y volv&#233; a abrirlo. Tus archivos del juego no se tocan.</p>
-      </div>
+    <div class="dl-update-card">
+      <div class="dl-update-card__head">&#191;El launcher te pide actualizar?</div>
+      <p class="dl-update-card__text">De vez en cuando lanzamos mejoras al launcher. Cuando haya una nueva versi&#243;n disponible, vas a ver un aviso al abrirlo. Simplemente hac&#233; click en <strong>&#34;Descargar&#34;</strong>, esper&#225; que termine y volv&#233; a abrirlo. <strong>Tus archivos del juego no se tocan.</strong></p>
     </div>
   </section>
 
