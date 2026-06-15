@@ -89,6 +89,7 @@ ob_start();
 
     <!-- Panel Partidos -->
     <div id="panel-matches">
+      <div id="user-stats" class="prode-user-stats" hidden></div>
       <div id="matches-container">
         <div class="prode-loading">
           <?php for ($i = 0; $i < 4; $i++): ?>

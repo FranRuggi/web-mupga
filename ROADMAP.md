@@ -129,6 +129,8 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] Prode: banderas de los 4 equipos en el encabezado de cada grupo (Grupo A–L) — 2026-06-12
 - [x] Prode: partidos ordenados por fecha ASC dentro de cada grupo; grupos ordenados por fecha de su primer partido — 2026-06-12
 - [x] Rankings: indicador de jugador online (punto cyan) via JOIN MEMB_STAT.ConnectStat — 2026-06-12
+- [x] Prode: columna "Pred." en ranking (total_predictions via subquery en prode.predictions) — 2026-06-15
+- [x] Prode: bloque de estadísticas personales encima de los partidos (calculado desde matches.php en JS) — 2026-06-15
 - [ ] Ejecutar `database/prode_setup.sql` en SQL Server del VPS (manual — ver PASOS_MANUALES_PRODE.md)
 - [ ] Configurar variables PRODE_DB_* y ADMIN_TOKEN en el .env del VPS (manual)
 - [ ] Cargar primeros partidos vía admin_match.php (manual)
@@ -217,3 +219,5 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-13 — [Prode] Sección de reglamento colapsable en /mudial/: toggle nativo <details>/<summary>, premios, puntos, reglas
 - 2026-06-13 — [Feat] /donate2/: página informativa estática de compra de WCoins; data/donate.json configurable; nav y usercp redirigen a /donate2/
 - 2026-06-13 — [Build] minifyJs() en build.php revertida — JS se copia sin modificar; minificación pendiente para más adelante
+- 2026-06-15 — [Prode] Ranking: columna "Pred." (total_predictions via subquery); cabecera abreviada con abbr; grid 6 columnas
+- 2026-06-15 — [Prode] Estadísticas personales: bloque .prode-user-stats sobre partidos, calculado en JS desde respuesta matches.php (pts, exactos, ganadores, predicciones, sin predecir)

@@ -240,6 +240,7 @@ function renderMatches(data) {
     .map(([stage, matches]) => renderMatchGroup(stage, matches))
     .join('');
 
+  renderUserStats(data);
   container.querySelectorAll('.prode-predict-form').forEach(form => {
     form.addEventListener('submit', handlePredict);
   });
@@ -284,6 +285,48 @@ async function handlePredict(e) {
   }
 }
 
+// ── Estadísticas personales ───────────────────────────────────
+
+function computeUserStats(data) {
+  const all = [...data.upcoming, ...data.finished];
+  let predictions = 0, exact = 0, winner = 0, points = 0, pendingOpen = 0;
+  for (const m of all) {
+    if (m.prediction) {
+      predictions++;
+      const pts = m.prediction.points_earned;
+      if (pts === 3) exact++;
+      else if (pts === 1) winner++;
+      if (pts !== null) points += pts;
+    } else if (isMatchOpen(m)) {
+      pendingOpen++;
+    }
+  }
+  return { predictions, exact, winner, points, pendingOpen };
+}
+
+function renderUserStats(data) {
+  const el = document.getElementById('user-stats');
+  if (!el) return;
+  const s = computeUserStats(data);
+  if (!s.predictions && !s.pendingOpen) { el.hidden = true; return; }
+
+  const items = [
+    `<span class="prode-stat-item"><span class="prode-stat-num prode-stat-num--gold">${s.points}</span>&thinsp;<span class="prode-stat-label">pts</span></span>`,
+    `<span class="prode-stat-sep">·</span>`,
+    `<span class="prode-stat-item"><span class="prode-stat-num">${s.exact}</span>&thinsp;<span class="prode-stat-label">exactos</span></span>`,
+    `<span class="prode-stat-sep">·</span>`,
+    `<span class="prode-stat-item"><span class="prode-stat-num">${s.winner}</span>&thinsp;<span class="prode-stat-label">ganadores</span></span>`,
+    `<span class="prode-stat-sep">·</span>`,
+    `<span class="prode-stat-item"><span class="prode-stat-num">${s.predictions}</span>&thinsp;<span class="prode-stat-label">predicciones</span></span>`,
+  ];
+  if (s.pendingOpen > 0) {
+    items.push(`<span class="prode-stat-sep">·</span>`);
+    items.push(`<span class="prode-stat-item"><span class="prode-stat-num prode-stat-num--pending">${s.pendingOpen}</span>&thinsp;<span class="prode-stat-label">sin predecir</span></span>`);
+  }
+  el.innerHTML = items.join('');
+  el.hidden = false;
+}
+
 // ── Ranking ───────────────────────────────────────────────────
 
 function renderRankingRow(player, pos) {
@@ -304,6 +347,7 @@ function renderRankingRow(player, pos) {
       <span class="prode-rank-pts">${esc(player.total_points)}</span>
       <span class="prode-rank-exact">${esc(player.exact_hits)}</span>
       <span class="prode-rank-winner">${esc(player.winner_hits)}</span>
+      <span class="prode-rank-pred">${esc(player.total_predictions ?? 0)}</span>
     </div>`;
 }
 
@@ -326,9 +370,10 @@ async function loadRanking() {
       <div class="prode-rank-header">
         <span>#</span>
         <span>Cuenta</span>
-        <span>Puntos</span>
-        <span>Exactos</span>
-        <span>Ganador</span>
+        <span>Pts</span>
+        <span><abbr title="Exactos">Ext.</abbr></span>
+        <span><abbr title="Solo ganador">Gan.</abbr></span>
+        <span><abbr title="Predicciones totales">Pred.</abbr></span>
       </div>
       ${data.map((p, i) => renderRankingRow(p, i + 1)).join('')}
     </div>`;

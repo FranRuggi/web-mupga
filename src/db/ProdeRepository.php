@@ -158,9 +158,10 @@ class ProdeRepository {
     public function getRanking(): array {
         $stmt = $this->db->prepare(
             'SELECT TOP 50
-                account, total_points, exact_hits, winner_hits
-             FROM prode.scores
-             ORDER BY total_points DESC, exact_hits DESC, winner_hits DESC'
+                s.account, s.total_points, s.exact_hits, s.winner_hits,
+                (SELECT COUNT(*) FROM prode.predictions p WHERE p.account = s.account) AS total_predictions
+             FROM prode.scores s
+             ORDER BY s.total_points DESC, s.exact_hits DESC, s.winner_hits DESC'
         );
         $stmt->execute();
         return $stmt->fetchAll();
