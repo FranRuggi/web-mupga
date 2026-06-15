@@ -2998,7 +2998,7 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
   font-size: 0.62rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--cyan);
   border-bottom: 1px solid var(--purple-border);
   margin-bottom: 0.25rem;
 }
