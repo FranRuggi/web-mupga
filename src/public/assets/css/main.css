@@ -2088,8 +2088,10 @@ h1, h2, h3, h4 {
 .dl-guide-card {
   background: var(--bg-surface);
   border: 1px solid var(--purple-border);
+  border-top: 2px solid var(--cyan);
   border-radius: var(--radius);
   overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45);
 }
 
 .dl-guide-card__head {
@@ -2169,8 +2171,10 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   margin: 0 auto;
   background: var(--bg-surface);
   border: 1px solid rgba(0, 196, 234, 0.28);
+  border-top: 2px solid var(--cyan);
   border-radius: var(--radius);
   overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45);
 }
 
 .dl-update-card__head {
