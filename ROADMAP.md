@@ -57,6 +57,8 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] UserCP: Unstick, Clear PK, Reset Stats, Reset ML, Agregar Stats — 2026-06-02
 - [x] Perfil público de jugador (`/player/?name=X`) — 2026-06-02
 - [x] Página de descargas (`/downloads/`) con `data/downloads.json` — 2026-06-02
+- [x] Descargas: sección de instrucciones "Si ya tenés el juego" / "Primera vez" con botones YouTube placeholder — 2026-06-15
+- [x] Descargas: callout informativo "¿El launcher te pide actualizar?" — 2026-06-15
 - [x] config.js creado apuntando a `https://api.mupga.com.ar` — 2026-06-02
 - [x] Completar `data/info.json` con valores reales del servidor — 2026-06-09
 - [ ] Completar `data/downloads.json` con URLs reales del cliente (pendiente Franco)
@@ -221,3 +223,4 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-13 — [Build] minifyJs() en build.php revertida — JS se copia sin modificar; minificación pendiente para más adelante
 - 2026-06-15 — [Prode] Ranking: columna "Pred." (total_predictions via subquery); cabecera abreviada con abbr; grid 6 columnas
 - 2026-06-15 — [Prode] Estadísticas personales: bloque .prode-user-stats sobre partidos, calculado en JS desde respuesta matches.php (pts, exactos, ganadores, predicciones, sin predecir)
+- 2026-06-15 — [Descargas] Sección de instrucciones paso a paso (dos flujos: ya tenés/primera vez) + callout de actualización del launcher; estilos nuevos en main.css
