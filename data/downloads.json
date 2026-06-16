@@ -1,20 +1,12 @@
 {
   "items": [
     {
-      "id": "client-full",
-      "title": "Cliente MuPGA — Instalación completa via OneDrive",
-      "description": "Instalador completo del cliente del juego. Incluye todos los archivos necesarios para jugar desde cero.",
+      "id": "launcher-actualizable",
+      "title": "Launcher MuPGA — Instalación completa via OneDrive",
+      "description": "Launcher para instalar el cliente del juego. Incluye todos los archivos necesarios para jugar desde cero.",
       "version": "1.0",
-      "size": "710 MB",
+      "size": "15 MB",
       "url": "https://onedrive.live.com/?redeem=aHR0cHM6Ly8xZHJ2Lm1zL2YvYy8yZTczMTRiN2RhMDk2NjY0L0lnRGpfWlBpaHVJYlM3X3FYTDhTZ0N2VkFWQ0szWGppdEljTFZBdG9PMnFGQTJNP2U9bmFvdkdO&id=2E7314B7DA096664%21se293fde3e2864b1bbfea5cbf12802bd5&cid=2E7314B7DA096664"
-    },
-    {
-      "id": "client-full",
-      "title": "Cliente MuPGA — Instalación completa via DropBox",
-      "description": "Instalador completo del cliente del juego. Incluye todos los archivos necesarios para jugar desde cero.",
-      "version": "1.0",
-      "size": "710.35 MB",
-      "url": "https://www.dropbox.com/scl/fi/fmbx4vqzdbe3cbjop6tog/Launcher-MuPGA.rar?rlkey=293ayka29o7xvlt56w42hydn4&st=n2x1tfwh&dl=0"
     }
   ]
 }
