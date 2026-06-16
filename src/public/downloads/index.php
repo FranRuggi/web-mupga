@@ -42,7 +42,7 @@ ob_start();
               <li><b class="dl-inst-num">4</b><span>Seleccion&#225; la carpeta donde ten&#233;s el juego instalado</span></li>
               <li><b class="dl-inst-num">5</b><span>&#161;Listo! Dale a <strong>JUGAR</strong></span></li>
             </ul>
-            <a href="#" class="dl-yt-btn">
+            <a href="https://youtu.be/CH1qRk69dTI" class="dl-yt-btn">
               <span aria-hidden="true">&#9658;</span> Ver tutorial en YouTube
             </a>
           </div>
@@ -58,7 +58,7 @@ ob_start();
               <li><b class="dl-inst-num">4</b><span>Esper&#225; que termine la descarga (~1&nbsp;GB). Los archivos del juego se descargar&#225;n en la misma carpeta donde est&#225; el launcher</span></li>
               <li><b class="dl-inst-num">5</b><span>&#161;Listo! Dale a <strong>JUGAR</strong></span></li>
             </ul>
-            <a href="#" class="dl-yt-btn">
+            <a href="https://youtu.be/CH1qRk69dTI" class="dl-yt-btn">
               <span aria-hidden="true">&#9658;</span> Ver tutorial en YouTube
             </a>
           </div>
