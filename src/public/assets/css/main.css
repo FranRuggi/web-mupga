@@ -3098,4 +3098,83 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
   }
 
   .prode-rank-header { font-size: 0.58rem; }
+
+  .prode-toast { right: 0.75rem; bottom: 0.75rem; max-width: calc(100vw - 1.5rem); }
+  .prode-batch-bar { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+}
+
+/* ── Toast flotante — aparece sin hacer scroll ─────────────── */
+.prode-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 600;
+  max-width: 340px;
+  padding: 0.8rem 1.25rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  border: 1px solid transparent;
+}
+
+.prode-toast.visible  { opacity: 1; transform: translateY(0); }
+
+.prode-toast--success {
+  background: rgba(0, 180, 100, 0.12);
+  border-color: rgba(0, 180, 100, 0.4);
+  color: #4ade80;
+}
+
+.prode-toast--error {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.prode-toast--info {
+  background: var(--purple-glow);
+  border-color: var(--purple-border);
+  color: var(--purple-light);
+}
+
+/* Badge "✓" que aparece en el formulario después de guardar */
+.prode-saved-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 180, 100, 0.15);
+  border: 1px solid rgba(0, 180, 100, 0.4);
+  color: #4ade80;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Barra sticky "Guardar todas" */
+.prode-batch-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  margin-top: var(--gap-lg);
+  background: color-mix(in srgb, var(--bg-mid) 96%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--purple-border);
+}
+
+.prode-batch-info {
+  font-size: 0.82rem;
+  color: var(--text-dim);
 }
