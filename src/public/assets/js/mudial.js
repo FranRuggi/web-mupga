@@ -57,20 +57,27 @@ function teamFlag(name) {
   return `<img src="https://flagcdn.com/24x18/${code}.png" alt="${esc(name)}" title="${esc(name)}" class="prode-flag-img">`;
 }
 
+// ── Toast flotante (no hace scroll) ──────────────────────────
+
+let _toastTimer = null;
+
+function showToast(msg, type = 'error') {
+  let toast = document.getElementById('prode-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'prode-toast';
+    document.body.appendChild(toast);
+  }
+  clearTimeout(_toastTimer);
+  toast.className = `prode-toast prode-toast--${type}`;
+  toast.textContent = msg;
+  // Forzar reflow para que la animación se dispare aunque sea el mismo mensaje
+  void toast.offsetWidth;
+  toast.classList.add('visible');
+  _toastTimer = setTimeout(() => toast.classList.remove('visible'), 3500);
+}
+
 // ── Utilidades ────────────────────────────────────────────────
-
-function showAlert(msg, type = 'error') {
-  const el = document.getElementById('prode-alert');
-  if (!el) return;
-  el.className    = `alert alert--${type} visible`;
-  el.textContent  = msg;
-  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function hideAlert() {
-  const el = document.getElementById('prode-alert');
-  if (el) el.className = 'alert';
-}
 
 function isMatchOpen(match) {
   if (match.is_locked || match.status !== 'pending') return false;
@@ -172,7 +179,7 @@ function renderMatch(match) {
   }
 
   return `
-    <div class="prode-match-card animate-in${done ? ' prode-match-card--done' : ''}">
+    <div class="prode-match-card animate-in${done ? ' prode-match-card--done' : ''}" data-match-id="${match.id}">
       <div class="prode-match-header">
         <span class="prode-stage-label">${esc(match.stage)}</span>
         <div class="prode-match-header-right">
@@ -241,31 +248,61 @@ function renderMatches(data) {
     .join('');
 
   renderUserStats(data);
+  attachFormListeners();
+  updateBatchBar();
+}
+
+// ── Escuchar formularios ──────────────────────────────────────
+
+function attachFormListeners() {
+  const container = document.getElementById('matches-container');
+  if (!container) return;
+
   container.querySelectorAll('.prode-predict-form').forEach(form => {
     form.addEventListener('submit', handlePredict);
   });
+
+  // Actualizar el contador del batch bar al escribir en cualquier input
+  container.addEventListener('input', updateBatchBar);
 }
 
-// ── Envío de predicción ───────────────────────────────────────
+// ── Actualización in-place del card tras guardar ──────────────
+
+function markFormAsSaved(form, scoreHome, scoreAway) {
+  const btn = form.querySelector('.prode-predict-btn');
+  if (btn) btn.textContent = 'Actualizar';
+
+  // Quitar badge anterior si existía
+  form.querySelector('.prode-saved-badge')?.remove();
+
+  const badge = document.createElement('span');
+  badge.className = 'prode-saved-badge';
+  badge.textContent = '✓';
+  form.appendChild(badge);
+
+  // Actualizar los valores por si el usuario quiere modificar
+  const inHome = form.querySelector('[name="score_home"]');
+  const inAway = form.querySelector('[name="score_away"]');
+  if (inHome) inHome.value = scoreHome;
+  if (inAway) inAway.value = scoreAway;
+}
+
+// ── Envío individual de predicción ────────────────────────────
 
 async function handlePredict(e) {
   e.preventDefault();
-  const form    = e.currentTarget;
-  const matchId = parseInt(form.dataset.matchId, 10);
-  const homeVal = form.querySelector('[name="score_home"]').value.trim();
-  const awayVal = form.querySelector('[name="score_away"]').value.trim();
-
-  const scoreHome = parseInt(homeVal, 10);
-  const scoreAway = parseInt(awayVal, 10);
+  const form      = e.currentTarget;
+  const matchId   = parseInt(form.dataset.matchId, 10);
+  const scoreHome = parseInt(form.querySelector('[name="score_home"]').value.trim(), 10);
+  const scoreAway = parseInt(form.querySelector('[name="score_away"]').value.trim(), 10);
 
   if (isNaN(scoreHome) || isNaN(scoreAway) || scoreHome < 0 || scoreAway < 0) {
-    showAlert('Ingresá goles válidos (números no negativos).', 'error');
+    showToast('Ingresá goles válidos (números no negativos).', 'error');
     return;
   }
 
   const btn = form.querySelector('.prode-predict-btn');
   btn.setAttribute('data-loading', 'true');
-  hideAlert();
 
   const res = await authFetch('prode/predict.php', {
     method: 'POST',
@@ -273,19 +310,114 @@ async function handlePredict(e) {
   });
 
   btn.removeAttribute('data-loading');
-
   if (!res) return; // authFetch ya redirigió a login si era 401
 
   if (res.ok) {
-    showAlert('¡Predicción guardada!', 'success');
-    loadMatches();
+    markFormAsSaved(form, scoreHome, scoreAway);
+    showToast('¡Predicción guardada!', 'success');
+    updateBatchBar();
   } else {
     const data = await res.json().catch(() => ({}));
-    showAlert(data.error ?? 'Error al guardar la predicción.', 'error');
+    showToast(data.error ?? 'Error al guardar la predicción.', 'error');
   }
 }
 
-// ── Estadísticas personales ───────────────────────────────────
+// ── Batch: guardar todas las predicciones cargadas ────────────
+
+function getFilledForms() {
+  return [...document.querySelectorAll('.prode-predict-form')].filter(form => {
+    const h = form.querySelector('[name="score_home"]').value.trim();
+    const a = form.querySelector('[name="score_away"]').value.trim();
+    return h !== '' && a !== '';
+  });
+}
+
+function updateBatchBar() {
+  const filled = getFilledForms().length;
+  const total  = document.querySelectorAll('.prode-predict-form').length;
+
+  let bar = document.getElementById('prode-batch-bar');
+
+  if (total === 0) {
+    if (bar) bar.hidden = true;
+    return;
+  }
+
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'prode-batch-bar';
+    bar.className = 'prode-batch-bar';
+    bar.innerHTML = `
+      <span id="prode-batch-info" class="prode-batch-info"></span>
+      <button id="prode-batch-btn" class="btn btn-primary">Guardar todas</button>
+    `;
+    document.getElementById('panel-matches')?.appendChild(bar);
+    document.getElementById('prode-batch-btn').addEventListener('click', handleBatchSave);
+  }
+
+  bar.hidden = false;
+  const info = document.getElementById('prode-batch-info');
+  if (info) {
+    info.textContent = filled > 0
+      ? `${filled} de ${total} predicciones cargadas`
+      : `${total} partidos por predecir`;
+  }
+
+  const batchBtn = document.getElementById('prode-batch-btn');
+  if (batchBtn) batchBtn.disabled = filled === 0;
+}
+
+async function handleBatchSave() {
+  const forms = getFilledForms();
+  if (!forms.length) return;
+
+  const btn = document.getElementById('prode-batch-btn');
+  const info = document.getElementById('prode-batch-info');
+  btn.setAttribute('data-loading', 'true');
+  if (info) info.textContent = `Guardando 0 / ${forms.length}…`;
+
+  let ok = 0, errors = 0;
+
+  for (const form of forms) {
+    const matchId   = parseInt(form.dataset.matchId, 10);
+    const scoreHome = parseInt(form.querySelector('[name="score_home"]').value.trim(), 10);
+    const scoreAway = parseInt(form.querySelector('[name="score_away"]').value.trim(), 10);
+
+    if (isNaN(scoreHome) || isNaN(scoreAway)) { errors++; continue; }
+
+    const res = await authFetch('prode/predict.php', {
+      method: 'POST',
+      body: JSON.stringify({ match_id: matchId, score_home: scoreHome, score_away: scoreAway }),
+    });
+
+    if (!res) { errors++; continue; }
+
+    if (res.ok) {
+      ok++;
+      markFormAsSaved(form, scoreHome, scoreAway);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      console.warn('[Prode batch] partido', matchId, ':', data.error);
+      errors++;
+    }
+
+    if (info) info.textContent = `Guardando ${ok + errors} / ${forms.length}…`;
+  }
+
+  btn.removeAttribute('data-loading');
+
+  if (errors === 0) {
+    showToast(`✓ ${ok} predicciones guardadas.`, 'success');
+  } else if (ok > 0) {
+    showToast(`${ok} guardadas · ${errors} con error (partido ya cerrado o bloqueado).`, 'info');
+  } else {
+    showToast('No se pudieron guardar las predicciones.', 'error');
+  }
+
+  updateBatchBar();
+}
+
+// ── Estadísticas personales ────────────────────────────────────
 
 function computeUserStats(data) {
   const all = [...data.upcoming, ...data.finished];
@@ -327,7 +459,7 @@ function renderUserStats(data) {
   el.hidden = false;
 }
 
-// ── Ranking ───────────────────────────────────────────────────
+// ── Ranking ────────────────────────────────────────────────────
 
 function renderRankingRow(player, pos) {
   const medals = ['🥇', '🥈', '🥉'];
