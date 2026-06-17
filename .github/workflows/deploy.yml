@@ -2,7 +2,7 @@ name: Build y deploy a Cloudflare Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
 
 permissions:
   contents: read
@@ -37,3 +37,4 @@ jobs:
           projectName: web-mupga
           directory: dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
