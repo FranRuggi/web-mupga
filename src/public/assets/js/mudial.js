@@ -102,8 +102,8 @@ function timingBadge(match) {
     return '<span class="prode-badge prode-badge--live">🟢 EN VIVO</span>';
   }
 
-  // SE JUEGA PRONTO: abierto para predecir y faltan menos de 3 horas
-  if (isMatchOpen(match) && diffMs > 0 && diffMs < 3 * 60 * 60 * 1000) {
+  // SE JUEGA PRONTO: pending, no bloqueado manualmente, faltan menos de 3 horas
+  if (match.status === 'pending' && !match.is_locked && diffMs > 0 && diffMs < 3 * 60 * 60 * 1000) {
     const totalMins = Math.floor(diffMs / 60000);
     const hours     = Math.floor(totalMins / 60);
     const mins      = totalMins % 60;
