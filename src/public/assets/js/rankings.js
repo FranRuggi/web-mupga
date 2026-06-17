@@ -33,11 +33,26 @@ const TABS = [
 ];
 
 // ── Renderizadores ────────────────────────────────────────
-function renderPlayerRow(p, pos, statKey, statLabel) {
+function renderPlayerRow(p, pos, statKey, statLabel, extraStat = null, extraLabel = null) {
   const isMe      = p.isPlayer === true;
   const onlineDot = p.is_online
     ? '<span class="rank-online-badge">En línea</span>'
     : '';
+  const statsHtml = extraStat != null
+    ? `<div style="display:flex;gap:1.25rem">
+        <div class="rank-stat">
+          <span class="rank-stat__num">${esc(p[statKey] ?? 0)}</span>
+          <span class="rank-stat__lbl">${statLabel}</span>
+        </div>
+        <div class="rank-stat">
+          <span class="rank-stat__num">${esc(p[extraStat] ?? 0)}</span>
+          <span class="rank-stat__lbl">${extraLabel}</span>
+        </div>
+      </div>`
+    : `<div class="rank-stat">
+        <span class="rank-stat__num">${esc(p[statKey] ?? 0)}</span>
+        <span class="rank-stat__lbl">${statLabel}</span>
+      </div>`;
   return `
     <div class="rank-item animate-in${isMe ? ' rank-item--me' : ''}" style="animation-delay:${Math.min(pos - 1, 8) * 0.04}s">
       <span class="rank-pos">${pos}</span>
@@ -55,10 +70,7 @@ function renderPlayerRow(p, pos, statKey, statLabel) {
         </div>
         <div class="rank-class">${esc(className(p.class))}</div>
       </div>
-      <div class="rank-stat">
-        <span class="rank-stat__num">${esc(p[statKey] ?? 0)}</span>
-        <span class="rank-stat__lbl">${statLabel}</span>
-      </div>
+      ${statsHtml}
     </div>`;
 }
 
@@ -89,7 +101,10 @@ function renderData(rows, player, type) {
     return list.outerHTML;
   }
 
-  list.innerHTML = rows.map((p, i) => renderPlayerRow(p, i + 1, tabCfg.stat, tabCfg.statLabel)).join('');
+  const extraStat  = type === 'resets' ? 'level' : null;
+  const extraLabel = type === 'resets' ? 'Nivel'  : null;
+
+  list.innerHTML = rows.map((p, i) => renderPlayerRow(p, i + 1, tabCfg.stat, tabCfg.statLabel, extraStat, extraLabel)).join('');
 
   // Si el jugador no aparece en el top, mostrar su entrada separada al final
   if (player && !rows.some(r => r.isPlayer)) {
@@ -100,7 +115,9 @@ function renderData(rows, player, type) {
       { ...player, isPlayer: true },
       player.position,
       tabCfg.stat,
-      tabCfg.statLabel
+      tabCfg.statLabel,
+      extraStat,
+      extraLabel
     ));
   }
 
