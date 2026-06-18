@@ -1825,6 +1825,7 @@ h1, h2, h3, h4 {
   justify-content: center;
   padding: 1rem;
 }
+.donate2-modal[hidden] { display: none; }
 
 .donate2-modal__overlay {
   position: absolute;
