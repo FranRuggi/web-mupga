@@ -94,7 +94,7 @@ ob_start();
   <div class="donate2-modal__inner">
     <p class="donate2-modal__title">Binance Pay</p>
     <p class="donate2-modal__sub">Escaneá el código QR con tu app de Binance</p>
-    <img src="<?= $base ?>/assets/img/binance.jpeg"
+    <img id="binance-qr-img" src=""
          alt="QR Binance Pay MuPGA"
          class="donate2-modal__img">
     <div class="donate2-modal__rate">1 USDT = 1.000 WCoins</div>

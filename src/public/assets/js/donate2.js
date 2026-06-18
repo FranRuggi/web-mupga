@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const modal    = document.getElementById('binance-modal');
   if (!modal) return;
 
+  const qrImg = document.getElementById('binance-qr-img');
+  if (qrImg) qrImg.src = BASE + '/assets/img/binance.jpeg';
+
   const overlay  = document.getElementById('binance-modal-overlay');
   const closeBtn = document.getElementById('binance-modal-close');
   const openBtns = document.querySelectorAll('[data-open-qr]');
