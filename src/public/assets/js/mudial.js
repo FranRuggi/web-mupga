@@ -106,15 +106,10 @@ function timingBadge(match) {
     return '<span class="prode-badge prode-badge--live">🟢 EN VIVO</span>';
   }
 
-  // SE JUEGA PRONTO: pending, abierto para predicciones, faltan menos de 3 horas
-  if (match.status === 'pending' && !match.is_locked && diffMs > CUTOFF_SECS * 1000 && diffMs < 3 * 60 * 60 * 1000) {
-    const totalMins = Math.floor(diffMs / 60000);
-    const hours     = Math.floor(totalMins / 60);
-    const mins      = totalMins % 60;
-    const label     = hours > 0
-      ? `⏰ En ${hours}h${mins > 0 ? ` ${mins}min` : ''}`
-      : `⏰ En ${mins}min`;
-    return `<span class="prode-badge prode-badge--soon">${label}</span>`;
+  // SE JUEGA PRONTO: faltan ≤60 min para el inicio (independiente del cutoff de predicciones)
+  if (match.status === 'pending' && diffMs > 0 && diffMs <= 60 * 60 * 1000) {
+    const mins = Math.floor(diffMs / 60000);
+    return `<span class="prode-badge prode-badge--soon">⏰ En ${mins}min</span>`;
   }
 
   return '';
