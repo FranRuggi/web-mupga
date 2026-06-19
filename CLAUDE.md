@@ -107,14 +107,27 @@ DEFAULT de schema que podía no existir.
 automático al inicio del partido independiente del flag `is_locked`; no atomicidad entre lectura y
 escritura.
 
-**Qué se corrigió (2026-06-19):**
-1. El check de cutoff reemplazado por una única query SQL Server:
-   `DATEADD(MINUTE, 60, GETDATE()) < match_datetime_utc` — inmune a desfase de reloj PHP.
-2. La misma query incorpora `status = 'pending' AND is_locked = 0`, bloqueando automáticamente
-   partidos arrancados aunque el admin no haya cargado el resultado.
-3. SELECT + MERGE envueltos en una única transacción con `WITH (UPDLOCK, HOLDLOCK)` para
-   eliminar la race condition TOCTOU.
-4. `submitted_at = GETDATE()` agregado explícitamente en el path INSERT del MERGE.
+**Qué se corrigió — fix inicial (2026-06-19):**
+1. Cutoff reemplazado por query SQL Server con `DATEADD(MINUTE, 60, GETDATE()) < match_datetime_utc`.
+2. `is_locked = 0` incluido en la query como condición temporal.
+3. SELECT + MERGE envueltos en transacción con `WITH (UPDLOCK, HOLDLOCK)` — elimina TOCTOU.
+4. `submitted_at = GETDATE()` explícito en el path INSERT del MERGE.
+
+**Resolución final (2026-06-19):** fix iterado al constatar que SQL Server Express (edición del
+VPS) no tiene SQL Server Agent, descartando cualquier enfoque basado en jobs programados. El
+flag `is_locked` no puede actualizarse automáticamente y por tanto no puede ser el mecanismo
+primario de cutoff.
+
+Correcciones adicionales:
+- `GETDATE()` → `GETUTCDATE()` en toda la query de validación y en `submitted_at` del MERGE
+  (consistencia con `match_datetime_utc` que está en UTC).
+- `is_locked = 0` **eliminado** de la condición temporal: `GETUTCDATE() < DATEADD(MINUTE, -60,
+  match_datetime_utc)` es la única fuente de verdad. `is_locked` queda como guarda secundaria
+  (admin puede cerrar un partido manualmente) y señal al frontend, pero nunca como enforcement
+  temporal primario.
+- Frontend (`mudial.js`): `isMatchOpen()` evalúa primero el cutoff por tiempo UTC del cliente y
+  luego `is_locked` como guarda secundaria. El badge "SE JUEGA PRONTO" solo aparece dentro de la
+  ventana de predicción activa (más de 60 min antes del inicio).
 
 **Acción pendiente:** auditar la DB en busca de predicciones con `submitted_at` posterior a
 `match_datetime_utc` o dentro de los 60 minutos previos al inicio; evaluar si corresponde

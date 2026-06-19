@@ -92,11 +92,14 @@ class ProdeRepository {
     /**
      * Inserta o actualiza una predicción (UPSERT).
      *
-     * Toda la validación corre en SQL Server para ser inmune a desfases de reloj PHP
-     * y a manipulación del cliente:
+     * Toda la validación corre en SQL Server (GETUTCDATE()) para ser inmune a desfases
+     * de reloj PHP y a cualquier manipulación del cliente:
      *  - partido en status 'pending'
-     *  - is_locked = 0
-     *  - GETDATE() + 60 min < match_datetime_utc  (cutoff server-side + auto-lock al arrancar)
+     *  - GETUTCDATE() < match_datetime_utc - 60 min  (cutoff puro por tiempo UTC)
+     *
+     * is_locked NO participa en la validación temporal: GETUTCDATE() es suficiente y
+     * no depende de SQL Server Agent ni de ningún job externo. is_locked sigue siendo
+     * seteado a 1 por resolveMatch() como guarda secundaria y señal al frontend.
      *
      * UPDLOCK + HOLDLOCK en el SELECT y una única transacción eliminan la race condition
      * TOCTOU entre la validación y el MERGE.
@@ -111,15 +114,14 @@ class ProdeRepository {
     ): bool {
         $this->db->beginTransaction();
         try {
-            // Una sola query server-side: existencia + estado + lock + cutoff temporal.
-            // UPDLOCK/HOLDLOCK garantizan que ningún resolveMatch() intercale entre
-            // esta lectura y el MERGE subsiguiente.
+            // Validación completamente server-side: existencia + estado + cutoff UTC.
+            // is_locked excluido de la condición temporal: GETUTCDATE() es la única
+            // fuente de verdad. UPDLOCK/HOLDLOCK eliminan la race TOCTOU.
             $stmt = $this->db->prepare(
                 "SELECT id FROM prode.matches WITH (UPDLOCK, HOLDLOCK)
                  WHERE id = ?
                    AND status = 'pending'
-                   AND is_locked = 0
-                   AND DATEADD(MINUTE, 60, GETDATE()) < match_datetime_utc"
+                   AND GETUTCDATE() < DATEADD(MINUTE, -60, match_datetime_utc)"
             );
             $stmt->execute([$matchId]);
 
@@ -128,7 +130,7 @@ class ProdeRepository {
             }
 
             // MERGE: INSERT si no existe, UPDATE si ya existe.
-            // submitted_at = GETDATE() en ambos paths: nunca depende del DEFAULT del schema.
+            // submitted_at = GETUTCDATE() en ambos paths (UTC, consistente con match_datetime_utc).
             $stmt = $this->db->prepare(
                 'MERGE prode.predictions AS t
                  USING (SELECT ? AS account, ? AS match_id) AS s
@@ -137,10 +139,10 @@ class ProdeRepository {
                      UPDATE SET
                          pred_score_home = ?,
                          pred_score_away = ?,
-                         submitted_at    = GETDATE()
+                         submitted_at    = GETUTCDATE()
                  WHEN NOT MATCHED THEN
                      INSERT (account, match_id, pred_score_home, pred_score_away, submitted_at)
-                     VALUES (?, ?, ?, ?, GETDATE());'
+                     VALUES (?, ?, ?, ?, GETUTCDATE());'
             );
             $stmt->execute([
                 $account, $matchId,

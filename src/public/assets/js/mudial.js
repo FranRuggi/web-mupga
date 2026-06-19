@@ -80,9 +80,13 @@ function showToast(msg, type = 'error') {
 // ── Utilidades ────────────────────────────────────────────────
 
 function isMatchOpen(match) {
-  if (match.is_locked || match.status !== 'pending') return false;
+  if (match.status !== 'pending') return false;
+  // Cutoff primario: tiempo UTC del cliente (display only — el server revalida con GETUTCDATE()).
   const diffSecs = (new Date(match.match_datetime_utc + 'Z').getTime() - Date.now()) / 1000;
-  return diffSecs > CUTOFF_SECS;
+  if (diffSecs <= CUTOFF_SECS) return false;
+  // Guarda secundaria: admin puede cerrar manualmente vía is_locked.
+  if (match.is_locked) return false;
+  return true;
 }
 
 function formatMatchDate(utcStr) {
@@ -102,8 +106,8 @@ function timingBadge(match) {
     return '<span class="prode-badge prode-badge--live">🟢 EN VIVO</span>';
   }
 
-  // SE JUEGA PRONTO: pending, no bloqueado manualmente, faltan menos de 3 horas
-  if (match.status === 'pending' && !match.is_locked && diffMs > 0 && diffMs < 3 * 60 * 60 * 1000) {
+  // SE JUEGA PRONTO: pending, abierto para predicciones, faltan menos de 3 horas
+  if (match.status === 'pending' && !match.is_locked && diffMs > CUTOFF_SECS * 1000 && diffMs < 3 * 60 * 60 * 1000) {
     const totalMins = Math.floor(diffMs / 60000);
     const hours     = Math.floor(totalMins / 60);
     const mins      = totalMins % 60;
