@@ -85,6 +85,41 @@ Los SPs de premios se ejecutan a través de la conexión principal (`Database::g
 `DROP LOGIN prode_user`, borrar las variables `PRODE_*` del `.env` y eliminar
 `/api/prode/` y `/mudial/` del repo.
 
+## Incidentes de Seguridad
+
+### 2026-06-19 — Bypass del cutoff de predicciones (Prode)
+
+**Qué se descubrió:** un jugador registró 5 predicciones exactas consecutivas (3 puntos c/u) en
+partidos del Mundial 2026. Los `submitted_at` en la DB mostraban entre 48 y 110 minutos antes del
+inicio — al menos uno dentro de la ventana de 60 minutos prohibida por las reglas.
+
+**Cómo se explotó:** la validación del cutoff de 60 minutos estaba implementada en PHP usando
+`new DateTime('now')` en lugar de `GETDATE()` de SQL Server. Cualquier desfase entre el reloj del
+servidor PHP y el del SQL Server (o la hora real) abría una ventana de aceptación más amplia que
+la nominal. Más crítico: el campo `is_locked` solo se setea a `1` cuando el admin corre
+`admin_result.php` — hasta ese momento, un partido arrancado pero no resuelto seguía aceptando
+predicciones si el check de PHP lo permitía. Adicionalmente, el SELECT de validación y el MERGE de
+inserción no estaban envueltos en una transacción, exponiendo una race condition TOCTOU. El campo
+`submitted_at` tampoco se seteaba explícitamente en el path INSERT del MERGE, dependiendo de un
+DEFAULT de schema que podía no existir.
+
+**Causa raíz:** validación temporal en capa PHP en lugar de SQL Server; ausencia de lock temporal
+automático al inicio del partido independiente del flag `is_locked`; no atomicidad entre lectura y
+escritura.
+
+**Qué se corrigió (2026-06-19):**
+1. El check de cutoff reemplazado por una única query SQL Server:
+   `DATEADD(MINUTE, 60, GETDATE()) < match_datetime_utc` — inmune a desfase de reloj PHP.
+2. La misma query incorpora `status = 'pending' AND is_locked = 0`, bloqueando automáticamente
+   partidos arrancados aunque el admin no haya cargado el resultado.
+3. SELECT + MERGE envueltos en una única transacción con `WITH (UPDLOCK, HOLDLOCK)` para
+   eliminar la race condition TOCTOU.
+4. `submitted_at = GETDATE()` agregado explícitamente en el path INSERT del MERGE.
+
+**Acción pendiente:** auditar la DB en busca de predicciones con `submitted_at` posterior a
+`match_datetime_utc` o dentro de los 60 minutos previos al inicio; evaluar si corresponde
+anular puntos otorgados por esas predicciones.
+
 ## Objetivo del producto
 
 Con base en la matriz de capacidades, definir qué features se le pueden ofrecer al cliente de
