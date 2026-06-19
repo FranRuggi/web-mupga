@@ -119,15 +119,25 @@ flag `is_locked` no puede actualizarse automáticamente y por tanto no puede ser
 primario de cutoff.
 
 Correcciones adicionales:
-- `GETDATE()` → `GETUTCDATE()` en toda la query de validación y en `submitted_at` del MERGE
-  (consistencia con `match_datetime_utc` que está en UTC).
-- `is_locked = 0` **eliminado** de la condición temporal: `GETUTCDATE() < DATEADD(MINUTE, -60,
-  match_datetime_utc)` es la única fuente de verdad. `is_locked` queda como guarda secundaria
-  (admin puede cerrar un partido manualmente) y señal al frontend, pero nunca como enforcement
-  temporal primario.
+- `is_locked = 0` **eliminado** de la condición temporal. El cutoff por tiempo es la única
+  fuente de verdad. `is_locked` queda como guarda secundaria (el admin puede cerrar un partido
+  manualmente) y señal al frontend, pero nunca como enforcement temporal primario.
 - Frontend (`mudial.js`): `isMatchOpen()` evalúa primero el cutoff por tiempo UTC del cliente y
-  luego `is_locked` como guarda secundaria. El badge "SE JUEGA PRONTO" solo aparece dentro de la
-  ventana de predicción activa (más de 60 min antes del inicio).
+  luego `is_locked` como guarda secundaria. El badge "SE JUEGA PRONTO" aparece en los últimos
+  60 minutos antes del inicio, independiente del estado de predicciones.
+
+**Anomalía de timezone en el VPS (2026-06-19):** `GETUTCDATE()` en este servidor devuelve
+UTC-5 en lugar de UTC — comportamiento incorrecto, causa desconocida (posiblemente configuración
+del SO o de la instancia SQL Server Express). `GETDATE()` devuelve hora de Argentina (UTC-3),
+que es el comportamiento esperado según la zona horaria del VPS.
+
+Workaround aplicado: `GETUTCDATE()` reemplazado por `DATEADD(HOUR, 3, GETDATE())` en toda
+referencia de `savePrediction()` (condición de cutoff y `submitted_at` en ambos paths del MERGE).
+`match_datetime_utc` almacena UTC real, por lo que `DATEADD(HOUR, 3, GETDATE())` es la expresión
+correcta para obtener el instante UTC actual en este servidor.
+
+**Regla permanente para este proyecto:** nunca usar `GETUTCDATE()` en queries de `prode.*`.
+Usar siempre `DATEADD(HOUR, 3, GETDATE())` para obtener UTC real.
 
 **Acción pendiente:** auditar la DB en busca de predicciones con `submitted_at` posterior a
 `match_datetime_utc` o dentro de los 60 minutos previos al inicio; evaluar si corresponde

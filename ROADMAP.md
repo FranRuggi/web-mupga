@@ -226,5 +226,5 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-15 — [Prode] Ranking: columna "Pred." (total_predictions via subquery); cabecera abreviada con abbr; grid 6 columnas
 - 2026-06-15 — [Prode] Estadísticas personales: bloque .prode-user-stats sobre partidos, calculado en JS desde respuesta matches.php (pts, exactos, ganadores, predicciones, sin predecir)
 - 2026-06-15 — [Descargas] Sección de instrucciones paso a paso (dos flujos: ya tenés/primera vez) + callout de actualización del launcher; estilos nuevos en main.css
-- 2026-06-19 — [Seguridad] Prode: cutoff server-side con GETUTCDATE(), is_locked removido del enforcement temporal (SQL Server Express sin Agent), UPDLOCK/HOLDLOCK, submitted_at GETUTCDATE() en ambos paths del MERGE, frontend isMatchOpen() con prioridad temporal sobre is_locked
+- 2026-06-19 — [Seguridad] Prode: cutoff server-side con DATEADD(HOUR,3,GETDATE()) [GETUTCDATE() unreliable en este VPS: devuelve UTC-5], is_locked removido del enforcement temporal (SQL Server Express sin Agent), UPDLOCK/HOLDLOCK, submitted_at en ambos paths del MERGE, frontend isMatchOpen() con prioridad temporal sobre is_locked
 - 2026-06-19 — [Fix] Prode: badge "⏰ En Xmin" restaurado para partidos a ≤60 min del inicio; muestra independiente del estado de predicciones (is_locked / cutoff)

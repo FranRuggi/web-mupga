@@ -92,13 +92,13 @@ class ProdeRepository {
     /**
      * Inserta o actualiza una predicción (UPSERT).
      *
-     * Toda la validación corre en SQL Server (GETUTCDATE()) para ser inmune a desfases
-     * de reloj PHP y a cualquier manipulación del cliente:
+     * Toda la validación corre en SQL Server para ser inmune a desfases de reloj PHP
+     * y a cualquier manipulación del cliente:
      *  - partido en status 'pending'
-     *  - GETUTCDATE() < match_datetime_utc - 60 min  (cutoff puro por tiempo UTC)
+     *  - hora UTC real < match_datetime_utc - 60 min  (cutoff puro por tiempo UTC)
      *
-     * is_locked NO participa en la validación temporal: GETUTCDATE() es suficiente y
-     * no depende de SQL Server Agent ni de ningún job externo. is_locked sigue siendo
+     * is_locked NO participa en la validación temporal: el cutoff por tiempo es suficiente
+     * y no depende de SQL Server Agent ni de ningún job externo. is_locked sigue siendo
      * seteado a 1 por resolveMatch() como guarda secundaria y señal al frontend.
      *
      * UPDLOCK + HOLDLOCK en el SELECT y una única transacción eliminan la race condition
@@ -114,14 +114,17 @@ class ProdeRepository {
     ): bool {
         $this->db->beginTransaction();
         try {
-            // Validación completamente server-side: existencia + estado + cutoff UTC.
-            // is_locked excluido de la condición temporal: GETUTCDATE() es la única
-            // fuente de verdad. UPDLOCK/HOLDLOCK eliminan la race TOCTOU.
+            // GETUTCDATE() es unreliable en este VPS (devuelve UTC-5, no UTC).
+            // GETDATE() devuelve hora de Argentina (UTC-3). UTC real = GETDATE() + 3 horas.
+            // match_datetime_utc almacena UTC real. Todas las comparaciones usan DATEADD(HOUR, 3, GETDATE()).
+            //
+            // Validación server-side: existencia + estado + cutoff UTC.
+            // is_locked excluido de la condición temporal; UPDLOCK/HOLDLOCK eliminan la race TOCTOU.
             $stmt = $this->db->prepare(
                 "SELECT id FROM prode.matches WITH (UPDLOCK, HOLDLOCK)
                  WHERE id = ?
                    AND status = 'pending'
-                   AND GETUTCDATE() < DATEADD(MINUTE, -60, match_datetime_utc)"
+                   AND DATEADD(HOUR, 3, GETDATE()) < DATEADD(MINUTE, -60, match_datetime_utc)"
             );
             $stmt->execute([$matchId]);
 
@@ -130,7 +133,7 @@ class ProdeRepository {
             }
 
             // MERGE: INSERT si no existe, UPDATE si ya existe.
-            // submitted_at = GETUTCDATE() en ambos paths (UTC, consistente con match_datetime_utc).
+            // submitted_at usa DATEADD(HOUR, 3, GETDATE()) — UTC real, consistente con match_datetime_utc.
             $stmt = $this->db->prepare(
                 'MERGE prode.predictions AS t
                  USING (SELECT ? AS account, ? AS match_id) AS s
@@ -139,10 +142,10 @@ class ProdeRepository {
                      UPDATE SET
                          pred_score_home = ?,
                          pred_score_away = ?,
-                         submitted_at    = GETUTCDATE()
+                         submitted_at    = DATEADD(HOUR, 3, GETDATE())
                  WHEN NOT MATCHED THEN
                      INSERT (account, match_id, pred_score_home, pred_score_away, submitted_at)
-                     VALUES (?, ?, ?, ?, GETUTCDATE());'
+                     VALUES (?, ?, ?, ?, DATEADD(HOUR, 3, GETDATE()));'
             );
             $stmt->execute([
                 $account, $matchId,
