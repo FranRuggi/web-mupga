@@ -20,4 +20,14 @@ const MUPGA_CONFIG = {
     }
     return 'https://api.mupga.com.ar'; // producción VPS
   })(),
+
+  paymentsApi: (function () {
+    const injected = document.documentElement.dataset.paymentsUrl ?? '';
+    if (injected) return injected.replace(/\/$/, '');
+    if (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:5000'; // dev local sin .env
+    }
+    return ''; // sin .env configurado → tienda muestra "no disponible"
+  })(),
 };
