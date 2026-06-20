@@ -19,10 +19,7 @@ $title   = htmlspecialchars($pageTitle ?? 'MuPGA', ENT_QUOTES);
 $year    = date('Y');
 ?>
 <!DOCTYPE html>
-<?php
-$paymentsApiUrl = rtrim($_ENV['PAYMENTS_API_URL'] ?? '', '/');
-?>
-<html lang="es" data-base-url="<?= $base ?>/" data-payments-url="<?= htmlspecialchars($paymentsApiUrl, ENT_QUOTES) ?>">
+<html lang="es" data-base-url="<?= $base ?>/">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

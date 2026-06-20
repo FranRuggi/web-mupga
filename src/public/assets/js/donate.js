@@ -2,22 +2,12 @@
    MuPGA — donate.js
    Tienda WCoin — conversor estilo exchange.
 
-   GETs  → API externa directa (currencies, quote, providers)
-   POST  → proxy PHP /api/donate/order.php (inyecta Account del JWT)
+   Todos los requests van por el proxy PHP /api/donate/:
+     currencies.php, quote.php, providers.php, order.php
 
-   Depende de: config.js (MUPGA_CONFIG.paymentsApi)
-               app.js    (BASE, API, esc)
-               auth.js   (isAuthenticated, authFetch)
+   Depende de: app.js  (BASE, API, esc)
+               auth.js (isAuthenticated, authFetch)
    ============================================================ */
-
-const PAYMENTS_API = (MUPGA_CONFIG?.paymentsApi ?? '').replace(/\/$/, '');
-
-// Headers comunes para todos los GETs a la API externa.
-// ngrok-skip-browser-warning evita la interstitial de ngrok (ignorado por APIs reales).
-const PAYMENTS_HEADERS = {
-  Accept: 'application/json',
-  'ngrok-skip-browser-warning': 'true',
-};
 
 // ── Estado ───────────────────────────────────────────────────
 let _quote     = null;   // { CurrencyCode, ConvertedAmount }
@@ -151,16 +141,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ── Paso 1 — Cargar monedas ───────────────────────────────────
 async function loadCurrencies() {
-  if (!PAYMENTS_API) {
-    showStoreUnavailable('La tienda no está disponible en este momento. Volvé pronto.');
-    return;
-  }
-
   let data;
   try {
-    const res = await fetch(PAYMENTS_API + '/api/currencies', {
-      headers: PAYMENTS_HEADERS,
-    });
+    const res = await fetch(API + '/donate/currencies.php');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const raw = await res.json();
     data = Array.isArray(raw) ? raw : (raw.currencies ?? raw.Currencies ?? []);
@@ -283,12 +266,12 @@ async function onCalculate() {
   $buyError.hidden = true;
 
   try {
-    const url = PAYMENTS_API + '/api/currencies/quote' +
+    const url = API + '/donate/quote.php' +
       '?basecurrency=' + encodeURIComponent(from) +
       '&amount='       + amount +
       '&quotecurrency=' + encodeURIComponent(to);
 
-    const res = await fetch(url, { headers: PAYMENTS_HEADERS });
+    const res = await fetch(url);
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -324,8 +307,7 @@ async function onCalculate() {
 async function loadProviders(currency) {
   try {
     const res = await fetch(
-      PAYMENTS_API + '/api/payments/providers?currency=' + encodeURIComponent(currency),
-      { headers: PAYMENTS_HEADERS }
+      API + '/donate/providers.php?currency=' + encodeURIComponent(currency)
     );
 
     if (!res.ok) {
