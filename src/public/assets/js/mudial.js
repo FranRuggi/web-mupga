@@ -496,6 +496,15 @@ async function loadRanking() {
     return;
   }
 
+  // Dense rank: empates comparten posición (1, 2, 3, 3, 4...)
+  const ranks = [];
+  let denseRank = 0;
+  let prevPts = null;
+  for (const p of data) {
+    if (p.total_points !== prevPts) { denseRank++; prevPts = p.total_points; }
+    ranks.push(denseRank);
+  }
+
   container.innerHTML = `
     <div class="prode-ranking-table">
       <div class="prode-rank-header">
@@ -506,7 +515,7 @@ async function loadRanking() {
         <span><abbr title="Solo ganador">Gan.</abbr></span>
         <span><abbr title="Predicciones totales">Pred.</abbr></span>
       </div>
-      ${data.map((p, i) => renderRankingRow(p, i + 1)).join('')}
+      ${data.map((p, i) => renderRankingRow(p, ranks[i])).join('')}
     </div>`;
 }
 
