@@ -2894,6 +2894,36 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
 
 .prode-stage-group { margin-bottom: var(--gap-lg); }
 
+/* Toggle colapsable — fase de grupos */
+.prode-groups-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.25rem;
+  margin-bottom: var(--gap-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  user-select: none;
+  transition: background var(--t), border-color var(--t);
+}
+.prode-groups-toggle:hover {
+  background: var(--bg-raised);
+  border-color: var(--purple-light);
+}
+.prode-groups-toggle-chevron {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  transition: transform var(--t);
+}
+.prode-groups-toggle.is-open .prode-groups-toggle-chevron {
+  transform: rotate(180deg);
+}
+
 .prode-stage-title {
   font-family: var(--font-title);
   font-size: 0.72rem;

@@ -237,14 +237,52 @@ function renderMatches(data) {
   }
 
   // Ordenar grupos según STAGE_ORDER; stages desconocidos van al final
-  container.innerHTML = Object.entries(groups)
+  const sorted = Object.entries(groups)
     .sort(([stageA], [stageB]) => {
       const ia = STAGE_ORDER.indexOf(stageA);
       const ib = STAGE_ORDER.indexOf(stageB);
       return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-    })
-    .map(([stage, matches]) => renderMatchGroup(stage, matches))
-    .join('');
+    });
+
+  const phaseGroups = sorted.filter(([stage]) => stage.startsWith('Grupo '));
+  const knockout    = sorted.filter(([stage]) => !stage.startsWith('Grupo '));
+
+  let html = '';
+
+  if (phaseGroups.length) {
+    const groupsHtml = phaseGroups.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('');
+    html += `
+      <div class="prode-groups-toggle" id="prode-groups-toggle" role="button" tabindex="0"
+           aria-expanded="false" aria-controls="prode-groups-container">
+        <span class="prode-groups-toggle-label">📋 Ver partidos de fase de grupos</span>
+        <span class="prode-groups-toggle-chevron">▼</span>
+      </div>
+      <div class="prode-groups-container" id="prode-groups-container" hidden>
+        ${groupsHtml}
+      </div>`;
+  }
+
+  html += knockout.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('');
+
+  container.innerHTML = html;
+
+  const toggleBtn = document.getElementById('prode-groups-toggle');
+  const groupsCnt = document.getElementById('prode-groups-container');
+  if (toggleBtn && groupsCnt) {
+    const toggle = () => {
+      const opening = groupsCnt.hidden;
+      groupsCnt.hidden = !opening;
+      toggleBtn.classList.toggle('is-open', opening);
+      toggleBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      toggleBtn.querySelector('.prode-groups-toggle-label').textContent = opening
+        ? '📋 Ocultar partidos de fase de grupos'
+        : '📋 Ver partidos de fase de grupos';
+    };
+    toggleBtn.addEventListener('click', toggle);
+    toggleBtn.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  }
 
   renderUserStats(data);
   attachFormListeners();
