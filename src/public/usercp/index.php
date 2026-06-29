@@ -110,7 +110,7 @@ ob_start();
             <span class="game-option-icon">🌀</span>
             <span class="game-option-text">
               <strong>Resetear Árbol ML</strong>
-              <small>Recuperar puntos del árbol maestro</small>
+              <small>Próximamente disponible</small>
             </span>
           </button>
           <div id="msg-resetml" class="alert" role="alert"></div>

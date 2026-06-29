@@ -119,7 +119,7 @@ function populateCharSelect(chars) {
 
   const prevSelection = sel.value; // preservar personaje seleccionado
 
-  const actionBtns = ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml', 'btn-resetchar'];
+  const actionBtns = ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetchar'];
 
   if (!chars.length) {
     sel.innerHTML = '<option value="">Sin personajes</option>';
@@ -148,7 +148,7 @@ function initGameOptions() {
     ['btn-unstick',    'account/unstick.php',    'msg-unstick',    'Unstick'],
     ['btn-clearpk',    'account/clearpk.php',    'msg-clearpk',    'Limpiar PK'],
     ['btn-resetstats', 'account/resetstats.php', 'msg-resetstats', 'Resetear Stats'],
-    ['btn-resetml',    'account/resetml.php',    'msg-resetml',    'Resetear Árbol ML'],
+    // btn-resetml: temporalmente deshabilitado, no se registra listener
     ['btn-resetchar',  'account/resetchar.php',  'msg-resetchar',  'Reset personaje'],
   ];
   actions.forEach(([id, endpoint, msgId, label]) => {
