@@ -67,7 +67,7 @@ const CLASS_NAMES = {
 };
 
 const CLASS_AVATAR = {
-  0:'dw.jpg',  1:'dw.jpg',   3:'dw.jpg',   7:'dw.jpg',
+  0:'dw.jpg',  1:'dw.jpg',   2:'dw.jpg',   3:'dw.jpg',   7:'dw.jpg',
   16:'dk.jpg', 17:'dk.jpg',  18:'dk.jpg',  19:'dk.jpg',  23:'dk.jpg',
   32:'elf.jpg',33:'elf.jpg', 34:'elf.jpg', 35:'elf.jpg', 39:'elf.jpg',
   48:'mg.jpg', 50:'mg.jpg',  54:'mg.jpg',
