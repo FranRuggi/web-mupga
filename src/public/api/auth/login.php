@@ -103,6 +103,21 @@ try {
         exit;
     }
 
+    // Rellenar país si la cuenta todavía no tiene (cuentas pre-geo-detección)
+    $realIp = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $ip)[0]);
+    if ($realIp && $realIp !== '127.0.0.1' && $realIp !== '::1') {
+        $hasCountry = $db->prepare('SELECT 1 FROM MUPGA_ACCOUNT_COUNTRY WHERE Username = ?');
+        $hasCountry->execute([$username]);
+        if (!$hasCountry->fetchColumn()) {
+            $geo = @file_get_contents("http://ip-api.com/json/{$realIp}?fields=countryCode");
+            $geo = $geo ? json_decode($geo, true) : null;
+            if (!empty($geo['countryCode']) && strlen($geo['countryCode']) === 2) {
+                @$db->prepare('INSERT INTO MUPGA_ACCOUNT_COUNTRY (Username, CountryCode) VALUES (?, ?)')
+                    ->execute([$username, strtoupper($geo['countryCode'])]);
+            }
+        }
+    }
+
     // Verificar cuenta no bloqueada
     if (trim($account['bloc_code']) !== '0') {
         http_response_code(403);
