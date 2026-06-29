@@ -91,7 +91,18 @@ class ProdeRepository {
 
     /**
      * Inserta o actualiza una predicción (UPSERT).
-     * Valida: partido pendiente, no bloqueado, más de 1 hora para el inicio.
+     *
+     * Toda la validación corre en SQL Server para ser inmune a desfases de reloj PHP
+     * y a cualquier manipulación del cliente:
+     *  - partido en status 'pending'
+     *  - hora UTC real < match_datetime_utc - 60 min  (cutoff puro por tiempo UTC)
+     *
+     * is_locked NO participa en la validación temporal: el cutoff por tiempo es suficiente
+     * y no depende de SQL Server Agent ni de ningún job externo. is_locked sigue siendo
+     * seteado a 1 por resolveMatch() como guarda secundaria y señal al frontend.
+     *
+     * UPDLOCK + HOLDLOCK en el SELECT y una única transacción eliminan la race condition
+     * TOCTOU entre la validación y el MERGE.
      *
      * @throws RuntimeException si la validación falla.
      */
@@ -101,51 +112,54 @@ class ProdeRepository {
         int    $homeScore,
         int    $awayScore
     ): bool {
-        $stmt = $this->db->prepare(
-            'SELECT id, status, is_locked,
-                    CONVERT(VARCHAR(23), match_datetime_utc, 126) AS match_datetime_utc
-             FROM prode.matches WHERE id = ?'
-        );
-        $stmt->execute([$matchId]);
-        $match = $stmt->fetch();
+        $this->db->beginTransaction();
+        try {
+            // GETUTCDATE() es unreliable en este VPS (devuelve UTC-5, no UTC).
+            // GETDATE() devuelve hora de Argentina (UTC-3). UTC real = GETDATE() + 3 horas.
+            // match_datetime_utc almacena UTC real. Todas las comparaciones usan DATEADD(HOUR, 3, GETDATE()).
+            //
+            // Validación server-side: existencia + estado + cutoff UTC.
+            // is_locked excluido de la condición temporal; UPDLOCK/HOLDLOCK eliminan la race TOCTOU.
+            $stmt = $this->db->prepare(
+                "SELECT id FROM prode.matches WITH (UPDLOCK, HOLDLOCK)
+                 WHERE id = ?
+                   AND status = 'pending'
+                   AND DATEADD(HOUR, 3, GETDATE()) < DATEADD(MINUTE, -60, match_datetime_utc)"
+            );
+            $stmt->execute([$matchId]);
 
-        if (!$match) {
-            throw new RuntimeException('Partido no encontrado.');
-        }
-        if ($match['status'] !== 'pending') {
-            throw new RuntimeException('El partido ya terminó. No se puede predecir.');
-        }
-        if ((bool)$match['is_locked']) {
-            throw new RuntimeException('Las predicciones para este partido están cerradas.');
-        }
+            if (!$stmt->fetch()) {
+                throw new RuntimeException('Partido no encontrado o predicciones cerradas.');
+            }
 
-        $matchTime = new DateTime($match['match_datetime_utc'], new DateTimeZone('UTC'));
-        $now       = new DateTime('now', new DateTimeZone('UTC'));
-        $diffSecs  = $matchTime->getTimestamp() - $now->getTimestamp();
+            // MERGE: INSERT si no existe, UPDATE si ya existe.
+            // submitted_at usa DATEADD(HOUR, 3, GETDATE()) — UTC real, consistente con match_datetime_utc.
+            $stmt = $this->db->prepare(
+                'MERGE prode.predictions AS t
+                 USING (SELECT ? AS account, ? AS match_id) AS s
+                    ON t.account = s.account AND t.match_id = s.match_id
+                 WHEN MATCHED THEN
+                     UPDATE SET
+                         pred_score_home = ?,
+                         pred_score_away = ?,
+                         submitted_at    = DATEADD(HOUR, 3, GETDATE())
+                 WHEN NOT MATCHED THEN
+                     INSERT (account, match_id, pred_score_home, pred_score_away, submitted_at)
+                     VALUES (?, ?, ?, ?, DATEADD(HOUR, 3, GETDATE()));'
+            );
+            $stmt->execute([
+                $account, $matchId,
+                $homeScore, $awayScore,
+                $account, $matchId, $homeScore, $awayScore,
+            ]);
 
-        if ($diffSecs < 3600) {
-            throw new RuntimeException('Ya no se aceptan predicciones: faltan menos de 60 minutos para el inicio.');
+            $this->db->commit();
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
         }
-
-        // MERGE: INSERT si no existe, UPDATE si ya existe
-        $stmt = $this->db->prepare(
-            'MERGE prode.predictions AS t
-             USING (SELECT ? AS account, ? AS match_id) AS s
-                ON t.account = s.account AND t.match_id = s.match_id
-             WHEN MATCHED THEN
-                 UPDATE SET
-                     pred_score_home = ?,
-                     pred_score_away = ?,
-                     submitted_at    = GETDATE()
-             WHEN NOT MATCHED THEN
-                 INSERT (account, match_id, pred_score_home, pred_score_away)
-                 VALUES (?, ?, ?, ?);'
-        );
-        $stmt->execute([
-            $account, $matchId,
-            $homeScore, $awayScore,
-            $account, $matchId, $homeScore, $awayScore,
-        ]);
 
         return true;
     }

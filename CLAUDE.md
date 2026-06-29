@@ -12,12 +12,43 @@ Fase activa: **Fase 1 — Ingeniería inversa** (ver roadmap).
 
 ## Arquitectura
 
-- **Desarrollo (PC de Franco):** sitio servido con XAMPP, base de datos espejo en SQL Server
-  Express (schema restaurado desde el dump de producción).
-- **Producción (VPS):** el sitio se despliega en el mismo VPS donde ya viven el SQL Server y el
-  GameServer. La conexión sitio → base de datos es **local dentro del VPS**, nunca desde una
-  máquina externa.
-- Base de datos: **Microsoft SQL Server** (no MySQL). Driver: `sqlsrv` / `PDO_SQLSRV`.
+### Producción — dos capas separadas
+
+```
+Browser → Cloudflare Pages (frontend estático)
+                    ↓ fetch() / authFetch()
+         VPS Windows Server — Apache/XAMPP (API PHP)
+                    ↓ PDO/sqlsrv
+         SQL Server Express (mismo VPS)
+```
+
+- **Frontend:** HTML/CSS/JS estático desplegado en **Cloudflare Pages** vía GitHub Actions.
+  PHP **no corre** en Cloudflare — el HTML es estático generado en el build.
+- **API PHP:** corre en el VPS con **Apache (XAMPP en Windows Server)**. Sirve únicamente
+  los endpoints bajo `/api/`. El `.env` del VPS solo afecta a la API, no al frontend.
+- **Base de datos:** Microsoft SQL Server Express en el mismo VPS. Conexión local, nunca
+  remota. Driver: `sqlsrv` / `PDO_SQLSRV`.
+- **La conexión sitio → base de datos es local dentro del VPS**, nunca desde una máquina externa.
+
+### Consecuencias importantes para el desarrollo
+
+1. **PHP no inyecta nada en el HTML de producción.** Atributos como `data-payments-url`
+   o `data-base-url` que el layout PHP genera solo funcionan en desarrollo local (XAMPP).
+   En Cloudflare Pages el HTML es estático y esos atributos quedan vacíos o con el valor
+   que tenían al momento del build.
+2. **URLs de producción en JS van hardcodeadas en `config.js`.** No confiar en
+   `data-payments-url` ni en ningún atributo PHP-inyectado para entornos de producción.
+   El patrón correcto: verificar `window.location.hostname`, si no es localhost → URL fija.
+3. **Cambiar el `.env` del VPS no afecta el frontend** (está en Cloudflare). Solo afecta
+   a los endpoints PHP de la API.
+4. **Para ver cambios en el frontend** hay que hacer push → GitHub Actions → Cloudflare
+   despliega automáticamente.
+
+### Desarrollo local (PC de Franco)
+
+- XAMPP sirve el sitio completo (PHP genera el HTML dinámicamente).
+- Base de datos espejo en SQL Server Express local (schema restaurado desde dump de producción).
+- En local sí funciona la inyección PHP de `data-payments-url` (lo lee del `.env` local).
 
 ## Reglas duras (no negociables)
 
@@ -84,6 +115,64 @@ Los SPs de premios se ejecutan a través de la conexión principal (`Database::g
 **Cierre del mundial:** ejecutar `DROP SCHEMA prode CASCADE`, `DROP USER prode_user`,
 `DROP LOGIN prode_user`, borrar las variables `PRODE_*` del `.env` y eliminar
 `/api/prode/` y `/mudial/` del repo.
+
+## Incidentes de Seguridad
+
+### 2026-06-19 — Bypass del cutoff de predicciones (Prode)
+
+**Qué se descubrió:** un jugador registró 5 predicciones exactas consecutivas (3 puntos c/u) en
+partidos del Mundial 2026. Los `submitted_at` en la DB mostraban entre 48 y 110 minutos antes del
+inicio — al menos uno dentro de la ventana de 60 minutos prohibida por las reglas.
+
+**Cómo se explotó:** la validación del cutoff de 60 minutos estaba implementada en PHP usando
+`new DateTime('now')` en lugar de `GETDATE()` de SQL Server. Cualquier desfase entre el reloj del
+servidor PHP y el del SQL Server (o la hora real) abría una ventana de aceptación más amplia que
+la nominal. Más crítico: el campo `is_locked` solo se setea a `1` cuando el admin corre
+`admin_result.php` — hasta ese momento, un partido arrancado pero no resuelto seguía aceptando
+predicciones si el check de PHP lo permitía. Adicionalmente, el SELECT de validación y el MERGE de
+inserción no estaban envueltos en una transacción, exponiendo una race condition TOCTOU. El campo
+`submitted_at` tampoco se seteaba explícitamente en el path INSERT del MERGE, dependiendo de un
+DEFAULT de schema que podía no existir.
+
+**Causa raíz:** validación temporal en capa PHP en lugar de SQL Server; ausencia de lock temporal
+automático al inicio del partido independiente del flag `is_locked`; no atomicidad entre lectura y
+escritura.
+
+**Qué se corrigió — fix inicial (2026-06-19):**
+1. Cutoff reemplazado por query SQL Server con `DATEADD(MINUTE, 60, GETDATE()) < match_datetime_utc`.
+2. `is_locked = 0` incluido en la query como condición temporal.
+3. SELECT + MERGE envueltos en transacción con `WITH (UPDLOCK, HOLDLOCK)` — elimina TOCTOU.
+4. `submitted_at = GETDATE()` explícito en el path INSERT del MERGE.
+
+**Resolución final (2026-06-19):** fix iterado al constatar que SQL Server Express (edición del
+VPS) no tiene SQL Server Agent, descartando cualquier enfoque basado en jobs programados. El
+flag `is_locked` no puede actualizarse automáticamente y por tanto no puede ser el mecanismo
+primario de cutoff.
+
+Correcciones adicionales:
+- `is_locked = 0` **eliminado** de la condición temporal. El cutoff por tiempo es la única
+  fuente de verdad. `is_locked` queda como guarda secundaria (el admin puede cerrar un partido
+  manualmente) y señal al frontend, pero nunca como enforcement temporal primario.
+- Frontend (`mudial.js`): `isMatchOpen()` evalúa primero el cutoff por tiempo UTC del cliente y
+  luego `is_locked` como guarda secundaria. El badge "SE JUEGA PRONTO" aparece en los últimos
+  60 minutos antes del inicio, independiente del estado de predicciones.
+
+**Anomalía de timezone en el VPS (2026-06-19):** `GETUTCDATE()` en este servidor devuelve
+UTC-5 en lugar de UTC — comportamiento incorrecto, causa desconocida (posiblemente configuración
+del SO o de la instancia SQL Server Express). `GETDATE()` devuelve hora de Argentina (UTC-3),
+que es el comportamiento esperado según la zona horaria del VPS.
+
+Workaround aplicado: `GETUTCDATE()` reemplazado por `DATEADD(HOUR, 3, GETDATE())` en toda
+referencia de `savePrediction()` (condición de cutoff y `submitted_at` en ambos paths del MERGE).
+`match_datetime_utc` almacena UTC real, por lo que `DATEADD(HOUR, 3, GETDATE())` es la expresión
+correcta para obtener el instante UTC actual en este servidor.
+
+**Regla permanente para este proyecto:** nunca usar `GETUTCDATE()` en queries de `prode.*`.
+Usar siempre `DATEADD(HOUR, 3, GETDATE())` para obtener UTC real.
+
+**Acción pendiente:** auditar la DB en busca de predicciones con `submitted_at` posterior a
+`match_datetime_utc` o dentro de los 60 minutos previos al inicio; evaluar si corresponde
+anular puntos otorgados por esas predicciones.
 
 ## Objetivo del producto
 

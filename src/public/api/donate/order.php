@@ -28,6 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $auth = requireAuth();
 
+// JWT estándar (HS256) para autenticar el request al VPS de pagos.
+// Clave compartida simétrica: PAYMENT_JWT_SECRET en ambos .env (PHP y .NET).
+$paymentJwt = TokenService::generatePaymentJWT((int)$auth['uid'], $auth['usr']);
+
 $body = json_decode(file_get_contents('php://input'), true);
 if (!is_array($body)) {
     http_response_code(400);
@@ -55,6 +59,7 @@ curl_setopt_array($ch, [
     CURLOPT_HTTPHEADER     => [
         'Content-Type: application/json',
         'Accept: application/json',
+        'Authorization: Bearer ' . $paymentJwt,
         'ngrok-skip-browser-warning: true',
     ],
     CURLOPT_RETURNTRANSFER => true,

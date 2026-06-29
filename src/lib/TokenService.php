@@ -14,7 +14,7 @@
 class TokenService {
 
     private const ALGO = 'sha256';
-    private const TTL  = 7 * 24 * 3600; // 7 días
+    private const TTL  = 24 * 3600; // 24 horas
 
     /**
      * Genera un token firmado para el usuario autenticado.
@@ -52,6 +52,72 @@ class TokenService {
         return $data;
     }
 
+    /**
+     * Genera un JWT estándar RFC 7519 (HS256) para autenticar requests al VPS de pagos.
+     *
+     * Clave compartida simétrica: PAYMENT_JWT_SECRET se configura en el .env de cada
+     * servidor (PHP y .NET). Nunca viaja por la red — PHP firma, .NET verifica.
+     * TTL corto (15 min) porque el JWT es de un solo uso para crear la orden.
+     * iat/exp se obtienen de NTP para evitar desfases del reloj del servidor.
+     */
+    public static function generatePaymentJWT(int $uid, string $username): string {
+        $now = self::utcNow();
+
+        $header  = self::b64e(json_encode(
+            ['typ' => 'JWT', 'alg' => 'HS256'],
+            JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE
+        ));
+        $payload = self::b64e(json_encode([
+            'iss'  => $_ENV['PAYMENT_JWT_ISS'] ?? 'mupga-api',
+            'aud'  => $_ENV['PAYMENT_JWT_AUD'] ?? 'mupga-user',
+            'uid'  => $uid,
+            'usr'  => $username,
+            'role' => 'Player',
+            'iat'  => $now,
+            'exp'  => $now + 900, // 15 minutos
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+
+        $sig = self::b64e(hash_hmac(self::ALGO, $header . '.' . $payload, self::paymentSecret(), true));
+
+        return $header . '.' . $payload . '.' . $sig;
+    }
+
+    /**
+     * Devuelve el Unix timestamp UTC real consultando pool.ntp.org (UDP 123).
+     * Independiente del reloj del servidor local — funciona desde cualquier VPS.
+     * Fallback a time() si NTP no está disponible (firewall, red, timeout).
+     */
+    private static function utcNow(): int {
+        return self::ntpTimestamp() ?? time();
+    }
+
+    /**
+     * Consulta pool.ntp.org y devuelve el Unix timestamp UTC.
+     * Protocolo NTP v3 — paquete de 48 bytes, respuesta en bytes 40-43.
+     * Devuelve null si la consulta falla en cualquier punto.
+     */
+    private static function ntpTimestamp(): ?int {
+        $sock = @fsockopen('udp://pool.ntp.org', 123, $errno, $errstr, 2);
+        if ($sock === false) return null;
+
+        $response = '';
+        try {
+            fwrite($sock, "\x1b" . str_repeat("\0", 47));
+            stream_set_timeout($sock, 2);
+            $response = fread($sock, 48);
+        } finally {
+            fclose($sock);
+        }
+
+        if (strlen($response) < 48) return null;
+
+        // Transmit Timestamp: bytes 40-43, segundos desde época NTP (1900-01-01).
+        $data  = unpack('Nsec', substr($response, 40, 4));
+        $unix  = $data['sec'] - 2208988800; // diferencia entre época NTP y Unix (70 años)
+
+        return $unix > 0 ? $unix : null;
+    }
+
     private static function b64e(string $data): string {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
@@ -64,6 +130,14 @@ class TokenService {
         $s = $_ENV['APP_SECRET'] ?? '';
         if (strlen($s) < 16) {
             throw new RuntimeException('APP_SECRET no está definido o es muy corto. Ver .env.example.');
+        }
+        return $s;
+    }
+
+    private static function paymentSecret(): string {
+        $s = $_ENV['PAYMENT_JWT_SECRET'] ?? '';
+        if (strlen($s) < 16) {
+            throw new RuntimeException('PAYMENT_JWT_SECRET no está configurado. Ver .env.example.');
         }
         return $s;
     }

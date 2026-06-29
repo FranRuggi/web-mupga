@@ -133,6 +133,8 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] Rankings: indicador de jugador online (punto cyan) via JOIN MEMB_STAT.ConnectStat — 2026-06-12
 - [x] Prode: columna "Pred." en ranking (total_predictions via subquery en prode.predictions) — 2026-06-15
 - [x] Prode: bloque de estadísticas personales encima de los partidos (calculado desde matches.php en JS) — 2026-06-15
+- [x] **Seguridad:** cutoff de predicciones movido a SQL Server (`GETUTCDATE() < DATEADD(MINUTE, -60, match_datetime_utc)`); `is_locked` removido del enforcement temporal primario (Express edition: sin Agent); transacción con UPDLOCK/HOLDLOCK; `submitted_at = GETUTCDATE()` explícito en ambos paths del MERGE — 2026-06-19
+- [ ] Auditar DB: predicciones con `submitted_at > match_datetime_utc` o dentro de los 60 min previos; evaluar anulación de puntos fraudulentos
 - [ ] Ejecutar `database/prode_setup.sql` en SQL Server del VPS (manual — ver PASOS_MANUALES_PRODE.md)
 - [ ] Configurar variables PRODE_DB_* y ADMIN_TOKEN en el .env del VPS (manual)
 - [ ] Cargar primeros partidos vía admin_match.php (manual)
@@ -224,3 +226,6 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-15 — [Prode] Ranking: columna "Pred." (total_predictions via subquery); cabecera abreviada con abbr; grid 6 columnas
 - 2026-06-15 — [Prode] Estadísticas personales: bloque .prode-user-stats sobre partidos, calculado en JS desde respuesta matches.php (pts, exactos, ganadores, predicciones, sin predecir)
 - 2026-06-15 — [Descargas] Sección de instrucciones paso a paso (dos flujos: ya tenés/primera vez) + callout de actualización del launcher; estilos nuevos en main.css
+- 2026-06-19 — [Seguridad] Prode: cutoff server-side con DATEADD(HOUR,3,GETDATE()) [GETUTCDATE() unreliable en este VPS: devuelve UTC-5], is_locked removido del enforcement temporal (SQL Server Express sin Agent), UPDLOCK/HOLDLOCK, submitted_at en ambos paths del MERGE, frontend isMatchOpen() con prioridad temporal sobre is_locked
+- 2026-06-19 — [Fix] Prode: badge "⏰ En Xmin" restaurado para partidos a ≤60 min del inicio; muestra independiente del estado de predicciones (is_locked / cutoff)
+- 2026-06-20 — [Feat] Integración VPS de pagos: JWT estándar HS256 (RFC 7519) con claims iss/aud/uid/usr/role en api/donate/order.php; TTL sesión reducido de 7 días a 24h; PAYMENT_JWT_SECRET + PAYMENT_JWT_ISS/AUD en .env.example

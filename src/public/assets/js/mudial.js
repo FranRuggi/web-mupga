@@ -80,9 +80,13 @@ function showToast(msg, type = 'error') {
 // ── Utilidades ────────────────────────────────────────────────
 
 function isMatchOpen(match) {
-  if (match.is_locked || match.status !== 'pending') return false;
+  if (match.status !== 'pending') return false;
+  // Cutoff primario: tiempo UTC del cliente (display only — el server revalida con GETUTCDATE()).
   const diffSecs = (new Date(match.match_datetime_utc + 'Z').getTime() - Date.now()) / 1000;
-  return diffSecs > CUTOFF_SECS;
+  if (diffSecs <= CUTOFF_SECS) return false;
+  // Guarda secundaria: admin puede cerrar manualmente vía is_locked.
+  if (match.is_locked) return false;
+  return true;
 }
 
 function formatMatchDate(utcStr) {
@@ -102,15 +106,10 @@ function timingBadge(match) {
     return '<span class="prode-badge prode-badge--live">🟢 EN VIVO</span>';
   }
 
-  // SE JUEGA PRONTO: pending, no bloqueado manualmente, faltan menos de 3 horas
-  if (match.status === 'pending' && !match.is_locked && diffMs > 0 && diffMs < 3 * 60 * 60 * 1000) {
-    const totalMins = Math.floor(diffMs / 60000);
-    const hours     = Math.floor(totalMins / 60);
-    const mins      = totalMins % 60;
-    const label     = hours > 0
-      ? `⏰ En ${hours}h${mins > 0 ? ` ${mins}min` : ''}`
-      : `⏰ En ${mins}min`;
-    return `<span class="prode-badge prode-badge--soon">${label}</span>`;
+  // SE JUEGA PRONTO: faltan ≤60 min para el inicio (independiente del cutoff de predicciones)
+  if (match.status === 'pending' && diffMs > 0 && diffMs <= 60 * 60 * 1000) {
+    const mins = Math.floor(diffMs / 60000);
+    return `<span class="prode-badge prode-badge--soon">⏰ En ${mins}min</span>`;
   }
 
   return '';
@@ -238,14 +237,52 @@ function renderMatches(data) {
   }
 
   // Ordenar grupos según STAGE_ORDER; stages desconocidos van al final
-  container.innerHTML = Object.entries(groups)
+  const sorted = Object.entries(groups)
     .sort(([stageA], [stageB]) => {
       const ia = STAGE_ORDER.indexOf(stageA);
       const ib = STAGE_ORDER.indexOf(stageB);
       return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-    })
-    .map(([stage, matches]) => renderMatchGroup(stage, matches))
-    .join('');
+    });
+
+  const phaseGroups = sorted.filter(([stage]) => stage.startsWith('Grupo '));
+  const knockout    = sorted.filter(([stage]) => !stage.startsWith('Grupo '));
+
+  let html = '';
+
+  if (phaseGroups.length) {
+    const groupsHtml = phaseGroups.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('');
+    html += `
+      <div class="prode-groups-toggle" id="prode-groups-toggle" role="button" tabindex="0"
+           aria-expanded="false" aria-controls="prode-groups-container">
+        <span class="prode-groups-toggle-label">📋 Ver partidos de fase de grupos</span>
+        <span class="prode-groups-toggle-chevron">▼</span>
+      </div>
+      <div class="prode-groups-container" id="prode-groups-container" hidden>
+        ${groupsHtml}
+      </div>`;
+  }
+
+  html += knockout.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('');
+
+  container.innerHTML = html;
+
+  const toggleBtn = document.getElementById('prode-groups-toggle');
+  const groupsCnt = document.getElementById('prode-groups-container');
+  if (toggleBtn && groupsCnt) {
+    const toggle = () => {
+      const opening = groupsCnt.hidden;
+      groupsCnt.hidden = !opening;
+      toggleBtn.classList.toggle('is-open', opening);
+      toggleBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      toggleBtn.querySelector('.prode-groups-toggle-label').textContent = opening
+        ? '📋 Ocultar partidos de fase de grupos'
+        : '📋 Ver partidos de fase de grupos';
+    };
+    toggleBtn.addEventListener('click', toggle);
+    toggleBtn.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  }
 
   renderUserStats(data);
   attachFormListeners();
@@ -497,6 +534,15 @@ async function loadRanking() {
     return;
   }
 
+  // Dense rank: empates comparten posición (1, 2, 3, 3, 4...)
+  const ranks = [];
+  let denseRank = 0;
+  let prevPts = null;
+  for (const p of data) {
+    if (p.total_points !== prevPts) { denseRank++; prevPts = p.total_points; }
+    ranks.push(denseRank);
+  }
+
   container.innerHTML = `
     <div class="prode-ranking-table">
       <div class="prode-rank-header">
@@ -507,7 +553,7 @@ async function loadRanking() {
         <span><abbr title="Solo ganador">Gan.</abbr></span>
         <span><abbr title="Predicciones totales">Pred.</abbr></span>
       </div>
-      ${data.map((p, i) => renderRankingRow(p, i + 1)).join('')}
+      ${data.map((p, i) => renderRankingRow(p, ranks[i])).join('')}
     </div>`;
 }
 

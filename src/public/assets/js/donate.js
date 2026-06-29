@@ -2,8 +2,8 @@
    MuPGA — donate.js
    Tienda WCoin — conversor estilo exchange.
 
-   GETs  → API externa directa (currencies, quote, providers)
-   POST  → proxy PHP /api/donate/order.php (inyecta Account del JWT)
+   GETs  → API de pagos directa (currencies, quote, providers)
+   POST  → proxy PHP /api/donate/order.php (inyecta JWT y Account)
 
    Depende de: config.js (MUPGA_CONFIG.paymentsApi)
                app.js    (BASE, API, esc)
@@ -12,11 +12,8 @@
 
 const PAYMENTS_API = (MUPGA_CONFIG?.paymentsApi ?? '').replace(/\/$/, '');
 
-// Headers comunes para todos los GETs a la API externa.
-// ngrok-skip-browser-warning evita la interstitial de ngrok (ignorado por APIs reales).
 const PAYMENTS_HEADERS = {
   Accept: 'application/json',
-  'ngrok-skip-browser-warning': 'true',
 };
 
 // ── Estado ───────────────────────────────────────────────────
