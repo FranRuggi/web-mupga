@@ -59,8 +59,10 @@ function renderAccountInfo(data) {
 
     const expireRow = document.getElementById('info-vip-expire-row');
     const expireEl  = document.getElementById('info-vip-expire');
-    if (isVip && data.expire_date && expireRow && expireEl) {
+    const expireLbl = document.getElementById('info-vip-expire-label');
+    if (data.expire_date && expireRow && expireEl) {
       expireEl.textContent = new Date(data.expire_date).toLocaleDateString('es-AR');
+      if (expireLbl) expireLbl.textContent = isVip ? 'VIP vence' : 'VIP venció';
       expireRow.style.display = '';
     }
   }

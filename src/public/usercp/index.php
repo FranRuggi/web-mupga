@@ -32,7 +32,7 @@ ob_start();
           <span class="account-info-row__value" id="info-vip">—</span>
         </div>
         <div class="account-info-row" id="info-vip-expire-row" style="display:none">
-          <span class="account-info-row__label">VIP vence</span>
+          <span class="account-info-row__label" id="info-vip-expire-label">VIP vence</span>
           <span class="account-info-row__value" id="info-vip-expire">—</span>
         </div>
         <div class="account-info-row">
