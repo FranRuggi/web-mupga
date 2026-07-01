@@ -201,6 +201,33 @@ ob_start();
       </div>
     </div>
 
+    <!-- ── Comprar VIP ── -->
+    <div class="account-card vip-purchase-card">
+      <p class="account-card__title">⭐ VIP Oro — Comprar / Renovar</p>
+      <div class="vip-purchase-info">
+        <div class="account-info-row">
+          <span class="account-info-row__label">Beneficio</span>
+          <span class="account-info-row__value">VIP Oro activo por 15 días</span>
+        </div>
+        <div class="account-info-row">
+          <span class="account-info-row__label">Costo</span>
+          <span class="account-info-row__value vip-cost">5.000 WCoins</span>
+        </div>
+        <div class="account-info-row">
+          <span class="account-info-row__label">Tu balance</span>
+          <span class="account-info-row__value" id="vip-balance-display">—</span>
+        </div>
+        <div class="account-info-row">
+          <span class="account-info-row__label">Renovable</span>
+          <span class="account-info-row__value">Sí — suma días al VIP existente</span>
+        </div>
+      </div>
+      <div id="msg-buyvip" class="alert" role="alert"></div>
+      <div style="margin-top:1.2rem">
+        <button class="btn btn-primary" id="btn-buyvip">Activar VIP — 5.000 WCoins</button>
+      </div>
+    </div>
+
     <!-- ── Fila 3: Configuración ── -->
     <div class="usercp-grid">
 

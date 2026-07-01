@@ -1659,6 +1659,20 @@ h1, h2, h3, h4 {
   color: var(--text-dim);
 }
 
+/* ── Comprar VIP ──────────────────────────────────────── */
+.vip-purchase-card::before {
+  background: linear-gradient(90deg, var(--gold), #c8860a, transparent);
+}
+
+.vip-cost {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.vip-purchase-info {
+  margin-bottom: 0.5rem;
+}
+
 /* Formularios inline dentro del usercp */
 .settings-form {
   display: flex;
