@@ -309,7 +309,7 @@ function initBuyVIP() {
   if (!btn) return;
 
   btn.addEventListener('click', async () => {
-    if (!confirm('¿Confirmar compra?\n\n5.000 WCoins → VIP Oro por 15 días\n\nEsta acción descontará el saldo de tu cuenta.')) {
+    if (!confirm('¿Confirmar compra?\n\n5.000 WCoins → VIP Oro por 15 días\n\nEsta acción descontará el saldo de tu cuenta.\nUna vez activado, reconectate al servidor para ver el efecto.')) {
       return;
     }
 
