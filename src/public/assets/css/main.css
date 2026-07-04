@@ -2894,8 +2894,8 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
 
 .prode-stage-group { margin-bottom: var(--gap-lg); }
 
-/* Toggle colapsable — fase de grupos */
-.prode-groups-toggle {
+/* Toggle colapsable genérico (fase de grupos, Ronda de 32, etc.) */
+.prode-stage-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2911,16 +2911,16 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
   user-select: none;
   transition: background var(--t), border-color var(--t);
 }
-.prode-groups-toggle:hover {
+.prode-stage-toggle:hover {
   background: var(--bg-raised);
   border-color: var(--purple-light);
 }
-.prode-groups-toggle-chevron {
+.prode-stage-toggle-chevron {
   font-size: 0.7rem;
   color: var(--text-dim);
   transition: transform var(--t);
 }
-.prode-groups-toggle.is-open .prode-groups-toggle-chevron {
+.prode-stage-toggle.is-open .prode-stage-toggle-chevron {
   transform: rotate(180deg);
 }
 

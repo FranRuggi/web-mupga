@@ -106,10 +106,15 @@ function timingBadge(match) {
     return '<span class="prode-badge prode-badge--live">🟢 EN VIVO</span>';
   }
 
-  // SE JUEGA PRONTO: faltan ≤60 min para el inicio (independiente del cutoff de predicciones)
-  if (match.status === 'pending' && diffMs > 0 && diffMs <= 60 * 60 * 1000) {
-    const mins = Math.floor(diffMs / 60000);
-    return `<span class="prode-badge prode-badge--soon">⏰ En ${mins}min</span>`;
+  // SE JUEGA PRONTO: faltan ≤3h para el inicio (independiente del cutoff de predicciones)
+  if (match.status === 'pending' && diffMs > 0 && diffMs <= 3 * 60 * 60 * 1000) {
+    const totalMins = Math.floor(diffMs / 60000);
+    const hours = Math.floor(totalMins / 60);
+    const mins  = totalMins % 60;
+    const label = hours > 0
+      ? (mins > 0 ? `${hours}h ${mins}min` : `${hours}h`)
+      : `${mins}min`;
+    return `<span class="prode-badge prode-badge--soon">⏰ En ${label}</span>`;
   }
 
   return '';
@@ -214,6 +219,41 @@ function renderMatchGroup(stage, matches) {
     </div>`;
 }
 
+// ── Secciones colapsables ─────────────────────────────────────
+
+function renderCollapsible(id, labelClosed, labelOpen, innerHtml) {
+  return `
+    <div class="prode-stage-toggle" id="${id}-toggle" role="button" tabindex="0"
+         aria-expanded="false" aria-controls="${id}-container"
+         data-label-closed="${labelClosed}" data-label-open="${labelOpen}">
+      <span class="prode-stage-toggle-label">${labelClosed}</span>
+      <span class="prode-stage-toggle-chevron">▼</span>
+    </div>
+    <div id="${id}-container" hidden>
+      ${innerHtml}
+    </div>`;
+}
+
+function attachCollapsibleListeners(root) {
+  root.querySelectorAll('.prode-stage-toggle').forEach(btn => {
+    const target = document.getElementById(btn.getAttribute('aria-controls'));
+    if (!target) return;
+    const toggle = () => {
+      const opening = target.hidden;
+      target.hidden = !opening;
+      btn.classList.toggle('is-open', opening);
+      btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      btn.querySelector('.prode-stage-toggle-label').textContent = opening
+        ? btn.dataset.labelOpen
+        : btn.dataset.labelClosed;
+    };
+    btn.addEventListener('click', toggle);
+    btn.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  });
+}
+
 function renderMatches(data) {
   const container = document.getElementById('matches-container');
   const all       = [...data.upcoming, ...data.finished];
@@ -245,45 +285,34 @@ function renderMatches(data) {
     });
 
   const phaseGroups = sorted.filter(([stage]) => stage.startsWith('Grupo '));
-  const knockout    = sorted.filter(([stage]) => !stage.startsWith('Grupo '));
+  const ronda32     = sorted.filter(([stage]) => stage === 'Ronda de 32');
+  const rest        = sorted.filter(([stage]) => !stage.startsWith('Grupo ') && stage !== 'Ronda de 32');
 
   let html = '';
 
   if (phaseGroups.length) {
-    const groupsHtml = phaseGroups.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('');
-    html += `
-      <div class="prode-groups-toggle" id="prode-groups-toggle" role="button" tabindex="0"
-           aria-expanded="false" aria-controls="prode-groups-container">
-        <span class="prode-groups-toggle-label">📋 Ver partidos de fase de grupos</span>
-        <span class="prode-groups-toggle-chevron">▼</span>
-      </div>
-      <div class="prode-groups-container" id="prode-groups-container" hidden>
-        ${groupsHtml}
-      </div>`;
+    html += renderCollapsible(
+      'prode-grupos',
+      '📋 Ver partidos de fase de grupos',
+      '📋 Ocultar partidos de fase de grupos',
+      phaseGroups.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('')
+    );
   }
 
-  html += knockout.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('');
+  if (ronda32.length) {
+    html += renderCollapsible(
+      'prode-r32',
+      '📋 Ver partidos de Ronda de 32',
+      '📋 Ocultar partidos de Ronda de 32',
+      ronda32.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('')
+    );
+  }
+
+  html += rest.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('');
 
   container.innerHTML = html;
 
-  const toggleBtn = document.getElementById('prode-groups-toggle');
-  const groupsCnt = document.getElementById('prode-groups-container');
-  if (toggleBtn && groupsCnt) {
-    const toggle = () => {
-      const opening = groupsCnt.hidden;
-      groupsCnt.hidden = !opening;
-      toggleBtn.classList.toggle('is-open', opening);
-      toggleBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
-      toggleBtn.querySelector('.prode-groups-toggle-label').textContent = opening
-        ? '📋 Ocultar partidos de fase de grupos'
-        : '📋 Ver partidos de fase de grupos';
-    };
-    toggleBtn.addEventListener('click', toggle);
-    toggleBtn.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
-    });
-  }
-
+  attachCollapsibleListeners(container);
   renderUserStats(data);
   attachFormListeners();
   updateBatchBar();
