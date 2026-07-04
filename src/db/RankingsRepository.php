@@ -29,11 +29,11 @@ class RankingsRepository {
         ));
     }
 
-    /** WHERE clause que excluye por AccountID y por Name a la vez. */
+    /** WHERE clause que excluye por AccountID y por Name a la vez (case-insensitive). */
     private function excludeClause(array $excluded): string {
         if (empty($excluded)) return '1=1';
-        $ex = $this->buildExcludeList($excluded);
-        return "AccountID NOT IN ({$ex}) AND Name NOT IN ({$ex})";
+        $ex = $this->buildExcludeList(array_map('strtolower', $excluded));
+        return "LOWER(AccountID) NOT IN ({$ex}) AND LOWER(Name) NOT IN ({$ex})";
     }
 
     // -------------------------------------------------------------------------
@@ -120,8 +120,8 @@ class RankingsRepository {
     // -------------------------------------------------------------------------
 
     public function getPlayerCharacterRank(string $accountId, string $type, array $excluded = []): ?array {
-        $ex    = $this->buildExcludeList($excluded);
-        $excl  = empty($excluded) ? '1=1' : "AccountID NOT IN ({$ex}) AND Name NOT IN ({$ex})";
+        $ex    = $this->buildExcludeList(array_map('strtolower', $excluded));
+        $excl  = empty($excluded) ? '1=1' : "LOWER(AccountID) NOT IN ({$ex}) AND LOWER(Name) NOT IN ({$ex})";
 
         $typeMap = [
             'level'        => ['cLevel DESC',                                                    '1=1'],

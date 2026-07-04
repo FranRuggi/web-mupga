@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initChangePassword();
   initChangeEmail();
   initGameOptions();
+  initBuyVIP();
 });
 
 // ── Perfil + personajes ───────────────────────────────────────
@@ -58,8 +59,10 @@ function renderAccountInfo(data) {
 
     const expireRow = document.getElementById('info-vip-expire-row');
     const expireEl  = document.getElementById('info-vip-expire');
-    if (isVip && data.expire_date && expireRow && expireEl) {
+    const expireLbl = document.getElementById('info-vip-expire-label');
+    if (data.expire_date && expireRow && expireEl) {
       expireEl.textContent = new Date(data.expire_date).toLocaleDateString('es-AR');
+      if (expireLbl) expireLbl.textContent = isVip ? 'VIP vence' : 'VIP venció';
       expireRow.style.display = '';
     }
   }
@@ -119,7 +122,7 @@ function populateCharSelect(chars) {
 
   const prevSelection = sel.value; // preservar personaje seleccionado
 
-  const actionBtns = ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml', 'btn-resetchar'];
+  const actionBtns = ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetchar'];
 
   if (!chars.length) {
     sel.innerHTML = '<option value="">Sin personajes</option>';
@@ -148,7 +151,7 @@ function initGameOptions() {
     ['btn-unstick',    'account/unstick.php',    'msg-unstick',    'Unstick'],
     ['btn-clearpk',    'account/clearpk.php',    'msg-clearpk',    'Limpiar PK'],
     ['btn-resetstats', 'account/resetstats.php', 'msg-resetstats', 'Resetear Stats'],
-    ['btn-resetml',    'account/resetml.php',    'msg-resetml',    'Resetear Árbol ML'],
+    // btn-resetml: temporalmente deshabilitado, no se registra listener
     ['btn-resetchar',  'account/resetchar.php',  'msg-resetchar',  'Reset personaje'],
   ];
   actions.forEach(([id, endpoint, msgId, label]) => {
@@ -289,6 +292,66 @@ async function loadBalance() {
   fill('balance-wcoinc',  data.WCoinC      ?? 0);
   fill('balance-wcoinp',  data.WCoinP      ?? 0);
   fill('balance-goblin',  data.GoblinPoint ?? 0);
+
+  // Sincronizar el balance visible en la card de compra VIP
+  const vipBalanceEl = document.getElementById('vip-balance-display');
+  if (vipBalanceEl) {
+    const wc = data.WCoinC ?? 0;
+    vipBalanceEl.textContent = wc.toLocaleString('es-AR') + ' WCoins';
+    vipBalanceEl.style.color = wc >= 5000 ? 'var(--text-bright)' : 'var(--text-dim)';
+  }
+}
+
+// ── Comprar VIP ───────────────────────────────────────────────
+
+function initBuyVIP() {
+  const btn = document.getElementById('btn-buyvip');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    if (!confirm('¿Confirmar compra?\n\n5.000 WCoins → VIP Oro por 15 días\n\nEsta acción descontará el saldo de tu cuenta.\nUna vez activado, reconectate al servidor para ver el efecto.')) {
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Procesando...';
+
+    const res = await authFetch('account/buyvip.php', { method: 'POST' });
+
+    btn.disabled    = false;
+    btn.textContent = 'Activar VIP — 5.000 WCoins';
+
+    if (!res) return;
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      const expira = data.vip_expira
+        ? new Date(data.vip_expira).toLocaleDateString('es-AR')
+        : null;
+      const extra = expira ? ` Expira: ${expira}.` : '';
+      showGameMsg('msg-buyvip', (data.message ?? '¡VIP activado!') + extra, 'success');
+
+      // Actualizar balance en ambas cards
+      const nuevoBalance = data.nuevo_balance ?? 0;
+      const fillBalance = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val.toLocaleString('es-AR');
+      };
+      fillBalance('balance-wcoinc', nuevoBalance);
+
+      const vipBalanceEl = document.getElementById('vip-balance-display');
+      if (vipBalanceEl) {
+        vipBalanceEl.textContent = nuevoBalance.toLocaleString('es-AR') + ' WCoins';
+        vipBalanceEl.style.color = nuevoBalance >= 5000 ? 'var(--text-bright)' : 'var(--text-dim)';
+      }
+
+      // Refrescar estado VIP en info de cuenta
+      await loadProfile();
+    } else {
+      showGameMsg('msg-buyvip', data.error ?? 'Error al procesar la compra.', 'error');
+    }
+  });
 }
 
 // ── Cambiar contraseña ────────────────────────────────────────
