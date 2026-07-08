@@ -284,11 +284,11 @@ function renderMatches(data) {
       return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
     });
 
-  const phaseGroups  = sorted.filter(([stage]) => stage.startsWith('Grupo '));
-  const ronda32      = sorted.filter(([stage]) => stage === 'Ronda de 32');
-  const cuartos      = sorted.filter(([stage]) => stage === 'Cuartos de Final');
-  const rest         = sorted.filter(([stage]) =>
-    !stage.startsWith('Grupo ') && stage !== 'Ronda de 32' && stage !== 'Cuartos de Final'
+  const phaseGroups = sorted.filter(([stage]) => stage.startsWith('Grupo '));
+  const ronda32     = sorted.filter(([stage]) => stage === 'Ronda de 32');
+  const ronda16     = sorted.filter(([stage]) => stage === 'Ronda de 16');
+  const rest        = sorted.filter(([stage]) =>
+    !stage.startsWith('Grupo ') && stage !== 'Ronda de 32' && stage !== 'Ronda de 16'
   );
 
   let html = '';
@@ -311,12 +311,12 @@ function renderMatches(data) {
     );
   }
 
-  if (cuartos.length) {
+  if (ronda16.length) {
     html += renderCollapsible(
-      'prode-cuartos',
-      '📋 Ver partidos de Cuartos de Final',
-      '📋 Ocultar partidos de Cuartos de Final',
-      cuartos.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('')
+      'prode-r16',
+      '📋 Ver partidos de Ronda de 16',
+      '📋 Ocultar partidos de Ronda de 16',
+      ronda16.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('')
     );
   }
 
