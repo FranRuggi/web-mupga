@@ -139,6 +139,23 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [ ] Configurar variables PRODE_DB_* y ADMIN_TOKEN en el .env del VPS (manual)
 - [ ] Cargar primeros partidos vía admin_match.php (manual)
 
+## Fase 7 — Migración a ControlPanel (contenido dinámico desde mupga_admin)
+
+> Base `mupga_admin` + login `mupga_web_svc` ya creados en producción (no recrear).
+> Implementación EN ETAPAS: cada etapa se completa, se avisa y se espera OK antes de seguir.
+
+### Setup previo
+- [x] `.env.example`: variables `ADMIN_DB_HOST/PORT/NAME/USER/PASSWORD` documentadas — 2026-07-12
+- [x] `src/config/admin_db.php` — conexión PDO separada a `mupga_admin` (clase `AdminDatabase`) — 2026-07-12
+- [x] `database/test_admin_db.php` — script CLI de verificación (conexión, tablas, site_status, vw_web_auth) — 2026-07-12
+- [ ] Agregar variables `ADMIN_DB_*` al `.env` del VPS (manual — Franco)
+- [ ] Correr `test_admin_db.php` en el VPS y confirmar que la conexión levanta (manual — Franco)
+
+### Etapa 1 — Server Info + Downloads (solo lectura) — pendiente OK del setup
+### Etapa 2 — Noticias — pendiente
+### Etapa 3 — Site status (corte de canales) — pendiente
+### Etapa 4 — Auth admin + ControlPanel de escritura — pendiente
+
 ## Registro de cambios
 <!-- Claude Code agrega acá una línea por tarea completada. Formato:
      - YYYY-MM-DD — [Fase X] qué se hizo -->
@@ -229,4 +246,5 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-19 — [Seguridad] Prode: cutoff server-side con DATEADD(HOUR,3,GETDATE()) [GETUTCDATE() unreliable en este VPS: devuelve UTC-5], is_locked removido del enforcement temporal (SQL Server Express sin Agent), UPDLOCK/HOLDLOCK, submitted_at en ambos paths del MERGE, frontend isMatchOpen() con prioridad temporal sobre is_locked
 - 2026-06-19 — [Fix] Prode: badge "⏰ En Xmin" restaurado para partidos a ≤60 min del inicio; muestra independiente del estado de predicciones (is_locked / cutoff)
 - 2026-06-20 — [Feat] Integración VPS de pagos: JWT estándar HS256 (RFC 7519) con claims iss/aud/uid/usr/role en api/donate/order.php; TTL sesión reducido de 7 días a 24h; PAYMENT_JWT_SECRET + PAYMENT_JWT_ISS/AUD en .env.example
+- 2026-07-12 — [Fase 7] Setup previo ControlPanel: admin_db.php (conexión PDO separada a mupga_admin), variables ADMIN_DB_* en .env.example, script CLI test_admin_db.php para validar en el VPS
 - 2026-07-01 — [Feat] Compra de VIP con WCoins en /usercp/: endpoint api/account/buyvip.php (transacción PDO con UPDLOCK/HOLDLOCK, descuento WCoinC, sp_SetAccountGOLDVIP, log CashLog); sección "VIP Oro" en usercp con confirmación, feedback en tiempo real y actualización del balance
