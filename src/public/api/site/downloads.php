@@ -41,6 +41,7 @@ try {
     echo json_encode(['items' => $items], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
 
 } catch (PDOException $e) {
+    header('Cache-Control: no-store'); // nunca cachear errores
     http_response_code(500);
     $dev = ($_ENV['APP_ENV'] ?? '') === 'development';
     echo json_encode(['error' => $dev ? $e->getMessage() : 'Error de base de datos']);

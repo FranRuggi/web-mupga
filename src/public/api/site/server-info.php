@@ -25,6 +25,7 @@ try {
     $raw = $stmt->fetchColumn();
 
     if ($raw === false || $raw === null || $raw === '') {
+        header('Cache-Control: no-store');
         http_response_code(404);
         echo json_encode(['error' => 'Info del servidor no configurada']);
         exit;
@@ -35,9 +36,11 @@ try {
     echo json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
 
 } catch (JsonException $e) {
+    header('Cache-Control: no-store'); // nunca cachear errores
     http_response_code(500);
     echo json_encode(['error' => 'El contenido guardado no es JSON válido']);
 } catch (PDOException $e) {
+    header('Cache-Control: no-store');
     http_response_code(500);
     $dev = ($_ENV['APP_ENV'] ?? '') === 'development';
     echo json_encode(['error' => $dev ? $e->getMessage() : 'Error de base de datos']);

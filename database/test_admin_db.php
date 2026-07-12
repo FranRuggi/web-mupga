@@ -66,6 +66,32 @@ try {
     echo "[ERROR] Leyendo site_status: " . $e->getMessage() . "\n";
 }
 
+// 3b. Queries exactas de los endpoints de la Etapa 1
+echo "\n== Test queries Etapa 1 (server-info / downloads) ==\n\n";
+try {
+    $stmt = $pdo->prepare('SELECT config_value FROM dbo.server_info WHERE config_key = :k');
+    $stmt->execute([':k' => 'secciones']);
+    $raw = $stmt->fetchColumn();
+    if ($raw === false || $raw === null || $raw === '') {
+        echo "[!!] server_info: no hay fila 'secciones' — correr el seed.\n";
+    } else {
+        json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        echo "[OK] server_info 'secciones': " . strlen($raw) . " bytes, JSON válido.\n";
+    }
+} catch (Throwable $e) {
+    echo "[ERROR] server_info: " . $e->getMessage() . "\n";
+}
+
+try {
+    $rows = $pdo->query(
+        'SELECT item_key, title, description, version, size, url
+           FROM dbo.downloads WHERE is_active = 1 ORDER BY sort_order ASC, id ASC'
+    )->fetchAll();
+    echo "[OK] downloads activos: " . count($rows) . " fila(s).\n";
+} catch (Throwable $e) {
+    echo "[ERROR] downloads: " . $e->getMessage() . "\n";
+}
+
 // 4. vw_web_auth en la base del juego, con el mismo login mupga_web_svc
 echo "\n== Test vw_web_auth (base del juego, mismo login) ==\n\n";
 try {
