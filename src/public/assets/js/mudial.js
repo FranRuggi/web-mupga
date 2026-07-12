@@ -286,9 +286,13 @@ function renderMatches(data) {
 
   const phaseGroups = sorted.filter(([stage]) => stage.startsWith('Grupo '));
   const ronda32     = sorted.filter(([stage]) => stage === 'Ronda de 32');
+  const ronda16     = sorted.filter(([stage]) => stage === 'Ronda de 16');
   const cuartos     = sorted.filter(([stage]) => stage === 'Cuartos de Final');
   const rest        = sorted.filter(([stage]) =>
-    !stage.startsWith('Grupo ') && stage !== 'Ronda de 32' && stage !== 'Cuartos de Final'
+    !stage.startsWith('Grupo ') &&
+    stage !== 'Ronda de 32' &&
+    stage !== 'Ronda de 16' &&
+    stage !== 'Cuartos de Final'
   );
 
   let html = '';
@@ -308,6 +312,15 @@ function renderMatches(data) {
       '📋 Ver partidos de Ronda de 32',
       '📋 Ocultar partidos de Ronda de 32',
       ronda32.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('')
+    );
+  }
+
+  if (ronda16.length) {
+    html += renderCollapsible(
+      'prode-r16',
+      '📋 Ver partidos de Ronda de 16',
+      '📋 Ocultar partidos de Ronda de 16',
+      ronda16.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('')
     );
   }
 
