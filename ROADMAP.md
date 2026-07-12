@@ -156,8 +156,10 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] `GET /api/site/server-info.php` — público, lee `server_info.config_key='secciones'`, devuelve `{secciones:[...]}` — 2026-07-12
 - [x] `GET /api/site/downloads.php` — público, `is_active=1` orden `sort_order`, devuelve `{items:[...]}` con `item_key`→`id` — 2026-07-12
 - [x] `info.js` y `downloads.js` apuntados a los endpoints nuevos — 2026-07-12
-- [ ] Correr el seed en SSMS del VPS (manual — Franco)
-- [ ] Probar `/api/site/server-info.php` y `/api/site/downloads.php` en producción + páginas Info y Descargas (manual)
+- [x] Correr el seed en SSMS del VPS (fix previo: `updated_by` es nvarchar(10), valor acortado a 'seed') — 2026-07-12
+- [x] Endpoints funcionando en producción (el 500 inicial era por `ADMIN_DB_*` faltantes en el `.env` del VPS) — 2026-07-12
+- [x] Fix: `Cache-Control: no-store` en paths de error de ambos endpoints (un 500 quedaba cacheado 5 min en el browser) — 2026-07-12
+- [ ] Verificar páginas Info y Descargas en el sitio (Cloudflare Pages, post-deploy) (manual — Franco)
 - [ ] Cleanup posterior (cuando Etapa 1 esté validada): eliminar `api/infodata.php`, `api/downloadsdata.php`, `data/info.json`, `data/downloads.json`
 
 ### Etapa 2 — Noticias — pendiente
