@@ -148,10 +148,18 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] `.env.example`: variables `ADMIN_DB_HOST/PORT/NAME/USER/PASSWORD` documentadas — 2026-07-12
 - [x] `src/config/admin_db.php` — conexión PDO separada a `mupga_admin` (clase `AdminDatabase`) — 2026-07-12
 - [x] `database/test_admin_db.php` — script CLI de verificación (conexión, tablas, site_status, vw_web_auth) — 2026-07-12
-- [ ] Agregar variables `ADMIN_DB_*` al `.env` del VPS (manual — Franco)
-- [ ] Correr `test_admin_db.php` en el VPS y confirmar que la conexión levanta (manual — Franco)
+- [x] Agregar variables `ADMIN_DB_*` al `.env` del VPS (manual — Franco) — 2026-07-12
+- [x] Correr `test_admin_db.php` en el VPS: conexión OK, 6 tablas OK, vw_web_auth OK (413 cuentas) — 2026-07-12
 
-### Etapa 1 — Server Info + Downloads (solo lectura) — pendiente OK del setup
+### Etapa 1 — Server Info + Downloads (solo lectura)
+- [x] `database/controlpanel_etapa1_seed.sql` — seed re-ejecutable de `server_info` (blob JSON "secciones") y `downloads` (launcher) — 2026-07-12
+- [x] `GET /api/site/server-info.php` — público, lee `server_info.config_key='secciones'`, devuelve `{secciones:[...]}` — 2026-07-12
+- [x] `GET /api/site/downloads.php` — público, `is_active=1` orden `sort_order`, devuelve `{items:[...]}` con `item_key`→`id` — 2026-07-12
+- [x] `info.js` y `downloads.js` apuntados a los endpoints nuevos — 2026-07-12
+- [ ] Correr el seed en SSMS del VPS (manual — Franco)
+- [ ] Probar `/api/site/server-info.php` y `/api/site/downloads.php` en producción + páginas Info y Descargas (manual)
+- [ ] Cleanup posterior (cuando Etapa 1 esté validada): eliminar `api/infodata.php`, `api/downloadsdata.php`, `data/info.json`, `data/downloads.json`
+
 ### Etapa 2 — Noticias — pendiente
 ### Etapa 3 — Site status (corte de canales) — pendiente
 ### Etapa 4 — Auth admin + ControlPanel de escritura — pendiente
@@ -246,5 +254,6 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-19 — [Seguridad] Prode: cutoff server-side con DATEADD(HOUR,3,GETDATE()) [GETUTCDATE() unreliable en este VPS: devuelve UTC-5], is_locked removido del enforcement temporal (SQL Server Express sin Agent), UPDLOCK/HOLDLOCK, submitted_at en ambos paths del MERGE, frontend isMatchOpen() con prioridad temporal sobre is_locked
 - 2026-06-19 — [Fix] Prode: badge "⏰ En Xmin" restaurado para partidos a ≤60 min del inicio; muestra independiente del estado de predicciones (is_locked / cutoff)
 - 2026-06-20 — [Feat] Integración VPS de pagos: JWT estándar HS256 (RFC 7519) con claims iss/aud/uid/usr/role en api/donate/order.php; TTL sesión reducido de 7 días a 24h; PAYMENT_JWT_SECRET + PAYMENT_JWT_ISS/AUD en .env.example
+- 2026-07-12 — [Fase 7 · Etapa 1] server_info y downloads dinámicos: seed SQL, endpoints públicos /api/site/server-info.php y /api/site/downloads.php (conexión AdminDatabase, prepared statements), info.js y downloads.js migrados
 - 2026-07-12 — [Fase 7] Setup previo ControlPanel: admin_db.php (conexión PDO separada a mupga_admin), variables ADMIN_DB_* en .env.example, script CLI test_admin_db.php para validar en el VPS
 - 2026-07-01 — [Feat] Compra de VIP con WCoins en /usercp/: endpoint api/account/buyvip.php (transacción PDO con UPDLOCK/HOLDLOCK, descuento WCoinC, sp_SetAccountGOLDVIP, log CashLog); sección "VIP Oro" en usercp con confirmación, feedback en tiempo real y actualización del balance

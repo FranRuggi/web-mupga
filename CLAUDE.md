@@ -116,6 +116,28 @@ Los SPs de premios se ejecutan a través de la conexión principal (`Database::g
 `DROP LOGIN prode_user`, borrar las variables `PRODE_*` del `.env` y eliminar
 `/api/prode/` y `/mudial/` del repo.
 
+## Módulo ControlPanel (migración en etapas — Fase 7 del roadmap)
+
+Contenido del sitio (info del servidor, descargas, noticias, estado del sitio) migra de JSON
+estáticos del repo a la base **`mupga_admin`** (separada de la del juego), editable a futuro
+desde un panel propio.
+
+**Login SQL:** `mupga_web_svc` — `db_datareader`+`db_datawriter` en `mupga_admin`, sin DDL.
+Sobre la base del juego: **solo** SELECT en la view `dbo.vw_web_auth` (memb___id, memb__pwd).
+Nunca tocar tablas del juego desde este módulo.
+
+**Conexión:** `src/config/admin_db.php` (clase `AdminDatabase`, PDO separada). Env vars:
+`ADMIN_DB_HOST/PORT/NAME/USER/PASSWORD`.
+
+**Tablas** (`mupga_admin.dbo`): `admins`, `site_status` (fila única id=1), `status_presets`,
+`news`, `server_info` (blob JSON en `config_key='secciones'`), `downloads`.
+
+**Endpoints públicos:** `GET /api/site/server-info.php`, `GET /api/site/downloads.php`.
+Escrituras (Etapa 4): POST-only, sesión server-side, CSRF, transacciones UPDLOCK/HOLDLOCK.
+
+**Regla de etapas:** implementar una etapa, avisar y ESPERAR confirmación de Franco antes
+de la siguiente. Estado por etapa en `ROADMAP.md` (Fase 7).
+
 ## Incidentes de Seguridad
 
 ### 2026-06-19 — Bypass del cutoff de predicciones (Prode)

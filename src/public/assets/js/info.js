@@ -1,9 +1,10 @@
 /* ============================================================
    MuPGA — info.js
-   Renderiza la página Info del servidor desde /api/infodata.php
-   (que a su vez sirve data/info.json del repo)
+   Renderiza la página Info del servidor desde /api/site/server-info.php
+   (contenido dinámico desde mupga_admin.dbo.server_info)
 
-   Para agregar o quitar secciones: editá data/info.json.
+   Para agregar o quitar secciones: editar la fila "secciones" en la DB
+   (próximamente desde el ControlPanel).
    Tipos de sección soportados: "tabla"
    ============================================================ */
 
@@ -81,7 +82,7 @@ async function loadInfoData() {
       ).join('')}
     </div>`;
 
-  const data = await apiFetch('infodata.php');
+  const data = await apiFetch('site/server-info.php');
 
   if (!data || !data.secciones) {
     container.innerHTML = '<p class="state-message">No se pudo cargar la información del servidor.</p>';

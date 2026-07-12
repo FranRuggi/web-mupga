@@ -1,6 +1,7 @@
 /* ============================================================
    MuPGA — downloads.js
-   Renderiza las tarjetas de descarga desde api/downloadsdata.php.
+   Renderiza las tarjetas de descarga desde api/site/downloads.php
+   (contenido dinámico desde mupga_admin.dbo.downloads).
    Depende de app.js (apiFetch, esc)
    ============================================================ */
 
@@ -8,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const container = document.getElementById('downloads-content');
   if (!container) return;
 
-  const data = await apiFetch('downloadsdata.php');
+  const data = await apiFetch('site/downloads.php');
 
   if (!data || !data.items?.length) {
     container.innerHTML = '<p class="state-message">No hay descargas disponibles por el momento.</p>';
