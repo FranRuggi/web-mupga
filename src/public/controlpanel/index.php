@@ -30,20 +30,26 @@ ob_start();
     <!-- ── Estado del sitio ── -->
     <section class="cp-section account-card" id="cp-tab-status">
       <p class="account-card__title">Estado del sitio (banner / overlay)</p>
-      <p class="cp-current" id="status-current">Cargando…</p>
+      <div class="cp-status-box" id="status-current">Cargando…</div>
 
       <div class="cp-form">
         <label class="cp-field">
-          <span>Preset (opcional — pisa título y mensaje)</span>
+          <span>Preset (opcional — completa título y mensaje)</span>
           <select id="status-preset"><option value="">— Sin preset —</option></select>
         </label>
-        <label class="cp-field">
-          <span>Modo</span>
-          <select id="status-mode">
-            <option value="banner">banner — franja arriba, no bloquea</option>
-            <option value="overlay">overlay — tapa toda la página</option>
-          </select>
-        </label>
+        <div class="cp-grid-2">
+          <label class="cp-field">
+            <span>Modo</span>
+            <select id="status-mode">
+              <option value="banner">banner — franja arriba, no bloquea</option>
+              <option value="overlay">overlay — tapa toda la página</option>
+            </select>
+          </label>
+          <label class="cp-field">
+            <span>Fin estimado (opcional)</span>
+            <input type="datetime-local" id="status-end">
+          </label>
+        </div>
         <label class="cp-field">
           <span>Título</span>
           <input type="text" id="status-title" maxlength="200">
@@ -51,10 +57,6 @@ ob_start();
         <label class="cp-field">
           <span>Mensaje</span>
           <textarea id="status-message" rows="3"></textarea>
-        </label>
-        <label class="cp-field">
-          <span>Fin estimado (opcional)</span>
-          <input type="datetime-local" id="status-end">
         </label>
         <div class="cp-actions">
           <button class="btn btn-primary" id="status-activate">Activar aviso</button>

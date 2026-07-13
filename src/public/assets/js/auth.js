@@ -6,6 +6,7 @@
 
 const TOKEN_KEY = 'mupga_token';
 const USER_KEY  = 'mupga_user';
+const ADMIN_KEY = 'mupga_admin'; // sessionStorage: '1' | '0' (cache del check de admin)
 
 // ── Token ─────────────────────────────────────────────────────
 
@@ -42,6 +43,7 @@ function setAuth(token, username, userId) {
 function clearAuth() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  sessionStorage.removeItem(ADMIN_KEY);
 }
 
 function isAuthenticated() {
@@ -112,9 +114,33 @@ function updateNav() {
   }
 }
 
+// ── Link de admin en la nav ───────────────────────────────────
+// Muestra [data-admin-show] solo si /api/admin/check.php confirma que la
+// cuenta está en dbo.admins. Cachea el resultado en sessionStorage para
+// no repetir el request en cada página (se limpia al cerrar sesión).
+async function updateAdminNav() {
+  if (!isAuthenticated()) return;
+
+  let isAdmin = sessionStorage.getItem(ADMIN_KEY);
+
+  if (isAdmin === null) {
+    try {
+      const res  = await authFetch('admin/check.php');
+      const data = res ? await res.json() : null;
+      isAdmin = data?.is_admin ? '1' : '0';
+      sessionStorage.setItem(ADMIN_KEY, isAdmin);
+    } catch { return; }
+  }
+
+  if (isAdmin === '1') {
+    document.querySelectorAll('[data-admin-show]').forEach(el => { el.hidden = false; });
+  }
+}
+
 // Logout desde la nav
 document.addEventListener('DOMContentLoaded', () => {
   updateNav();
+  updateAdminNav();
 
   document.getElementById('nav-logout')?.addEventListener('click', e => {
     e.preventDefault();

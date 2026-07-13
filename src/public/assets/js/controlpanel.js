@@ -52,10 +52,11 @@ async function loadStatus() {
   sel.innerHTML = '<option value="">— Sin preset —</option>' +
     statusPresets.map(p => `<option value="${esc(p.preset_key)}">${esc(p.preset_key)}: ${esc(p.title)}</option>`).join('');
 
+  const activo = st && Number(st.is_active);
   document.getElementById('status-current').innerHTML = st
-    ? `Estado actual: <strong>${Number(st.is_active) ? '🟠 ACTIVO' : '🟢 inactivo'}</strong>` +
-      (Number(st.is_active) ? ` — modo <strong>${esc(st.mode)}</strong>: "${esc(st.title ?? '')}"` : '') +
-      ` <span class="cp-dim">(últ. cambio: ${esc(st.updated_by ?? '—')} ${esc(st.updated_at ?? '')})</span>`
+    ? `<span class="cp-chip ${activo ? 'cp-chip--on' : 'cp-chip--off'}">${activo ? '● AVISO ACTIVO' : '○ Sin aviso'}</span>
+       ${activo ? `<span class="cp-status-detail">modo <strong>${esc(st.mode)}</strong> — "${esc(st.title ?? '')}"</span>` : ''}
+       <span class="cp-dim">Últ. cambio: ${esc(st.updated_by ?? '—')} · ${esc(st.updated_at ?? '')}</span>`
     : 'No se pudo leer el estado.';
 
   if (st) {

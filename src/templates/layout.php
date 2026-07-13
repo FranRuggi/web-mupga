@@ -59,6 +59,8 @@ $paymentsApiUrl = rtrim($_ENV['PAYMENTS_API_URL'] ?? '', '/');
       <a href="<?= $base ?>/login/"     class="nav-link"     data-guest-show>Login</a>
       <a href="<?= $base ?>/register/"  class="nav-link nav-cta" data-guest-show>Registrarme</a>
       <!-- Links para usuarios autenticados (JS los muestra si hay sesión) -->
+      <!-- Solo admins (auth.js lo muestra si /api/admin/check.php da is_admin) -->
+      <a href="<?= $base ?>/controlpanel/" class="nav-link nav-admin" data-admin-show hidden>✦ Admin</a>
       <a href="<?= $base ?>/usercp/"    class="nav-link"     data-auth-show hidden>Mi cuenta</a>
       <a href="#" id="nav-logout"       class="nav-link"     data-auth-show hidden>Salir</a>
     </nav>

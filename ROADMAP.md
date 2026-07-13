@@ -182,8 +182,10 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] UI `/controlpanel/` — página + controlpanel.js con 4 secciones (guard 403, tabs, forms funcionales) + CSS — 2026-07-12
 - [x] `build.php`: página controlpanel agregada — 2026-07-12
 - [x] `database/controlpanel_etapa4_seed.sql` — alta de admin (placeholder TU_CUENTA) + 3 presets de status — 2026-07-12
-- [ ] Editar el seed con el memb___id real y correrlo en SSMS (manual — Franco)
-- [ ] Probar el ControlPanel end-to-end en producción (manual — Franco)
+- [x] Editar el seed con el memb___id real y correrlo en SSMS (manual — Franco) — 2026-07-12
+- [x] Probar el ControlPanel end-to-end en producción — validado por Franco 2026-07-12 ✅
+- [x] `GET /api/admin/check.php` + link "✦ Admin" dorado en la nav (solo visible para admins, cache en sessionStorage) — 2026-07-12
+- [x] Polish visual del ControlPanel: tabs estilo dorado, chips de estado con pulso, inputs con focus dorado, grillas responsive, hover en filas — 2026-07-12
 
 ## Registro de cambios
 <!-- Claude Code agrega acá una línea por tarea completada. Formato:
@@ -275,6 +277,7 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-19 — [Seguridad] Prode: cutoff server-side con DATEADD(HOUR,3,GETDATE()) [GETUTCDATE() unreliable en este VPS: devuelve UTC-5], is_locked removido del enforcement temporal (SQL Server Express sin Agent), UPDLOCK/HOLDLOCK, submitted_at en ambos paths del MERGE, frontend isMatchOpen() con prioridad temporal sobre is_locked
 - 2026-06-19 — [Fix] Prode: badge "⏰ En Xmin" restaurado para partidos a ≤60 min del inicio; muestra independiente del estado de predicciones (is_locked / cutoff)
 - 2026-06-20 — [Feat] Integración VPS de pagos: JWT estándar HS256 (RFC 7519) con claims iss/aud/uid/usr/role en api/donate/order.php; TTL sesión reducido de 7 días a 24h; PAYMENT_JWT_SECRET + PAYMENT_JWT_ISS/AUD en .env.example
+- 2026-07-12 — [Fase 7 · Etapa 4b] Nav admin: /api/admin/check.php, link "✦ Admin" dorado con data-admin-show (auth.js con cache sessionStorage), polish visual completo del ControlPanel
 - 2026-07-12 — [Fase 7 · Etapa 4] ControlPanel: AdminAuth (requireAdmin), 4 endpoints admin POST-only (site-status con presets y UPDLOCK/HOLDLOCK, news, server-info con validación JSON, downloads), página /controlpanel/ con UI funcional, seed de admin+presets, build.php actualizado
 - 2026-07-12 — [Fase 7 · Etapa 3] Site status: endpoint público /api/site/status.php (no-store), loadSiteStatus() en app.js con modos banner/overlay, estilos en main.css
 - 2026-07-12 — [Fase 7 · Etapa 2] Noticias dinámicas: seed SQL de 3 noticias, endpoint público /api/site/news.php (is_published=1, published_at DESC, shape compatible), news.js y app.js migrados
