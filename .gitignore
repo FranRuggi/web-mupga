@@ -8,3 +8,4 @@ dist/
 # Sistema
 Thumbs.db
 .DS_Store
+src/public/uploads/

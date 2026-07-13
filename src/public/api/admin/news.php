@@ -24,7 +24,7 @@ $db    = AdminDatabase::get();
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     try {
         $rows = $db->query(
-            "SELECT id, title, body, category, summary, is_published,
+            "SELECT id, title, body, category, summary, is_published, image_url,
                     CONVERT(varchar(10), published_at, 23) AS published_at, created_by
                FROM dbo.news ORDER BY published_at DESC, id DESC"
         )->fetchAll();
@@ -47,6 +47,14 @@ if (!is_array($body)) {
 
 $action = $body['action'] ?? '';
 
+// null si viene vacía; false si es inválida; string limpia si está OK
+function validarImageUrl($url) {
+    $url = trim((string) ($url ?? ''));
+    if ($url === '') return null;
+    if (strlen($url) > 500 || !preg_match('#^https?://#i', $url)) return false;
+    return $url;
+}
+
 try {
     switch ($action) {
 
@@ -56,6 +64,10 @@ try {
             $category = trim((string) ($body['category'] ?? ''));
             $summary  = trim((string) ($body['summary'] ?? ''));
             $publish  = (int) ($body['publish'] ?? 1) === 1 ? 1 : 0;
+            $imageUrl = validarImageUrl($body['image_url'] ?? null);
+            if ($imageUrl === false) {
+                http_response_code(400); echo json_encode(['error' => 'image_url inválida (http/https, máx 500)']); exit;
+            }
 
             if ($title === '' || $texto === '' || $category === '' || $summary === '') {
                 http_response_code(400);
@@ -63,11 +75,11 @@ try {
             }
 
             $stmt = $db->prepare(
-                'INSERT INTO dbo.news (title, body, category, summary, is_published, published_at, created_by)
-                 VALUES (:t, :b, :c, :s, :p, GETDATE(), :by)'
+                'INSERT INTO dbo.news (title, body, category, summary, is_published, published_at, created_by, image_url)
+                 VALUES (:t, :b, :c, :s, :p, GETDATE(), :by, :img)'
             );
             $stmt->execute([':t' => $title, ':b' => $texto, ':c' => $category,
-                            ':s' => $summary, ':p' => $publish, ':by' => $admin['usr']]);
+                            ':s' => $summary, ':p' => $publish, ':by' => $admin['usr'], ':img' => $imageUrl]);
             echo json_encode(['success' => true], JSON_THROW_ON_ERROR);
             break;
         }
@@ -84,10 +96,15 @@ try {
                 echo json_encode(['error' => 'id, title, body, category y summary son obligatorios']); exit;
             }
 
+            $imageUrl = validarImageUrl($body['image_url'] ?? null);
+            if ($imageUrl === false) {
+                http_response_code(400); echo json_encode(['error' => 'image_url inválida (http/https, máx 500)']); exit;
+            }
+
             $stmt = $db->prepare(
-                'UPDATE dbo.news SET title = :t, body = :b, category = :c, summary = :s WHERE id = :id'
+                'UPDATE dbo.news SET title = :t, body = :b, category = :c, summary = :s, image_url = :img WHERE id = :id'
             );
-            $stmt->execute([':t' => $title, ':b' => $texto, ':c' => $category, ':s' => $summary, ':id' => $id]);
+            $stmt->execute([':t' => $title, ':b' => $texto, ':c' => $category, ':s' => $summary, ':img' => $imageUrl, ':id' => $id]);
 
             if ($stmt->rowCount() === 0) {
                 http_response_code(404); echo json_encode(['error' => 'Noticia no encontrada']); exit;

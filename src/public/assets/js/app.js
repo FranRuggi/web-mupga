@@ -201,7 +201,7 @@ async function loadHomeNews() {
         <div class="card-meta">${esc(n.category)} · ${esc(n.date)}</div>
         <h3 class="card-title">${esc(n.title)}</h3>
         <p class="card-text">${esc(n.summary)}</p>
-        <a class="card-link" href="${BASE}/news/#news-${i}">Leer más</a>
+        <a class="card-link" href="${BASE}/news/?id=${n.id}">Leer más</a>
       </div>
     </div>`).join('');
 }

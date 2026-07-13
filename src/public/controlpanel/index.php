@@ -78,6 +78,21 @@ ob_start();
         <label class="cp-field"><span>Categoría</span><input type="text" id="news-category" maxlength="50" placeholder="Anuncio / Info / Mantenimiento"></label>
         <label class="cp-field"><span>Resumen</span><input type="text" id="news-summary" maxlength="500"></label>
         <label class="cp-field"><span>Contenido</span><textarea id="news-body" rows="5"></textarea></label>
+        <div class="cp-field">
+          <span>Imagen (opcional)</span>
+          <div class="cp-dropzone" id="news-dropzone">
+            <input type="file" id="news-image-file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+            <div class="cp-dropzone__idle" id="news-dropzone-idle">
+              📷 Arrastrá una imagen acá o <u>hacé click para elegir</u><br>
+              <small>JPG · PNG · WebP · GIF — máx 3 MB</small>
+            </div>
+            <div class="cp-dropzone__preview" id="news-dropzone-preview" hidden>
+              <img id="news-image-preview" alt="">
+              <button type="button" class="btn btn-secondary btn-sm" id="news-image-remove">✕ Quitar imagen</button>
+            </div>
+          </div>
+          <input type="hidden" id="news-image-url" value="">
+        </div>
         <div class="cp-actions">
           <button class="btn btn-primary" id="news-save">Guardar</button>
           <button class="btn btn-secondary" id="news-cancel" hidden>Cancelar edición</button>

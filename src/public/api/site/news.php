@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 try {
     // CONVERT(..., 23) → 'YYYY-MM-DD'
     $stmt = AdminDatabase::get()->query(
-        'SELECT title, CONVERT(varchar(10), published_at, 23) AS date,
-                category, summary, body
+        'SELECT id, title, CONVERT(varchar(10), published_at, 23) AS date,
+                category, summary, body, image_url
            FROM dbo.news
           WHERE is_published = 1
           ORDER BY published_at DESC, id DESC'
@@ -33,11 +33,13 @@ try {
     $news = [];
     foreach ($stmt->fetchAll() as $row) {
         $news[] = [
+            'id'       => (int) $row['id'],
             'title'    => $row['title'],
             'date'     => $row['date'],
             'category' => $row['category'],
             'summary'  => $row['summary'],
             'content'  => $row['body'],
+            'image'    => $row['image_url'],
         ];
     }
 
