@@ -3552,3 +3552,117 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
 @media (max-width: 640px) {
   .cp-row { flex-direction: column; align-items: flex-start; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Polish pass — refinamiento visual global (mismo lenguaje
+   que el ControlPanel: acentos dorados, micro-interacciones)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Selección de texto y scrollbar globales ── */
+::selection { background: rgba(200,168,75,0.35); color: var(--text-bright); }
+
+body::-webkit-scrollbar { width: 10px; }
+body::-webkit-scrollbar-track { background: var(--bg); }
+body::-webkit-scrollbar-thumb {
+  background: var(--bg-raised);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+
+/* ── Botones: brillo que barre al hover + estado presionado ── */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -80%;
+  width: 50%; height: 100%;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,0.28), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.45s ease;
+  pointer-events: none;
+}
+.btn:hover::before { left: 130%; }
+.btn:active { transform: translateY(0) scale(0.98); }
+
+.btn-primary {
+  border: 1px solid rgba(255,255,255,0.18);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+}
+
+.btn-secondary {
+  background: linear-gradient(180deg, rgba(145,71,232,0.08), transparent);
+}
+.btn-secondary:hover {
+  box-shadow: 0 0 18px var(--purple-glow), 0 4px 14px rgba(0,0,0,0.35);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ── Cards: elevación unificada al hover ── */
+.card, .info-card, .download-card, .news-card, .account-card {
+  transition: transform var(--t), border-color var(--t), box-shadow var(--t), background var(--t);
+}
+.card:hover, .info-card:hover, .download-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 24px rgba(200,168,75,0.06);
+}
+.news-card:hover, .account-card:hover {
+  border-color: var(--gold-border);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.35);
+}
+
+/* ── Títulos de página: degradé dorado ── */
+.page-hero-title {
+  background: linear-gradient(180deg, var(--gold-light) 20%, var(--gold) 60%, #8a7030 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 12px rgba(200,168,75,0.25));
+}
+
+/* ── Inputs de formularios: focus dorado consistente con el CP ── */
+.form-input:focus {
+  border-color: var(--gold-border);
+  box-shadow: 0 0 0 3px var(--gold-glow);
+}
+
+/* ── Widgets del sidebar: vida al hover ── */
+.widget {
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.widget:hover {
+  border-color: var(--gold-border);
+  box-shadow: 0 0 20px rgba(200,168,75,0.07);
+}
+
+/* ── Número de online: presencia ── */
+.online-number {
+  text-shadow: 0 0 24px var(--cyan-glow);
+}
+
+/* ── Links de cards: subrayado que crece ── */
+.card-link {
+  position: relative;
+}
+.card-link::before {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 0; height: 1px;
+  background: var(--gold);
+  transition: width var(--t);
+}
+.card-link:hover::before { width: 100%; }
+
+/* ── Footer: separador con degradé ── */
+.site-footer {
+  border-top: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, var(--gold-border), var(--purple-border), transparent) 1;
+}

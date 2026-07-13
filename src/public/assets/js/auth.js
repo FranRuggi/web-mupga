@@ -125,8 +125,9 @@ async function updateAdminNav() {
 
   if (isAdmin === null) {
     try {
-      const res  = await authFetch('admin/check.php');
-      const data = res ? await res.json() : null;
+      const res = await authFetch('admin/check.php');
+      if (!res || !res.ok) return; // error de red/servidor: no cachear, reintenta en la próxima página
+      const data = await res.json();
       isAdmin = data?.is_admin ? '1' : '0';
       sessionStorage.setItem(ADMIN_KEY, isAdmin);
     } catch { return; }

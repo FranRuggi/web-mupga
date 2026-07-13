@@ -34,7 +34,18 @@ $paymentsApiUrl = rtrim($_ENV['PAYMENTS_API_URL'] ?? '', '/');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
-<?php $v = ($_ENV['APP_ENV'] ?? 'production') === 'development' ? '?v=' . time() : '?v=1'; ?>
+<?php
+// Cache-buster de assets:
+//  - development: por request (siempre fresco).
+//  - build CLI (Cloudflare Pages): por deploy — cada build genera una versión
+//    nueva y bustea el cache del navegador (antes quedaba ?v=1 para siempre y
+//    el JS/CSS viejo podía servirse cacheado después de un deploy).
+if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
+    $v = '?v=' . time();
+} else {
+    $v = '?v=' . date('YmdHi');
+}
+?>
   <link rel="stylesheet" href="<?= $base ?>/assets/css/main.css<?= $v ?>">
 </head>
 <body>
