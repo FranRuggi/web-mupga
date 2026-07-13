@@ -1,0 +1,313 @@
+/* ============================================================
+   MuPGA — controlpanel.js
+   Panel de administración de contenido (mupga_admin).
+   Depende de app.js (esc, BASE) y auth.js (authFetch, isAuthenticated).
+
+   Guard: requiere sesión + estar en dbo.admins (el servidor valida
+   con requireAdmin(); acá solo se maneja la UX del 403).
+   ============================================================ */
+
+// ── Helpers ───────────────────────────────────────────────────
+
+async function adminFetch(endpoint, options = {}) {
+  const res = await authFetch(`admin/${endpoint}`, options);
+  if (!res) return { ok: false, status: 0, data: null };
+  let data = null;
+  try { data = await res.json(); } catch { /* respuesta sin body */ }
+  return { ok: res.ok, status: res.status, data };
+}
+
+function feedback(id, msg, isError = false) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.color = isError ? '#e05555' : 'var(--cyan)';
+  if (msg) setTimeout(() => { el.textContent = ''; }, 6000);
+}
+
+// ── Tabs ──────────────────────────────────────────────────────
+
+function initTabs() {
+  document.querySelectorAll('.cp-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cp-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.cp-section').forEach(s => s.hidden = true);
+      document.getElementById(`cp-tab-${btn.dataset.tab}`).hidden = false;
+    });
+  });
+}
+
+// ── Estado del sitio ──────────────────────────────────────────
+
+let statusPresets = [];
+
+async function loadStatus() {
+  const { ok, data } = await adminFetch('site-status.php');
+  if (!ok || !data) return;
+
+  const st = data.status;
+  statusPresets = data.presets ?? [];
+
+  const sel = document.getElementById('status-preset');
+  sel.innerHTML = '<option value="">— Sin preset —</option>' +
+    statusPresets.map(p => `<option value="${esc(p.preset_key)}">${esc(p.preset_key)}: ${esc(p.title)}</option>`).join('');
+
+  document.getElementById('status-current').innerHTML = st
+    ? `Estado actual: <strong>${Number(st.is_active) ? '🟠 ACTIVO' : '🟢 inactivo'}</strong>` +
+      (Number(st.is_active) ? ` — modo <strong>${esc(st.mode)}</strong>: "${esc(st.title ?? '')}"` : '') +
+      ` <span class="cp-dim">(últ. cambio: ${esc(st.updated_by ?? '—')} ${esc(st.updated_at ?? '')})</span>`
+    : 'No se pudo leer el estado.';
+
+  if (st) {
+    document.getElementById('status-mode').value  = ['banner', 'overlay'].includes(st.mode) ? st.mode : 'banner';
+    document.getElementById('status-title').value   = st.title ?? '';
+    document.getElementById('status-message').value = st.message ?? '';
+    document.getElementById('status-end').value     = st.scheduled_end ? st.scheduled_end.replace(' ', 'T') : '';
+  }
+}
+
+function initStatus() {
+  // Elegir un preset completa título y mensaje en el form (editables antes de enviar)
+  document.getElementById('status-preset').addEventListener('change', (e) => {
+    const p = statusPresets.find(x => x.preset_key === e.target.value);
+    if (p) {
+      document.getElementById('status-title').value   = p.title;
+      document.getElementById('status-message').value = p.message;
+    }
+  });
+
+  document.getElementById('status-activate').addEventListener('click', () => saveStatus(1));
+  document.getElementById('status-deactivate').addEventListener('click', () => saveStatus(0));
+}
+
+async function saveStatus(isActive) {
+  const body = {
+    is_active:     isActive,
+    mode:          document.getElementById('status-mode').value,
+    title:         document.getElementById('status-title').value.trim(),
+    message:       document.getElementById('status-message').value.trim(),
+    scheduled_end: document.getElementById('status-end').value || null,
+  };
+  const { ok, data } = await adminFetch('site-status.php', { method: 'POST', body: JSON.stringify(body) });
+  feedback('status-feedback', ok ? (isActive ? 'Aviso activado ✔' : 'Aviso desactivado ✔') : (data?.error ?? 'Error'), !ok);
+  if (ok) loadStatus();
+}
+
+// ── Noticias ──────────────────────────────────────────────────
+
+async function loadNewsAdmin() {
+  const { ok, data } = await adminFetch('news.php');
+  const el = document.getElementById('news-admin-list');
+  if (!ok || !data?.news) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
+
+  el.innerHTML = data.news.map(n => `
+    <div class="cp-row">
+      <div class="cp-row__info">
+        <strong>${esc(n.title)}</strong>
+        <span class="cp-dim">${esc(n.category)} · ${esc(n.published_at)} · ${Number(n.is_published) ? 'publicada' : '<em>despublicada</em>'}</span>
+      </div>
+      <div class="cp-row__actions">
+        <button class="btn btn-secondary btn-sm" data-news-edit="${n.id}">Editar</button>
+        <button class="btn btn-secondary btn-sm" data-news-pub="${n.id}" data-pub="${Number(n.is_published) ? 0 : 1}">
+          ${Number(n.is_published) ? 'Despublicar' : 'Publicar'}
+        </button>
+      </div>
+    </div>`).join('') || '<p class="state-message">Sin noticias.</p>';
+
+  el.querySelectorAll('[data-news-edit]').forEach(b => b.addEventListener('click', () => {
+    const n = data.news.find(x => String(x.id) === b.dataset.newsEdit);
+    document.getElementById('news-id').value       = n.id;
+    document.getElementById('news-title').value    = n.title;
+    document.getElementById('news-category').value = n.category;
+    document.getElementById('news-summary').value  = n.summary;
+    document.getElementById('news-body').value     = n.body;
+    document.getElementById('news-form-title').textContent = `Editando noticia #${n.id}`;
+    document.getElementById('news-cancel').hidden = false;
+  }));
+
+  el.querySelectorAll('[data-news-pub]').forEach(b => b.addEventListener('click', async () => {
+    const { ok: ok2, data: d2 } = await adminFetch('news.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'set_published', id: Number(b.dataset.newsPub), is_published: Number(b.dataset.pub) }),
+    });
+    feedback('news-feedback', ok2 ? 'Actualizado ✔' : (d2?.error ?? 'Error'), !ok2);
+    if (ok2) loadNewsAdmin();
+  }));
+}
+
+function resetNewsForm() {
+  ['news-id', 'news-title', 'news-category', 'news-summary', 'news-body'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('news-form-title').textContent = 'Nueva noticia';
+  document.getElementById('news-cancel').hidden = true;
+}
+
+function initNews() {
+  document.getElementById('news-cancel').addEventListener('click', resetNewsForm);
+  document.getElementById('news-save').addEventListener('click', async () => {
+    const id   = document.getElementById('news-id').value;
+    const body = {
+      action:   id ? 'update' : 'create',
+      title:    document.getElementById('news-title').value.trim(),
+      category: document.getElementById('news-category').value.trim(),
+      summary:  document.getElementById('news-summary').value.trim(),
+      body:     document.getElementById('news-body').value.trim(),
+    };
+    if (id) body.id = Number(id); else body.publish = 1;
+
+    const { ok, data } = await adminFetch('news.php', { method: 'POST', body: JSON.stringify(body) });
+    feedback('news-feedback', ok ? 'Guardado ✔' : (data?.error ?? 'Error'), !ok);
+    if (ok) { resetNewsForm(); loadNewsAdmin(); }
+  });
+}
+
+// ── Info del servidor ─────────────────────────────────────────
+
+async function loadServerInfoAdmin() {
+  const { ok, data } = await adminFetch('server-info.php');
+  if (ok && data?.config_value) {
+    // Pretty-print para editar cómodo
+    try {
+      document.getElementById('serverinfo-json').value = JSON.stringify(JSON.parse(data.config_value), null, 2);
+    } catch {
+      document.getElementById('serverinfo-json').value = data.config_value;
+    }
+  }
+}
+
+function validarServerInfoJson() {
+  const raw = document.getElementById('serverinfo-json').value;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.secciones || !Array.isArray(parsed.secciones)) {
+      return { ok: false, msg: 'Falta la raíz {"secciones": [...]}' };
+    }
+    return { ok: true, msg: `JSON válido ✔ (${parsed.secciones.length} secciones)` };
+  } catch (e) {
+    return { ok: false, msg: `JSON inválido: ${e.message}` };
+  }
+}
+
+function initServerInfo() {
+  document.getElementById('serverinfo-validate').addEventListener('click', () => {
+    const v = validarServerInfoJson();
+    feedback('serverinfo-feedback', v.msg, !v.ok);
+  });
+
+  document.getElementById('serverinfo-save').addEventListener('click', async () => {
+    const v = validarServerInfoJson();
+    if (!v.ok) { feedback('serverinfo-feedback', v.msg + ' — no se envió nada.', true); return; }
+
+    const { ok, data } = await adminFetch('server-info.php', {
+      method: 'POST',
+      body: JSON.stringify({ config_value: document.getElementById('serverinfo-json').value }),
+    });
+    feedback('serverinfo-feedback', ok ? `Guardado ✔ (${data.secciones} secciones)` : (data?.error ?? 'Error'), !ok);
+  });
+}
+
+// ── Descargas ─────────────────────────────────────────────────
+
+async function loadDownloadsAdmin() {
+  const { ok, data } = await adminFetch('downloads.php');
+  const el = document.getElementById('downloads-admin-list');
+  if (!ok || !data?.items) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
+
+  el.innerHTML = data.items.map(d => `
+    <div class="cp-row">
+      <div class="cp-row__info">
+        <strong>${esc(d.title)}</strong>
+        <span class="cp-dim">${esc(d.item_key)} · v${esc(d.version ?? '')} · orden ${esc(String(d.sort_order))} · ${Number(d.is_active) ? 'activa' : '<em>inactiva</em>'}</span>
+      </div>
+      <div class="cp-row__actions">
+        <button class="btn btn-secondary btn-sm" data-dl-edit="${d.id}">Editar</button>
+        <button class="btn btn-secondary btn-sm" data-dl-act="${d.id}" data-act="${Number(d.is_active) ? 0 : 1}">
+          ${Number(d.is_active) ? 'Desactivar' : 'Activar'}
+        </button>
+      </div>
+    </div>`).join('') || '<p class="state-message">Sin descargas.</p>';
+
+  el.querySelectorAll('[data-dl-edit]').forEach(b => b.addEventListener('click', () => {
+    const d = data.items.find(x => String(x.id) === b.dataset.dlEdit);
+    document.getElementById('dl-id').value      = d.id;
+    document.getElementById('dl-key').value     = d.item_key;
+    document.getElementById('dl-key').disabled  = true; // la key no se edita
+    document.getElementById('dl-title').value   = d.title;
+    document.getElementById('dl-desc').value    = d.description ?? '';
+    document.getElementById('dl-version').value = d.version ?? '';
+    document.getElementById('dl-size').value    = d.size ?? '';
+    document.getElementById('dl-url').value     = d.url;
+    document.getElementById('dl-order').value   = d.sort_order;
+    document.getElementById('dl-form-title').textContent = `Editando descarga #${d.id}`;
+    document.getElementById('dl-cancel').hidden = false;
+  }));
+
+  el.querySelectorAll('[data-dl-act]').forEach(b => b.addEventListener('click', async () => {
+    const { ok: ok2, data: d2 } = await adminFetch('downloads.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'set_active', id: Number(b.dataset.dlAct), is_active: Number(b.dataset.act) }),
+    });
+    feedback('dl-feedback', ok2 ? 'Actualizado ✔' : (d2?.error ?? 'Error'), !ok2);
+    if (ok2) loadDownloadsAdmin();
+  }));
+}
+
+function resetDlForm() {
+  ['dl-id', 'dl-key', 'dl-title', 'dl-desc', 'dl-version', 'dl-size', 'dl-url'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('dl-order').value = 1;
+  document.getElementById('dl-key').disabled = false;
+  document.getElementById('dl-form-title').textContent = 'Nueva descarga';
+  document.getElementById('dl-cancel').hidden = true;
+}
+
+function initDownloads() {
+  document.getElementById('dl-cancel').addEventListener('click', resetDlForm);
+  document.getElementById('dl-save').addEventListener('click', async () => {
+    const id   = document.getElementById('dl-id').value;
+    const body = {
+      action:      id ? 'update' : 'create',
+      title:       document.getElementById('dl-title').value.trim(),
+      description: document.getElementById('dl-desc').value.trim(),
+      version:     document.getElementById('dl-version').value.trim(),
+      size:        document.getElementById('dl-size').value.trim(),
+      url:         document.getElementById('dl-url').value.trim(),
+      sort_order:  Number(document.getElementById('dl-order').value) || 1,
+    };
+    if (id) body.id = Number(id); else body.item_key = document.getElementById('dl-key').value.trim();
+
+    const { ok, data } = await adminFetch('downloads.php', { method: 'POST', body: JSON.stringify(body) });
+    feedback('dl-feedback', ok ? 'Guardado ✔' : (data?.error ?? 'Error'), !ok);
+    if (ok) { resetDlForm(); loadDownloadsAdmin(); }
+  });
+}
+
+// ── Init + guard ──────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!isAuthenticated()) {
+    window.location.href = `${BASE}/login/?redirect=${encodeURIComponent('/controlpanel/')}`;
+    return;
+  }
+
+  // El primer GET valida el permiso de admin server-side (403 si no está en dbo.admins)
+  const { ok, status } = await adminFetch('site-status.php');
+  if (!ok) {
+    document.getElementById('cp-guard-msg').textContent = status === 403
+      ? 'No tenés permisos de administrador para acceder a esta sección.'
+      : 'Error verificando permisos. Probá de nuevo más tarde.';
+    return;
+  }
+
+  document.getElementById('cp-guard').hidden = true;
+  document.getElementById('cp-panel').hidden = false;
+
+  initTabs();
+  initStatus();
+  initNews();
+  initServerInfo();
+  initDownloads();
+
+  loadStatus();
+  loadNewsAdmin();
+  loadServerInfoAdmin();
+  loadDownloadsAdmin();
+});

@@ -3397,3 +3397,64 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
   color: var(--text-dim);
   font-size: 0.9rem;
 }
+
+/* ── ControlPanel (admin) ─────────────────────────────────── */
+.cp-tabs {
+  display: flex;
+  gap: var(--gap-xs);
+  flex-wrap: wrap;
+  margin-bottom: var(--gap-md);
+}
+.cp-tab {
+  padding: 0.5rem 1rem;
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--t);
+}
+.cp-tab:hover  { color: var(--text-bright); border-color: var(--purple-border); }
+.cp-tab.active { color: var(--gold-light); border-color: var(--gold-border); background: var(--bg-raised); }
+
+.cp-form  { display: flex; flex-direction: column; gap: var(--gap-sm); }
+.cp-field { display: flex; flex-direction: column; gap: 0.3rem; }
+.cp-field span { font-size: 0.78rem; color: var(--text-dim); letter-spacing: 0.04em; }
+.cp-field input, .cp-field select, .cp-field textarea,
+#serverinfo-json {
+  padding: 0.55rem 0.75rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+.cp-field input:focus, .cp-field select:focus, .cp-field textarea:focus,
+#serverinfo-json:focus {
+  outline: none;
+  border-color: var(--purple-border);
+}
+
+.cp-actions  { display: flex; gap: var(--gap-xs); flex-wrap: wrap; }
+.cp-feedback { min-height: 1.2em; font-size: 0.85rem; }
+.cp-current  { margin-bottom: var(--gap-sm); font-size: 0.9rem; color: var(--text); }
+.cp-hint     { margin-bottom: var(--gap-sm); font-size: 0.8rem; color: var(--text-dim); }
+.cp-dim      { font-size: 0.78rem; color: var(--text-dim); }
+
+.cp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-sm);
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.cp-row__info { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.cp-row__info strong { color: var(--text-bright); font-size: 0.9rem; }
+.cp-row__actions { display: flex; gap: var(--gap-xs); flex-shrink: 0; }
+
+.btn-sm { padding: 0.35rem 0.7rem; font-size: 0.75rem; }

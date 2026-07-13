@@ -135,7 +135,14 @@ Nunca tocar tablas del juego desde este módulo.
 **Endpoints públicos:** `GET /api/site/server-info.php`, `GET /api/site/downloads.php`,
 `GET /api/site/news.php`, `GET /api/site/status.php` (este último con `no-store` — canal de
 emergencia). Columnas `updated_by`/`created_by` son nvarchar(10) — valores cortos.
-Escrituras (Etapa 4): POST-only, sesión server-side, CSRF, transacciones UPDLOCK/HOLDLOCK.
+
+**Panel de escritura:** `/controlpanel/` (página + `controlpanel.js`). Endpoints
+`/api/admin/*.php` protegidos con `requireAdmin()` (`src/lib/AdminAuth.php`): token JWT del
+sitio + `memb___id` en `dbo.admins` con `active=1`, si no 403. Mutaciones POST-only; el
+Bearer token en header actúa como protección CSRF (no hay cookies de sesión). `site_status`
+y `server_info` se escriben en transacción con `UPDLOCK/HOLDLOCK`. Modo de status: allowlist
+estricta `banner`/`overlay`. El JSON de server_info se valida antes de guardar (nunca
+guardar contenido roto).
 
 **Regla de etapas:** implementar una etapa, avisar y ESPERAR confirmación de Franco antes
 de la siguiente. Estado por etapa en `ROADMAP.md` (Fase 7).
