@@ -168,7 +168,11 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] `news.js` y `app.js` (home) apuntados al endpoint nuevo — 2026-07-12
 - [ ] Correr el seed en SSMS del VPS + pull + push a Cloudflare (manual — Franco)
 - [ ] Verificar página Noticias y bloque de noticias del home (manual — Franco)
-### Etapa 3 — Site status (corte de canales) — pendiente
+### Etapa 3 — Site status (corte de canales)
+- [x] `GET /api/site/status.php` — público, fila única id=1, `Cache-Control: no-store` (canal de emergencia) — 2026-07-12
+- [x] `app.js`: `loadSiteStatus()` en todas las páginas — banner (franja no bloqueante) / overlay (tapa la página) según `mode`; `scheduled_end` como "Fin estimado" — 2026-07-12
+- [x] CSS `.site-status-banner` / `.site-status-overlay` en main.css — 2026-07-12
+- [ ] Probar con UPDATE manual en SSMS: banner on/off, overlay on/off, frontend reacciona (manual — Franco)
 ### Etapa 4 — Auth admin + ControlPanel de escritura — pendiente
 
 ## Registro de cambios
@@ -261,6 +265,7 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-19 — [Seguridad] Prode: cutoff server-side con DATEADD(HOUR,3,GETDATE()) [GETUTCDATE() unreliable en este VPS: devuelve UTC-5], is_locked removido del enforcement temporal (SQL Server Express sin Agent), UPDLOCK/HOLDLOCK, submitted_at en ambos paths del MERGE, frontend isMatchOpen() con prioridad temporal sobre is_locked
 - 2026-06-19 — [Fix] Prode: badge "⏰ En Xmin" restaurado para partidos a ≤60 min del inicio; muestra independiente del estado de predicciones (is_locked / cutoff)
 - 2026-06-20 — [Feat] Integración VPS de pagos: JWT estándar HS256 (RFC 7519) con claims iss/aud/uid/usr/role en api/donate/order.php; TTL sesión reducido de 7 días a 24h; PAYMENT_JWT_SECRET + PAYMENT_JWT_ISS/AUD en .env.example
+- 2026-07-12 — [Fase 7 · Etapa 3] Site status: endpoint público /api/site/status.php (no-store), loadSiteStatus() en app.js con modos banner/overlay, estilos en main.css
 - 2026-07-12 — [Fase 7 · Etapa 2] Noticias dinámicas: seed SQL de 3 noticias, endpoint público /api/site/news.php (is_published=1, published_at DESC, shape compatible), news.js y app.js migrados
 - 2026-07-12 — [Fase 7 · Etapa 1] server_info y downloads dinámicos: seed SQL, endpoints públicos /api/site/server-info.php y /api/site/downloads.php (conexión AdminDatabase, prepared statements), info.js y downloads.js migrados
 - 2026-07-12 — [Fase 7] Setup previo ControlPanel: admin_db.php (conexión PDO separada a mupga_admin), variables ADMIN_DB_* en .env.example, script CLI test_admin_db.php para validar en el VPS

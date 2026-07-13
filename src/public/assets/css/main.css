@@ -3355,3 +3355,45 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
   font-size: 0.82rem;
   color: var(--text-dim);
 }
+
+/* ── Site status — aviso desde ControlPanel (banner / overlay) ── */
+.site-status-banner {
+  position: relative;
+  z-index: 300;
+  padding: 0.55rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-bright);
+  background: linear-gradient(90deg, #3d2506, #6e4309, #3d2506);
+  border-bottom: 1px solid var(--gold-border);
+}
+.site-status-banner strong {
+  color: var(--gold-light);
+  margin-right: 0.4rem;
+}
+
+.site-status-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(9, 8, 15, 0.96);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: var(--gap-lg);
+  text-align: center;
+}
+.site-status-overlay__box { max-width: 560px; }
+.site-status-overlay__box h1 {
+  color: var(--gold);
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  margin-bottom: var(--gap-md);
+}
+.site-status-overlay__box p { color: var(--text); line-height: 1.7; }
+.site-status-overlay__end {
+  margin-top: var(--gap-sm);
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}

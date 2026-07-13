@@ -133,7 +133,8 @@ Nunca tocar tablas del juego desde este módulo.
 `news`, `server_info` (blob JSON en `config_key='secciones'`), `downloads`.
 
 **Endpoints públicos:** `GET /api/site/server-info.php`, `GET /api/site/downloads.php`,
-`GET /api/site/news.php`. Columnas `updated_by`/`created_by` son nvarchar(10) — valores cortos.
+`GET /api/site/news.php`, `GET /api/site/status.php` (este último con `no-store` — canal de
+emergencia). Columnas `updated_by`/`created_by` son nvarchar(10) — valores cortos.
 Escrituras (Etapa 4): POST-only, sesión server-side, CSRF, transacciones UPDLOCK/HOLDLOCK.
 
 **Regla de etapas:** implementar una etapa, avisar y ESPERAR confirmación de Franco antes

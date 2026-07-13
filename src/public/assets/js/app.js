@@ -263,10 +263,48 @@ function markActiveNav() {
   });
 }
 
+// ── Estado del sitio (aviso desde ControlPanel) ──────────────
+// banner  → franja no bloqueante arriba de la página
+// overlay → tapa toda la página (caída total / reinicio en curso)
+async function loadSiteStatus() {
+  const st = await apiFetch('site/status.php');
+  if (!st || !Number(st.is_active)) return;
+
+  const title   = st.title || 'Aviso';
+  const message = st.message || '';
+  const end     = formatScheduledEnd(st.scheduled_end);
+
+  if (st.mode === 'overlay') {
+    const ov = document.createElement('div');
+    ov.className = 'site-status-overlay';
+    ov.innerHTML = `
+      <div class="site-status-overlay__box">
+        <h1>${esc(title)}</h1>
+        <p>${esc(message)}</p>
+        ${end ? `<p class="site-status-overlay__end">Fin estimado: ${esc(end)}</p>` : ''}
+      </div>`;
+    document.body.appendChild(ov);
+    document.body.style.overflow = 'hidden';
+  } else if (st.mode === 'banner') {
+    const b = document.createElement('div');
+    b.className = 'site-status-banner';
+    b.innerHTML = `<strong>${esc(title)}</strong> ${esc(message)}${end ? ` — Fin estimado: ${esc(end)}` : ''}`;
+    document.body.prepend(b);
+  }
+}
+
+// '2026-07-12T23:00:00' → '12/07 23:00 hs' (hora del servidor, sin conversión TZ)
+function formatScheduledEnd(iso) {
+  if (!iso) return '';
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+  return m ? `${m[3]}/${m[2]} ${m[4]}:${m[5]} hs` : '';
+}
+
 // ── Init ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
   markActiveNav();
+  loadSiteStatus();
 
   const cta = document.getElementById('hero-cta');
   if (cta && typeof isAuthenticated === 'function' && isAuthenticated()) {
