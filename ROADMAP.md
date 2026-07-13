@@ -159,10 +159,15 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] Correr el seed en SSMS del VPS (fix previo: `updated_by` es nvarchar(10), valor acortado a 'seed') — 2026-07-12
 - [x] Endpoints funcionando en producción (el 500 inicial era por `ADMIN_DB_*` faltantes en el `.env` del VPS) — 2026-07-12
 - [x] Fix: `Cache-Control: no-store` en paths de error de ambos endpoints (un 500 quedaba cacheado 5 min en el browser) — 2026-07-12
-- [ ] Verificar páginas Info y Descargas en el sitio (Cloudflare Pages, post-deploy) (manual — Franco)
+- [x] Verificar páginas Info y Descargas en el sitio (Cloudflare Pages, post-deploy) — validado por Franco 2026-07-12 ✅ **Etapa 1 cerrada**
 - [ ] Cleanup posterior (cuando Etapa 1 esté validada): eliminar `api/infodata.php`, `api/downloadsdata.php`, `data/info.json`, `data/downloads.json`
 
-### Etapa 2 — Noticias — pendiente
+### Etapa 2 — Noticias
+- [x] `database/controlpanel_etapa2_seed.sql` — seed re-ejecutable de las 3 noticias (match por title) — 2026-07-12
+- [x] `GET /api/site/news.php` — público, `is_published=1` orden `published_at DESC`, shape viejo (`body`→`content`, `published_at`→`date` YYYY-MM-DD) — 2026-07-12
+- [x] `news.js` y `app.js` (home) apuntados al endpoint nuevo — 2026-07-12
+- [ ] Correr el seed en SSMS del VPS + pull + push a Cloudflare (manual — Franco)
+- [ ] Verificar página Noticias y bloque de noticias del home (manual — Franco)
 ### Etapa 3 — Site status (corte de canales) — pendiente
 ### Etapa 4 — Auth admin + ControlPanel de escritura — pendiente
 
@@ -256,6 +261,7 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-06-19 — [Seguridad] Prode: cutoff server-side con DATEADD(HOUR,3,GETDATE()) [GETUTCDATE() unreliable en este VPS: devuelve UTC-5], is_locked removido del enforcement temporal (SQL Server Express sin Agent), UPDLOCK/HOLDLOCK, submitted_at en ambos paths del MERGE, frontend isMatchOpen() con prioridad temporal sobre is_locked
 - 2026-06-19 — [Fix] Prode: badge "⏰ En Xmin" restaurado para partidos a ≤60 min del inicio; muestra independiente del estado de predicciones (is_locked / cutoff)
 - 2026-06-20 — [Feat] Integración VPS de pagos: JWT estándar HS256 (RFC 7519) con claims iss/aud/uid/usr/role en api/donate/order.php; TTL sesión reducido de 7 días a 24h; PAYMENT_JWT_SECRET + PAYMENT_JWT_ISS/AUD en .env.example
+- 2026-07-12 — [Fase 7 · Etapa 2] Noticias dinámicas: seed SQL de 3 noticias, endpoint público /api/site/news.php (is_published=1, published_at DESC, shape compatible), news.js y app.js migrados
 - 2026-07-12 — [Fase 7 · Etapa 1] server_info y downloads dinámicos: seed SQL, endpoints públicos /api/site/server-info.php y /api/site/downloads.php (conexión AdminDatabase, prepared statements), info.js y downloads.js migrados
 - 2026-07-12 — [Fase 7] Setup previo ControlPanel: admin_db.php (conexión PDO separada a mupga_admin), variables ADMIN_DB_* en .env.example, script CLI test_admin_db.php para validar en el VPS
 - 2026-07-01 — [Feat] Compra de VIP con WCoins en /usercp/: endpoint api/account/buyvip.php (transacción PDO con UPDLOCK/HOLDLOCK, descuento WCoinC, sp_SetAccountGOLDVIP, log CashLog); sección "VIP Oro" en usercp con confirmación, feedback en tiempo real y actualización del balance

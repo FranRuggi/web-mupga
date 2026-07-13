@@ -1,7 +1,7 @@
 /* MuPGA — news.js */
 document.addEventListener('DOMContentLoaded', async () => {
   const el   = document.getElementById('news-list');
-  const data = await apiFetch('newsdata.php');
+  const data = await apiFetch('site/news.php');
 
   if (!data?.length) {
     el.innerHTML = '<p class="state-message">No hay noticias disponibles.</p>';

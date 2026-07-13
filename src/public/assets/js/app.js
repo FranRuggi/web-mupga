@@ -192,7 +192,7 @@ async function loadHomeNews() {
   const el = document.getElementById('home-news');
   if (!el) return;
 
-  const data = await apiFetch('newsdata.php');
+  const data = await apiFetch('site/news.php');
   if (!data?.length) return;
 
   el.innerHTML = data.slice(0, 3).map((n, i) => `

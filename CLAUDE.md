@@ -132,7 +132,8 @@ Nunca tocar tablas del juego desde este módulo.
 **Tablas** (`mupga_admin.dbo`): `admins`, `site_status` (fila única id=1), `status_presets`,
 `news`, `server_info` (blob JSON en `config_key='secciones'`), `downloads`.
 
-**Endpoints públicos:** `GET /api/site/server-info.php`, `GET /api/site/downloads.php`.
+**Endpoints públicos:** `GET /api/site/server-info.php`, `GET /api/site/downloads.php`,
+`GET /api/site/news.php`. Columnas `updated_by`/`created_by` son nvarchar(10) — valores cortos.
 Escrituras (Etapa 4): POST-only, sesión server-side, CSRF, transacciones UPDLOCK/HOLDLOCK.
 
 **Regla de etapas:** implementar una etapa, avisar y ESPERAR confirmación de Franco antes
