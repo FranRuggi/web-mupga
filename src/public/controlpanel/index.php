@@ -77,7 +77,30 @@ ob_start();
         <label class="cp-field"><span>Título</span><input type="text" id="news-title" maxlength="200"></label>
         <label class="cp-field"><span>Categoría</span><input type="text" id="news-category" maxlength="50" placeholder="Anuncio / Info / Mantenimiento"></label>
         <label class="cp-field"><span>Resumen</span><input type="text" id="news-summary" maxlength="500"></label>
-        <label class="cp-field"><span>Contenido</span><textarea id="news-body" rows="5"></textarea></label>
+        <div class="cp-field">
+          <span>Contenido</span>
+          <div class="cp-editor">
+            <div class="cp-editor__toolbar" id="news-toolbar">
+              <button type="button" data-md="bold"      title="Negrita (Ctrl+B)"><strong>B</strong></button>
+              <button type="button" data-md="italic"    title="Cursiva (Ctrl+I)"><em>I</em></button>
+              <button type="button" data-md="underline" title="Subrayado (Ctrl+U)"><u>S</u></button>
+              <button type="button" data-md="strike"    title="Tachado"><s>T</s></button>
+              <span class="cp-editor__sep"></span>
+              <button type="button" data-md="heading" title="Subtítulo">H</button>
+              <button type="button" data-md="list"    title="Lista">≡ Lista</button>
+              <button type="button" data-md="link"    title="Enlace">🔗</button>
+              <span class="cp-editor__sep"></span>
+              <button type="button" id="news-emoji-btn" title="Insertar emoji">😀</button>
+              <button type="button" id="news-preview-toggle" title="Vista previa">👁 Vista previa</button>
+            </div>
+            <div class="cp-emoji-picker" id="news-emoji-picker" hidden></div>
+            <textarea id="news-body" rows="8"></textarea>
+            <div class="cp-editor__preview news-article__body" id="news-preview" hidden></div>
+          </div>
+          <small class="cp-hint" style="margin:0">
+            **negrita** · *cursiva* · __subrayado__ · ~~tachado~~ · ## subtítulo · "- " lista · [texto](https://url)
+          </small>
+        </div>
         <div class="cp-field">
           <span>Imagen (opcional)</span>
           <div class="cp-dropzone" id="news-dropzone">
