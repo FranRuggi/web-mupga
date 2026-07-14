@@ -274,7 +274,14 @@ async function loadSiteStatus() {
   const message = st.message || '';
   const end     = formatScheduledEnd(st.scheduled_end);
 
-  if (st.mode === 'overlay') {
+  // En /controlpanel/ y /login/ el overlay se degrada a banner: si tapara
+  // esas páginas, el admin no podría loguearse ni apagar el aviso (quedaría
+  // el candado cerrado con la llave adentro).
+  const path       = window.location.pathname;
+  const esRescate  = path.includes('/controlpanel') || path.includes('/login');
+  const modo       = (st.mode === 'overlay' && esRescate) ? 'banner' : st.mode;
+
+  if (modo === 'overlay') {
     const ov = document.createElement('div');
     ov.className = 'site-status-overlay';
     ov.innerHTML = `
@@ -285,7 +292,7 @@ async function loadSiteStatus() {
       </div>`;
     document.body.appendChild(ov);
     document.body.style.overflow = 'hidden';
-  } else if (st.mode === 'banner') {
+  } else if (modo === 'banner') {
     const b = document.createElement('div');
     b.className = 'site-status-banner';
     b.innerHTML = `<strong>${esc(title)}</strong> ${esc(message)}${end ? ` — Fin estimado: ${esc(end)}` : ''}`;
