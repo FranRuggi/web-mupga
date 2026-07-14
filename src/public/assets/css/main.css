@@ -3807,3 +3807,17 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 .info-section .cmd-list { gap: 0.15rem; }
 .info-section .cmd-header { border-bottom: 1px solid var(--gold-border); border-radius: 0; margin-bottom: 0.3rem; }
 .info-section .cmd-header:hover { background: transparent; }
+
+/* ── datetime-local: picker nativo visible en tema oscuro ───── */
+.cp-field input[type="datetime-local"] {
+  color-scheme: dark;   /* calendario/reloj nativos en modo oscuro */
+  cursor: pointer;
+}
+.cp-field input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity var(--t);
+}
+.cp-field input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}

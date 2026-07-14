@@ -77,6 +77,12 @@ function initStatus() {
     }
   });
 
+  // Abrir el calendario nativo clickeando en cualquier parte del campo
+  const endInput = document.getElementById('status-end');
+  endInput.addEventListener('click', () => {
+    try { endInput.showPicker(); } catch { /* navegadores sin showPicker: cae al comportamiento default */ }
+  });
+
   document.getElementById('status-activate').addEventListener('click', () => saveStatus(1));
   document.getElementById('status-deactivate').addEventListener('click', () => saveStatus(0));
 }
