@@ -30,3 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
+
+// Lockdown server-side: con overlay activo, toda la API responde 503
+// (salvo status/admin/login — ver src/lib/Lockdown.php).
+require_once SRC_ROOT . '/lib/Lockdown.php';
+enforceLockdown();

@@ -292,6 +292,15 @@ async function loadSiteStatus() {
       </div>`;
     document.body.appendChild(ov);
     document.body.style.overflow = 'hidden';
+
+    // Guardián: si borran el div desde DevTools, reaparece. Es disuasión
+    // casual — el bloqueo real es server-side (la API responde 503 con
+    // overlay activo, ver src/lib/Lockdown.php).
+    const guard = new MutationObserver(() => {
+      if (!document.body.contains(ov)) document.body.appendChild(ov);
+      if (document.body.style.overflow !== 'hidden') document.body.style.overflow = 'hidden';
+    });
+    guard.observe(document.body, { childList: true, attributes: true, attributeFilter: ['style'] });
   } else if (modo === 'banner') {
     const b = document.createElement('div');
     b.className = 'site-status-banner';
