@@ -3559,6 +3559,7 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
   margin: 0 0.25rem;
 }
 
+.cp-emoji-picker[hidden] { display: none; }  /* el display:grid de abajo pisa al atributo hidden */
 .cp-emoji-picker {
   position: absolute;
   top: 2.9rem;
