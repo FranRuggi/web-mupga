@@ -176,6 +176,109 @@ function initNewsDropzone() {
   document.getElementById('news-image-remove').addEventListener('click', () => setNewsImage(''));
 }
 
+// ── Editor de contenido (markdown-lite) ──────────────────────
+// La barra inserta marcadores en el textarea; el render seguro
+// lo hace renderRichText() (app.js) tanto en la vista previa
+// como en la página pública de noticias.
+
+const NEWS_EMOJIS = [
+  '😀','😄','😎','🤩','😱','😈','🔥','⚡','✨','⭐','💥','❄️',
+  '⚔️','🛡️','🏹','🐉','☠️','👑','🏆','🎁','🎉','💎','💰','🪙',
+  '📢','📅','⏰','🕹️','🎮','🌎','✅','❌','⚠️','ℹ️','➡️','👉',
+  '💪','🙌','🤝','❤️','🧡','💜',
+];
+
+// Reemplaza la selección preservando el historial de deshacer (Ctrl+Z)
+function replaceSelection(ta, text) {
+  ta.focus();
+  if (!document.execCommand('insertText', false, text)) {
+    ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, 'end');
+  }
+}
+
+// Envuelve la selección con un marcador inline (**, *, __, ~~)
+function mdWrap(ta, mark) {
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  const sel = ta.value.slice(s, e) || 'texto';
+  replaceSelection(ta, mark + sel + mark);
+  ta.setSelectionRange(s + mark.length, s + mark.length + sel.length);
+}
+
+// Prefija cada línea de la selección (subtítulos y listas)
+function mdLinePrefix(ta, prefix) {
+  let s = ta.selectionStart;
+  const e = ta.selectionEnd;
+  s = ta.value.lastIndexOf('\n', s - 1) + 1;          // arranque de la primera línea
+  const sel = ta.value.slice(s, e) || 'texto';
+  ta.setSelectionRange(s, e);
+  replaceSelection(ta, sel.split('\n').map(l => l.trim() ? prefix + l : l).join('\n'));
+}
+
+function mdLink(ta) {
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  const sel = ta.value.slice(s, e) || 'texto';
+  const url = 'https://';
+  replaceSelection(ta, `[${sel}](${url})`);
+  const urlStart = s + sel.length + 3;                 // posiciona el cursor en la URL
+  ta.setSelectionRange(urlStart, urlStart + url.length);
+}
+
+function updateNewsPreview() {
+  const prev = document.getElementById('news-preview');
+  if (prev.hidden) return;
+  prev.innerHTML = renderRichText(document.getElementById('news-body').value)
+    || '<p class="cp-dim">Nada que previsualizar…</p>';
+}
+
+function initNewsEditor() {
+  const ta = document.getElementById('news-body');
+
+  const actions = {
+    bold:      () => mdWrap(ta, '**'),
+    italic:    () => mdWrap(ta, '*'),
+    underline: () => mdWrap(ta, '__'),
+    strike:    () => mdWrap(ta, '~~'),
+    heading:   () => mdLinePrefix(ta, '## '),
+    list:      () => mdLinePrefix(ta, '- '),
+    link:      () => mdLink(ta),
+  };
+
+  document.querySelectorAll('#news-toolbar [data-md]').forEach(btn => {
+    btn.addEventListener('click', () => { actions[btn.dataset.md](); updateNewsPreview(); });
+  });
+
+  // Atajos de teclado dentro del textarea
+  ta.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const key = { b: 'bold', i: 'italic', u: 'underline' }[e.key.toLowerCase()];
+    if (key) { e.preventDefault(); actions[key](); updateNewsPreview(); }
+  });
+  ta.addEventListener('input', updateNewsPreview);
+
+  // Picker de emojis
+  const picker = document.getElementById('news-emoji-picker');
+  picker.innerHTML = NEWS_EMOJIS.map(em => `<button type="button">${em}</button>`).join('');
+  picker.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') return;
+    replaceSelection(ta, e.target.textContent);
+    updateNewsPreview();
+  });
+  document.getElementById('news-emoji-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    picker.hidden = !picker.hidden;
+  });
+  document.addEventListener('click', (e) => {
+    if (!picker.hidden && !picker.contains(e.target)) picker.hidden = true;
+  });
+
+  // Vista previa en vivo
+  document.getElementById('news-preview-toggle').addEventListener('click', () => {
+    const prev = document.getElementById('news-preview');
+    prev.hidden = !prev.hidden;
+    updateNewsPreview();
+  });
+}
+
 // ── Noticias ──────────────────────────────────────────────────
 
 async function loadNewsAdmin() {
@@ -204,6 +307,7 @@ async function loadNewsAdmin() {
     document.getElementById('news-category').value = n.category;
     document.getElementById('news-summary').value  = n.summary;
     document.getElementById('news-body').value     = n.body;
+    updateNewsPreview();
     setNewsImage(n.image_url ?? '');
     document.getElementById('news-form-title').textContent = `Editando noticia #${n.id}`;
     document.getElementById('news-cancel').hidden = false;
@@ -221,6 +325,7 @@ async function loadNewsAdmin() {
 
 function resetNewsForm() {
   ['news-id', 'news-title', 'news-category', 'news-summary', 'news-body'].forEach(id => document.getElementById(id).value = '');
+  updateNewsPreview();
   setNewsImage('');
   document.getElementById('news-form-title').textContent = 'Nueva noticia';
   document.getElementById('news-cancel').hidden = true;
@@ -228,6 +333,7 @@ function resetNewsForm() {
 
 function initNews() {
   initNewsDropzone();
+  initNewsEditor();
   document.getElementById('news-cancel').addEventListener('click', resetNewsForm);
   document.getElementById('news-save').addEventListener('click', async () => {
     const id   = document.getElementById('news-id').value;

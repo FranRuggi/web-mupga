@@ -36,6 +36,37 @@ function esc(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ── Texto con formato (markdown-lite) ────────────────────────
+// Convierte texto plano con marcadores a HTML seguro. Escapa
+// SIEMPRE primero con esc(): el resultado solo puede contener
+// los tags de esta whitelist, nunca HTML del autor.
+//   **negrita**  *cursiva*  __subrayado__  ~~tachado~~
+//   ## subtítulo · "- " ítem de lista · [texto](https://url)
+//   Línea en blanco = párrafo nuevo · salto simple = <br>
+function renderRichText(str) {
+  const inline = s => s
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<u>$1</u>')
+    .replace(/~~(.+?)~~/g, '<s>$1</s>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+             '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+  let html = '', para = [], list = [];
+  const flushPara = () => { if (para.length) { html += `<p>${para.map(inline).join('<br>')}</p>`; para = []; } };
+  const flushList = () => { if (list.length) { html += `<ul>${list.map(i => `<li>${inline(i)}</li>`).join('')}</ul>`; list = []; } };
+
+  for (const line of esc(str).split('\n')) {
+    const l = line.trim();
+    if (!l)               { flushPara(); flushList(); continue; }
+    if (/^##\s+/.test(l)) { flushPara(); flushList(); html += `<h3>${inline(l.replace(/^##\s+/, ''))}</h3>`; continue; }
+    if (/^-\s+/.test(l))  { flushPara(); list.push(l.replace(/^-\s+/, '')); continue; }
+    flushList(); para.push(l);
+  }
+  flushPara(); flushList();
+  return html;
+}
+
 // ── Mapa de clases ───────────────────────────────────────────
 const CLASS_NAMES = {
   // Dark Wizard

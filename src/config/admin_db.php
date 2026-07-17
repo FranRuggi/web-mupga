@@ -28,6 +28,9 @@ class AdminDatabase {
             self::$instance = new PDO($dsn, $user, $pass, [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                // UTF-8 explícito: sin esto el driver usa el codepage del SO
+                // y los emojis / caracteres fuera de Latin-1 se corrompen.
+                PDO::SQLSRV_ATTR_ENCODING    => PDO::SQLSRV_ENCODING_UTF8,
             ]);
         }
 

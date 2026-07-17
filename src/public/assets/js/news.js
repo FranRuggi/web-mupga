@@ -61,7 +61,7 @@ function renderArticle(n) {
       <p class="news-article__summary">${esc(n.summary)}</p>
       ${n.image ? `<img class="news-article__image" src="${esc(n.image)}" alt="">` : ''}
       <div class="news-article__body">
-        ${esc(n.content ?? '').split(/\n{2,}|\n/).filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+        ${renderRichText(n.content ?? '')}
       </div>
       <a class="btn btn-secondary" href="${BASE}/news/">← Volver a noticias</a>
     </article>`;
