@@ -288,11 +288,13 @@ function renderMatches(data) {
   const ronda32     = sorted.filter(([stage]) => stage === 'Ronda de 32');
   const ronda16     = sorted.filter(([stage]) => stage === 'Ronda de 16');
   const cuartos     = sorted.filter(([stage]) => stage === 'Cuartos de Final');
+  const semis       = sorted.filter(([stage]) => stage === 'Semifinal');
   const rest        = sorted.filter(([stage]) =>
     !stage.startsWith('Grupo ') &&
     stage !== 'Ronda de 32' &&
     stage !== 'Ronda de 16' &&
-    stage !== 'Cuartos de Final'
+    stage !== 'Cuartos de Final' &&
+    stage !== 'Semifinal'
   );
 
   let html = '';
@@ -330,6 +332,15 @@ function renderMatches(data) {
       '📋 Ver partidos de Cuartos de Final',
       '📋 Ocultar partidos de Cuartos de Final',
       cuartos.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('')
+    );
+  }
+
+  if (semis.length) {
+    html += renderCollapsible(
+      'prode-semis',
+      '📋 Ver partidos de Semifinal',
+      '📋 Ocultar partidos de Semifinal',
+      semis.map(([stage, matches]) => renderMatchGroup(stage, matches)).join('')
     );
   }
 
