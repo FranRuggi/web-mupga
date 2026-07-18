@@ -473,74 +473,117 @@ function initDownloads() {
   });
 }
 
-// ── Reclamos ──────────────────────────────────────────────────
+// ── Reclamos (tickets con hilo) ───────────────────────────────
 
-let reclamosCache = [];
+let reclamoAdmActual = 0;       // id del ticket abierto en el detalle
+let reclamoAdmEstado = 'nuevo'; // estado del ticket abierto
+
+// '2026-07-18 09:51:44.940' → '18/07 09:51 hs'
+function fmtFechaCp(sql) {
+  const m = String(sql ?? '').match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+  return m ? `${m[3]}/${m[2]} ${m[4]}:${m[5]} hs` : '';
+}
 
 async function loadReclamosAdmin() {
   const { ok, data } = await adminFetch('reclamos.php');
   const el = document.getElementById('reclamos-admin-list');
   if (!ok || !data?.items) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
 
-  reclamosCache = data.items;
-
-  el.innerHTML = reclamosCache.map(r => {
-    let imgs = [];
-    try { imgs = r.imagenes_json ? JSON.parse(r.imagenes_json) : []; } catch { /* imagenes_json vacío o inválido */ }
+  el.innerHTML = data.items.map(r => {
     const resuelto = r.estado === 'resuelto';
-
     return `
     <div class="cp-row" style="align-items:flex-start">
       <div class="cp-row__info">
         <strong>#${esc(r.id)} — ${esc(r.nick)}</strong>
-        <span class="cp-chip ${resuelto ? 'cp-chip--on' : 'cp-chip--off'}">${resuelto ? '● resuelto' : '○ nuevo'}</span>
-        <span class="cp-dim">${esc(r.created_at)}</span>
-        <p style="margin:0.4rem 0">${esc(r.mensaje)}</p>
-        ${imgs.length ? `<div class="cp-reclamo-images">
-          ${imgs.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt=""></a>`).join('')}
-        </div>` : ''}
-        ${resuelto ? `<p class="cp-dim">Respondido por ${esc(r.respondido_por ?? '')} · ${esc(r.respondido_en ?? '')}<br>${esc(r.respuesta ?? '')}</p>` : ''}
+        <span class="cp-chip ${resuelto ? 'cp-chip--on' : 'cp-chip--off'}">${resuelto ? '✔ resuelto' : '● abierto'}</span>
+        <span class="cp-dim">${fmtFechaCp(r.ultimo_movimiento ?? r.created_at)} · ${esc(String(r.total_mensajes))} msj</span>
+        <p style="margin:0.4rem 0">${esc(r.extracto)}${(r.extracto ?? '').length >= 120 ? '…' : ''}</p>
       </div>
       <div class="cp-row__actions">
-        ${!resuelto ? `<button class="btn btn-secondary btn-sm" data-reclamo-responder="${r.id}">Responder</button>` : ''}
+        <button class="btn btn-secondary btn-sm" data-reclamo-ver="${r.id}">Ver hilo</button>
       </div>
     </div>`;
   }).join('') || '<p class="state-message">Sin reclamos.</p>';
 
-  el.querySelectorAll('[data-reclamo-responder]').forEach(b => b.addEventListener('click', () => {
-    const r = reclamosCache.find(x => String(x.id) === b.dataset.reclamoResponder);
-    if (!r) return;
-    document.getElementById('reclamo-resp-id').value      = r.id;
-    document.getElementById('reclamo-resp-text').value    = '';
-    document.getElementById('reclamos-form-title').textContent = `Responder reclamo #${r.id} (${r.nick})`;
-    document.getElementById('reclamos-response-form').hidden = false;
-    document.getElementById('reclamos-response-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }));
+  el.querySelectorAll('[data-reclamo-ver]').forEach(b =>
+    b.addEventListener('click', () => abrirReclamoAdm(Number(b.dataset.reclamoVer)))
+  );
+}
+
+async function abrirReclamoAdm(id) {
+  reclamoAdmActual = id;
+  document.getElementById('reclamos-admin-list').hidden    = true;
+  document.getElementById('reclamos-admin-detalle').hidden = false;
+  document.getElementById('reclamo-adm-titulo').textContent = `Reclamo #${id}`;
+  document.getElementById('reclamo-adm-hilo').innerHTML = '<p class="state-message">Cargando…</p>';
+  document.getElementById('reclamo-resp-text').value = '';
+
+  const { ok, data } = await adminFetch(`reclamos.php?id=${id}`);
+  if (!ok || !data?.reclamo) {
+    document.getElementById('reclamo-adm-hilo').innerHTML = '<p class="state-message">Error al cargar el hilo.</p>';
+    return;
+  }
+
+  reclamoAdmEstado = data.reclamo.estado;
+  const resuelto = reclamoAdmEstado === 'resuelto';
+
+  document.getElementById('reclamo-adm-titulo').textContent = `Reclamo #${id} — ${data.reclamo.nick}`;
+  document.getElementById('reclamo-adm-estado').innerHTML =
+    `<span class="cp-chip ${resuelto ? 'cp-chip--on' : 'cp-chip--off'}">${resuelto ? '✔ resuelto' : '● abierto'}</span>`;
+  document.getElementById('reclamo-adm-toggle-estado').textContent =
+    resuelto ? 'Reabrir sin comentar' : 'Cerrar sin comentar';
+
+  document.getElementById('reclamo-adm-hilo').innerHTML = (data.mensajes ?? []).map(m => {
+    const esAdmin = m.autor_tipo === 'admin';
+    const imgs = (m.imagenes ?? []).map(u =>
+      `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt=""></a>`
+    ).join('');
+    return `
+    <div class="reclamo-msg ${esAdmin ? 'reclamo-msg--admin' : 'reclamo-msg--jugador'}">
+      <div class="reclamo-msg__head">
+        <strong>${esAdmin ? `🛡 ${esc(m.autor_nick)}` : esc(m.autor_nick)}</strong>
+        <span>${fmtFechaCp(m.created_at)}</span>
+      </div>
+      <p>${esc(m.mensaje)}</p>
+      ${imgs ? `<div class="reclamo-msg__imgs">${imgs}</div>` : ''}
+    </div>`;
+  }).join('') || '<p class="state-message">Sin mensajes.</p>';
+}
+
+function volverListaReclamosAdm() {
+  document.getElementById('reclamos-admin-detalle').hidden = true;
+  document.getElementById('reclamos-admin-list').hidden    = false;
+  loadReclamosAdmin();
 }
 
 function initReclamos() {
-  document.getElementById('reclamo-resp-cancel').addEventListener('click', () => {
-    document.getElementById('reclamos-response-form').hidden = true;
-  });
+  document.getElementById('reclamo-adm-volver').addEventListener('click', volverListaReclamosAdm);
 
   document.getElementById('reclamo-resp-send').addEventListener('click', async () => {
-    const id        = Number(document.getElementById('reclamo-resp-id').value);
-    const respuesta = document.getElementById('reclamo-resp-text').value.trim();
+    const mensaje  = document.getElementById('reclamo-resp-text').value.trim();
+    const resolver = document.getElementById('reclamo-resp-resolver').checked ? 1 : 0;
 
-    if (!id || !respuesta) {
+    if (!reclamoAdmActual || !mensaje) {
       feedback('reclamos-feedback', 'Escribí una respuesta.', true);
       return;
     }
 
     const { ok, data } = await adminFetch('reclamos.php', {
       method: 'POST',
-      body: JSON.stringify({ action: 'responder', id, respuesta }),
+      body: JSON.stringify({ action: 'responder', id: reclamoAdmActual, mensaje, resolver }),
     });
     feedback('reclamos-feedback', ok ? 'Respuesta enviada ✔' : (data?.error ?? 'Error'), !ok);
-    if (ok) {
-      document.getElementById('reclamos-response-form').hidden = true;
-      loadReclamosAdmin();
-    }
+    if (ok) abrirReclamoAdm(reclamoAdmActual); // recargar el hilo con la respuesta
+  });
+
+  document.getElementById('reclamo-adm-toggle-estado').addEventListener('click', async () => {
+    const nuevoEstado = reclamoAdmEstado === 'resuelto' ? 'nuevo' : 'resuelto';
+    const { ok, data } = await adminFetch('reclamos.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'set_estado', id: reclamoAdmActual, estado: nuevoEstado }),
+    });
+    feedback('reclamos-feedback', ok ? 'Estado actualizado ✔' : (data?.error ?? 'Error'), !ok);
+    if (ok) abrirReclamoAdm(reclamoAdmActual);
   });
 }
 

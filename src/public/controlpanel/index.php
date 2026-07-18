@@ -165,20 +165,35 @@ ob_start();
     <!-- ── Reclamos ── -->
     <section class="cp-section account-card" id="cp-tab-reclamos" hidden>
       <p class="account-card__title">Reclamos</p>
+
+      <!-- Vista listado -->
       <div id="reclamos-admin-list"><p class="state-message">Cargando…</p></div>
 
-      <div class="cp-form" id="reclamos-response-form" hidden>
-        <p class="account-card__title" id="reclamos-form-title">Responder reclamo</p>
-        <input type="hidden" id="reclamo-resp-id" value="">
-        <label class="cp-field">
-          <span>Respuesta</span>
-          <textarea id="reclamo-resp-text" rows="4" maxlength="2000"></textarea>
-        </label>
-        <div class="cp-actions">
-          <button class="btn btn-primary" id="reclamo-resp-send">Enviar respuesta</button>
-          <button class="btn btn-secondary" id="reclamo-resp-cancel">Cancelar</button>
+      <!-- Vista detalle (hilo) -->
+      <div id="reclamos-admin-detalle" hidden>
+        <div class="reclamo-detalle-head">
+          <button type="button" class="btn btn-secondary btn-sm" id="reclamo-adm-volver">← Volver</button>
+          <span id="reclamo-adm-titulo"></span>
+          <span id="reclamo-adm-estado"></span>
         </div>
-        <p class="cp-feedback" id="reclamos-feedback"></p>
+
+        <div id="reclamo-adm-hilo"><p class="state-message">Cargando…</p></div>
+
+        <div class="cp-form reclamo-reply-box">
+          <label class="cp-field">
+            <span>Respuesta del staff</span>
+            <textarea id="reclamo-resp-text" rows="4" maxlength="2000"></textarea>
+          </label>
+          <label class="cp-field" style="flex-direction:row;align-items:center;gap:0.5rem">
+            <input type="checkbox" id="reclamo-resp-resolver" checked style="width:auto">
+            <span style="margin:0">Marcar como resuelto al responder</span>
+          </label>
+          <div class="cp-actions">
+            <button class="btn btn-primary" id="reclamo-resp-send">Enviar respuesta</button>
+            <button class="btn btn-secondary" id="reclamo-adm-toggle-estado"></button>
+          </div>
+          <p class="cp-feedback" id="reclamos-feedback"></p>
+        </div>
       </div>
     </section>
 

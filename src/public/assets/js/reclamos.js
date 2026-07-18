@@ -1,16 +1,22 @@
 /* ============================================================
    MuPGA — reclamos.js
-   Página /reclamos: form simple (mensaje + hasta 5 imágenes).
+   Página /reclamos: sistema de tickets con hilo de conversación.
 
-   Flujo de envío (el id del reclamo nombra la carpeta en R2, así que
-   hay que crear la fila ANTES de subir las imágenes):
-     1. authFetch('reclamos/create.php', { mensaje }) → { id }
-     2. Por cada imagen:
-        a. authFetch('reclamos/upload_url.php', { reclamoId: id, contentType })
-           → { uploadUrl, publicUrl }
-        b. fetch directo PUT a uploadUrl (R2, no lleva Authorization)
-     3. authFetch('reclamos/finalize.php', { reclamoId: id, imagenes })
-        → guarda las URLs y recién ahí notifica Discord
+   Tres vistas dentro de la misma página:
+     - form    → crear un reclamo nuevo (mensaje + hasta 5 imágenes)
+     - lista   → "Mis reclamos": historial de tickets del jugador
+     - detalle → hilo completo de un ticket + caja para comentar
+                 (comentar un ticket resuelto lo reabre)
+
+   Flujo de envío (el id del ticket nombra la carpeta en R2; las imágenes
+   se atan al MENSAJE, así que primero se crea la fila y después se sube):
+     Nuevo:      create.php { mensaje } → { id, mensajeId }
+     Comentario: reply.php { reclamoId, mensaje } → { mensajeId }
+     Por imagen: upload_url.php { mensajeId, contentType } → PUT a R2
+     Final:      finalize.php { mensajeId, imagenes } → notifica Discord
+
+   Deep link: /reclamos/?ver=123 abre directo el hilo del ticket 123
+   (lo usa el banner site-wide de app.js).
 
    Depende de: app.js (BASE, API, esc), auth.js (isAuthenticated, authFetch)
    ============================================================ */
@@ -19,11 +25,18 @@ const RECLAMOS_MAX_IMAGENES = 5;
 const RECLAMOS_MAX_SIZE     = 5 * 1024 * 1024; // 5 MB
 const RECLAMOS_TIPOS_OK     = ['image/jpeg', 'image/png', 'image/webp'];
 
-let _archivos = []; // File[]
+let _archivos      = []; // File[] — form de reclamo nuevo
+let _replyArchivos = []; // File[] — caja de comentario del detalle
+let _ticketActual  = 0;  // id del ticket abierto en la vista detalle
 
 let $alert, $form, $mensaje, $errMensaje,
     $dropzone, $dropzoneInput, $previews, $btnSubmit,
-    $spinner, $btnText, $progress;
+    $spinner, $btnText, $progress,
+    $tabNuevo, $tabMios, $miosBadge,
+    $lista, $listaItems,
+    $detalle, $detalleTitulo, $detalleEstado, $hilo,
+    $replyForm, $replyMensaje, $replyPreviews, $btnReply,
+    $replySpinner, $replyBtnText, $replyProgress, $replyInput;
 
 // Evita que un reload/cierre accidental a mitad del envío deje un reclamo
 // a medio crear en la base (fila sin imágenes, sin poder reintentar).
@@ -51,16 +64,231 @@ document.addEventListener('DOMContentLoaded', () => {
   $spinner       = document.getElementById('reclamo-spinner');
   $btnText       = document.getElementById('reclamo-btn-text');
   $progress      = document.getElementById('reclamo-progress');
+  $tabNuevo      = document.getElementById('tab-nuevo');
+  $tabMios       = document.getElementById('tab-mios');
+  $miosBadge     = document.getElementById('mios-badge');
+  $lista         = document.getElementById('reclamo-lista');
+  $listaItems    = document.getElementById('reclamo-lista-items');
+  $detalle       = document.getElementById('reclamo-detalle');
+  $detalleTitulo = document.getElementById('detalle-titulo');
+  $detalleEstado = document.getElementById('detalle-estado');
+  $hilo          = document.getElementById('reclamo-hilo');
+  $replyForm     = document.getElementById('reply-form');
+  $replyMensaje  = document.getElementById('reply-mensaje');
+  $replyPreviews = document.getElementById('reply-previews');
+  $btnReply      = document.getElementById('btn-reply-submit');
+  $replySpinner  = document.getElementById('reply-spinner');
+  $replyBtnText  = document.getElementById('reply-btn-text');
+  $replyProgress = document.getElementById('reply-progress');
+  $replyInput    = document.getElementById('reply-image-file');
 
   initDropzone();
+  initTabs();
+  initReply();
   $form.addEventListener('submit', onSubmit);
+  document.getElementById('btn-volver').addEventListener('click', () => showView('lista'));
+
+  refreshMiosBadge();
+
+  // Deep link del banner: /reclamos/?ver=123 abre el hilo directo
+  const ver = Number(new URLSearchParams(window.location.search).get('ver'));
+  if (ver > 0) {
+    abrirDetalle(ver);
+  }
 });
 
-// ── Dropzone ─────────────────────────────────────────────────
+// ── Vistas y tabs ────────────────────────────────────────────
+function showView(view) {
+  clearAlert();
+  $form.hidden    = view !== 'form';
+  $lista.hidden   = view !== 'lista';
+  $detalle.hidden = view !== 'detalle';
+  $tabNuevo.classList.toggle('active', view === 'form');
+  $tabMios.classList.toggle('active', view !== 'form');
+  if (view === 'lista') loadMios();
+}
+
+function initTabs() {
+  $tabNuevo.addEventListener('click', () => showView('form'));
+  $tabMios.addEventListener('click', () => showView('lista'));
+}
+
+// Badge con la cantidad de tickets con novedades sin leer
+async function refreshMiosBadge() {
+  const res = await authFetch('reclamos/pending_notice.php');
+  if (!res || !res.ok) return;
+  const { pendientes } = await res.json().catch(() => ({ pendientes: [] }));
+  const n = pendientes?.length ?? 0;
+  $miosBadge.textContent = n;
+  $miosBadge.hidden = n === 0;
+}
+
+// ── Mis reclamos (listado) ───────────────────────────────────
+async function loadMios() {
+  $listaItems.innerHTML = '<p class="state-message">Cargando…</p>';
+
+  const res = await authFetch('reclamos/mios.php');
+  if (!res || !res.ok) {
+    $listaItems.innerHTML = '<p class="state-message">No se pudieron cargar tus reclamos.</p>';
+    return;
+  }
+
+  const { items } = await res.json().catch(() => ({ items: [] }));
+
+  if (!items?.length) {
+    $listaItems.innerHTML = '<p class="state-message">Todavía no mandaste ningún reclamo.</p>';
+    return;
+  }
+
+  $listaItems.innerHTML = items.map(t => {
+    const resuelto = t.estado === 'resuelto';
+    const noLeido  = Number(t.no_leido) === 1;
+    return `
+    <button type="button" class="reclamo-card${noLeido ? ' reclamo-card--nuevo' : ''}" data-ver="${t.id}">
+      <div class="reclamo-card__top">
+        <strong>#${esc(t.id)}</strong>
+        <span class="reclamo-estado ${resuelto ? 'reclamo-estado--resuelto' : 'reclamo-estado--abierto'}">
+          ${resuelto ? '✔ Resuelto' : '● Abierto'}
+        </span>
+        ${noLeido ? '<span class="reclamo-nuevo-badge">Respuesta nueva</span>' : ''}
+        <span class="reclamo-card__fecha">${fmtFecha(t.ultimo_movimiento ?? t.created_at)}</span>
+      </div>
+      <p class="reclamo-card__extracto">${esc(t.extracto)}${(t.extracto ?? '').length >= 120 ? '…' : ''}</p>
+      <span class="reclamo-card__meta">${esc(String(t.total_mensajes))} mensaje${Number(t.total_mensajes) === 1 ? '' : 's'}</span>
+    </button>`;
+  }).join('');
+
+  $listaItems.querySelectorAll('[data-ver]').forEach(b =>
+    b.addEventListener('click', () => abrirDetalle(Number(b.dataset.ver)))
+  );
+}
+
+// ── Detalle (hilo) ───────────────────────────────────────────
+async function abrirDetalle(id) {
+  _ticketActual = id;
+  showView('detalle');
+  $detalleTitulo.textContent = `Reclamo #${id}`;
+  $detalleEstado.innerHTML = '';
+  $hilo.innerHTML = '<p class="state-message">Cargando…</p>';
+  $replyMensaje.value = '';
+  _replyArchivos = [];
+  renderReplyPreviews();
+
+  const res = await authFetch(`reclamos/detalle.php?id=${id}`);
+  if (!res || !res.ok) {
+    $hilo.innerHTML = '<p class="state-message">No se pudo cargar el reclamo.</p>';
+    return;
+  }
+
+  const { reclamo, mensajes } = await res.json().catch(() => ({}));
+  if (!reclamo) {
+    $hilo.innerHTML = '<p class="state-message">Reclamo no encontrado.</p>';
+    return;
+  }
+
+  renderDetalle(reclamo, mensajes ?? []);
+  // Abrir el detalle marca lo no leído como leído en el server → refrescar badge
+  refreshMiosBadge();
+}
+
+function renderDetalle(reclamo, mensajes) {
+  const resuelto = reclamo.estado === 'resuelto';
+  $detalleEstado.innerHTML =
+    `<span class="reclamo-estado ${resuelto ? 'reclamo-estado--resuelto' : 'reclamo-estado--abierto'}">
+       ${resuelto ? '✔ Resuelto' : '● Abierto'}
+     </span>`;
+
+  $hilo.innerHTML = mensajes.map(m => {
+    const esAdmin = m.autor_tipo === 'admin';
+    const imgs = (m.imagenes ?? []).map(u =>
+      `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt=""></a>`
+    ).join('');
+    return `
+    <div class="reclamo-msg ${esAdmin ? 'reclamo-msg--admin' : 'reclamo-msg--jugador'}">
+      <div class="reclamo-msg__head">
+        <strong>${esAdmin ? '🛡 Staff' : esc(m.autor_nick)}</strong>
+        <span>${fmtFecha(m.created_at)}</span>
+      </div>
+      <p>${esc(m.mensaje)}</p>
+      ${imgs ? `<div class="reclamo-msg__imgs">${imgs}</div>` : ''}
+    </div>`;
+  }).join('') || '<p class="state-message">Sin mensajes.</p>';
+}
+
+// ── Caja de comentario (reply) ───────────────────────────────
+function initReply() {
+  document.getElementById('reply-attach').addEventListener('click', () => $replyInput.click());
+  $replyInput.addEventListener('change', () => {
+    addFiles(Array.from($replyInput.files), _replyArchivos, renderReplyPreviews);
+    $replyInput.value = '';
+  });
+  $replyForm.addEventListener('submit', onReplySubmit);
+}
+
+function renderReplyPreviews() {
+  renderPreviewsInto($replyPreviews, _replyArchivos, renderReplyPreviews);
+}
+
+async function onReplySubmit(e) {
+  e.preventDefault();
+  clearAlert();
+
+  const mensaje = $replyMensaje.value.trim();
+  if (!mensaje) {
+    showAlert('Escribí un comentario antes de enviar.', true);
+    return;
+  }
+  if (mensaje.length > 2000) {
+    showAlert('El comentario supera los 2000 caracteres.', true);
+    return;
+  }
+
+  setReplyLoading(true);
+  setReplyProgress('Enviando comentario…');
+
+  try {
+    const replyRes = await authFetch('reclamos/reply.php', {
+      method: 'POST',
+      body: JSON.stringify({ reclamoId: _ticketActual, mensaje }),
+    });
+
+    if (!replyRes) { setReplyLoading(false); return; }
+
+    if (!replyRes.ok) {
+      const data = await replyRes.json().catch(() => ({}));
+      showAlert(data.error ?? 'No se pudo enviar el comentario.', true);
+      setReplyLoading(false);
+      return;
+    }
+
+    const { mensajeId } = await replyRes.json();
+
+    const imagenes = [];
+    for (let i = 0; i < _replyArchivos.length; i++) {
+      setReplyProgress(`Subiendo imagen ${i + 1} de ${_replyArchivos.length}…`);
+      imagenes.push(await uploadImagen(mensajeId, _replyArchivos[i]));
+    }
+
+    setReplyProgress('Guardando…');
+    await authFetch('reclamos/finalize.php', {
+      method: 'POST',
+      body: JSON.stringify({ mensajeId, imagenes }),
+    });
+
+    // Recargar el hilo con el comentario nuevo ya incluido
+    await abrirDetalle(_ticketActual);
+  } catch (err) {
+    showAlert('Error al enviar el comentario: ' + esc(err.message), true);
+  } finally {
+    setReplyLoading(false);
+  }
+}
+
+// ── Dropzone (form de reclamo nuevo) ─────────────────────────
 function initDropzone() {
   $dropzone.addEventListener('click', () => $dropzoneInput.click());
   $dropzoneInput.addEventListener('change', () => {
-    addFiles(Array.from($dropzoneInput.files));
+    addFiles(Array.from($dropzoneInput.files), _archivos, renderPreviews);
     $dropzoneInput.value = '';
   });
 
@@ -71,15 +299,15 @@ function initDropzone() {
     e.preventDefault(); $dropzone.classList.remove('cp-dropzone--over');
   }));
   $dropzone.addEventListener('drop', e => {
-    addFiles(Array.from(e.dataTransfer?.files ?? []));
+    addFiles(Array.from(e.dataTransfer?.files ?? []), _archivos, renderPreviews);
   });
 }
 
-function addFiles(files) {
+function addFiles(files, target, rerender) {
   clearAlert();
 
   for (const file of files) {
-    if (_archivos.length >= RECLAMOS_MAX_IMAGENES) {
+    if (target.length >= RECLAMOS_MAX_IMAGENES) {
       showAlert(`Máximo ${RECLAMOS_MAX_IMAGENES} imágenes.`, true);
       break;
     }
@@ -91,29 +319,33 @@ function addFiles(files) {
       showAlert(`"${file.name}" supera los 5 MB.`, true);
       continue;
     }
-    _archivos.push(file);
+    target.push(file);
   }
 
-  renderPreviews();
+  rerender();
 }
 
 function renderPreviews() {
-  $previews.innerHTML = _archivos.map((file, i) => `
+  renderPreviewsInto($previews, _archivos, renderPreviews);
+}
+
+function renderPreviewsInto(container, target, rerender) {
+  container.innerHTML = target.map((file, i) => `
     <div class="reclamo-preview-item">
       <img src="${URL.createObjectURL(file)}" alt="${esc(file.name)}">
       <button type="button" class="reclamo-preview-remove" data-idx="${i}" aria-label="Quitar imagen">✕</button>
     </div>
   `).join('');
 
-  $previews.querySelectorAll('.reclamo-preview-remove').forEach(btn => {
+  container.querySelectorAll('.reclamo-preview-remove').forEach(btn => {
     btn.addEventListener('click', () => {
-      _archivos.splice(Number(btn.dataset.idx), 1);
-      renderPreviews();
+      target.splice(Number(btn.dataset.idx), 1);
+      rerender();
     });
   });
 }
 
-// ── Envío ────────────────────────────────────────────────────
+// ── Envío de reclamo nuevo ───────────────────────────────────
 async function onSubmit(e) {
   e.preventDefault();
   clearAlert();
@@ -138,8 +370,7 @@ async function onSubmit(e) {
   setProgress('Creando tu reclamo…');
 
   try {
-    // Paso 1: crear el reclamo (rate limit se valida acá) — el id resultante
-    // es la carpeta donde van a ir sus imágenes en R2.
+    // Paso 1: crear el ticket + primer mensaje (rate limit se valida acá)
     const createRes = await authFetch('reclamos/create.php', {
       method: 'POST',
       body: JSON.stringify({ mensaje }),
@@ -154,27 +385,26 @@ async function onSubmit(e) {
       return;
     }
 
-    const { id } = await createRes.json();
+    const { id, mensajeId } = await createRes.json();
 
-    // Paso 2: subir cada imagen a la carpeta reclamos/{id}/
+    // Paso 2: subir cada imagen a la carpeta reclamos/{id}/ del ticket
     const imagenes = [];
     for (let i = 0; i < _archivos.length; i++) {
       setProgress(`Subiendo imagen ${i + 1} de ${_archivos.length}…`);
-      const publicUrl = await uploadImagen(id, _archivos[i]);
-      imagenes.push(publicUrl);
+      imagenes.push(await uploadImagen(mensajeId, _archivos[i]));
     }
 
-    // Paso 3: guardar las URLs y notificar Discord
+    // Paso 3: sellar el mensaje y notificar Discord
     setProgress('Guardando y avisando al staff…');
     const res = await authFetch('reclamos/finalize.php', {
       method: 'POST',
-      body: JSON.stringify({ reclamoId: id, imagenes }),
+      body: JSON.stringify({ mensajeId, imagenes }),
     });
 
     if (!res) { setLoading(false); return; }
 
     if (res.ok) {
-      showAlert('¡Reclamo enviado! Gracias, lo vamos a revisar pronto.', false);
+      showAlert(`¡Reclamo #${id} enviado! Podés seguirlo desde "Mis reclamos".`, false);
       $form.reset();
       _archivos = [];
       renderPreviews();
@@ -189,11 +419,11 @@ async function onSubmit(e) {
   }
 }
 
-// Pide la presigned URL para la carpeta del reclamo y sube la imagen directo a R2.
-async function uploadImagen(reclamoId, file) {
+// Pide la presigned URL para el mensaje y sube la imagen directo a R2.
+async function uploadImagen(mensajeId, file) {
   const res = await authFetch('reclamos/upload_url.php', {
     method: 'POST',
-    body: JSON.stringify({ reclamoId, contentType: file.type }),
+    body: JSON.stringify({ mensajeId, contentType: file.type }),
   });
 
   if (!res || !res.ok) {
@@ -237,9 +467,35 @@ function setLoading(loading) {
   }
 }
 
+function setReplyLoading(loading) {
+  $btnReply.disabled = loading;
+  $btnReply.dataset.loading = loading ? 'true' : 'false';
+  $replySpinner.hidden = !loading;
+  $replyBtnText.textContent = loading ? 'Enviando…' : 'Comentar';
+  $replyMensaje.disabled = loading;
+
+  if (loading) {
+    window.addEventListener('beforeunload', beforeUnloadGuard);
+  } else {
+    window.removeEventListener('beforeunload', beforeUnloadGuard);
+    $replyProgress.hidden = true;
+  }
+}
+
 function setProgress(text) {
   $progress.textContent = text;
   $progress.hidden = false;
+}
+
+function setReplyProgress(text) {
+  $replyProgress.textContent = text;
+  $replyProgress.hidden = false;
+}
+
+// '2026-07-18 09:51:44.9400000' → '18/07 09:51 hs' (hora del servidor)
+function fmtFecha(sql) {
+  const m = String(sql ?? '').match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+  return m ? `${m[3]}/${m[2]} ${m[4]}:${m[5]} hs` : '';
 }
 
 function showAlert(msg, isError) {

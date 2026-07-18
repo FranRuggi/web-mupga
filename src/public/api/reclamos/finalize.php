@@ -1,17 +1,22 @@
 <?php
 /**
  * POST /api/reclamos/finalize.php  [requiere token]
- * Paso 3 del flujo (después de create.php y de subir cada imagen vía
- * upload_url.php): guarda las URLs finales de las imágenes y recién acá
- * notifica a Discord — con el número de reclamo, la carpeta en R2, el
- * nick, el mensaje y las imágenes, todo junto.
+ * Paso 3 del flujo (después de create.php o reply.php, y de subir cada
+ * imagen vía upload_url.php): sella el MENSAJE con las URLs finales de
+ * sus imágenes y recién acá notifica a Discord — con el número de ticket,
+ * la carpeta en R2, el nick, el texto y las imágenes, todo junto.
  *
- * Body JSON: { "reclamoId": 123, "imagenes": ["https://.../reclamos/123/a.jpg", ...] }
- * (imagenes puede venir vacío si el usuario no adjuntó fotos).
+ * Body JSON: { "mensajeId": 456, "imagenes": ["https://.../reclamos/123/a.jpg", ...] }
+ * (imagenes puede venir vacío si el jugador no adjuntó fotos — igual hay
+ * que llamar finalize: es lo que dispara la notificación a Discord).
  *
  * Cada URL tiene que estar dentro de la carpeta reclamos/{reclamoId}/ del
- * propio reclamo — evita que se cuelen imágenes de otra carpeta o de
- * afuera del bucket en la notificación de Discord.
+ * ticket al que pertenece el mensaje — evita que se cuelen imágenes de
+ * otra carpeta o de afuera del bucket en la notificación de Discord.
+ *
+ * El título del embed distingue ticket nuevo ("Nuevo reclamo #N") de
+ * comentario de seguimiento ("Nuevo comentario en reclamo #N") según si
+ * el mensaje es el primero del hilo.
  */
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/config/reclamos_db.php';
@@ -28,43 +33,53 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $auth = requireAuth();
 $body = json_decode(file_get_contents('php://input'), true);
 
-$reclamoId = isset($body['reclamoId']) ? (int) $body['reclamoId'] : 0;
+$mensajeId = isset($body['mensajeId']) ? (int) $body['mensajeId'] : 0;
 $imagenes  = is_array($body['imagenes'] ?? null) ? array_slice($body['imagenes'], 0, 5) : [];
 
-if ($reclamoId <= 0) {
-    http_response_code(400); echo json_encode(['error' => 'Falta reclamoId.']); exit;
-}
-
-$folderPrefix = 'reclamos/' . $reclamoId . '/';
-$publicPrefix = R2Presign::normalizePublicUrl($_ENV['RECLAMOS_R2_PUBLIC_URL'] ?? '') . '/' . $folderPrefix;
-foreach ($imagenes as $url) {
-    if (!is_string($url) || strpos($url, $publicPrefix) !== 0) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Alguna imagen no pertenece a este reclamo.']);
-        exit;
-    }
+if ($mensajeId <= 0) {
+    http_response_code(400); echo json_encode(['error' => 'Falta mensajeId.']); exit;
 }
 
 try {
     $db = ReclamosDatabase::get();
 
     $select = $db->prepare(
-        'SELECT mensaje FROM reclamos.reclamos
-         WHERE id = :id AND nick = :nick AND imagenes_json IS NULL'
+        "SELECT m.reclamo_id, m.mensaje,
+                CASE WHEN m.id = (SELECT MIN(m2.id) FROM reclamos.mensajes m2
+                                  WHERE m2.reclamo_id = m.reclamo_id)
+                     THEN 1 ELSE 0 END AS es_primero
+         FROM reclamos.mensajes m
+         JOIN reclamos.reclamos r ON r.id = m.reclamo_id
+         WHERE m.id = :id AND m.autor_tipo = 'jugador' AND m.autor_nick = :nick
+           AND r.nick = :nick2 AND m.imagenes_json IS NULL"
     );
-    $select->execute([':id' => $reclamoId, ':nick' => $auth['usr']]);
-    $mensaje = $select->fetchColumn();
+    $select->execute([':id' => $mensajeId, ':nick' => $auth['usr'], ':nick2' => $auth['usr']]);
+    $row = $select->fetch();
 
-    if ($mensaje === false) {
+    if ($row === false) {
         http_response_code(404);
-        echo json_encode(['error' => 'Reclamo no encontrado o ya finalizado.']);
+        echo json_encode(['error' => 'Mensaje no encontrado o ya finalizado.']);
         exit;
     }
 
-    $update = $db->prepare('UPDATE reclamos.reclamos SET imagenes_json = :json WHERE id = :id');
+    $reclamoId    = (int) $row['reclamo_id'];
+    $mensaje      = (string) $row['mensaje'];
+    $esPrimero    = (bool) $row['es_primero'];
+    $folderPrefix = 'reclamos/' . $reclamoId . '/';
+    $publicPrefix = R2Presign::normalizePublicUrl($_ENV['RECLAMOS_R2_PUBLIC_URL'] ?? '') . '/' . $folderPrefix;
+
+    foreach ($imagenes as $url) {
+        if (!is_string($url) || strpos($url, $publicPrefix) !== 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Alguna imagen no pertenece a este reclamo.']);
+            exit;
+        }
+    }
+
+    $update = $db->prepare('UPDATE reclamos.mensajes SET imagenes_json = :json WHERE id = :id');
     $update->execute([
         ':json' => json_encode($imagenes, JSON_THROW_ON_ERROR),
-        ':id'   => $reclamoId,
+        ':id'   => $mensajeId,
     ]);
 } catch (Throwable $e) {
     http_response_code(500);
@@ -81,12 +96,14 @@ try {
         error_log("reclamos: DISCORD_WEBHOOK_RECLAMOS vacío, no se notificó el reclamo #{$reclamoId}");
     } else {
         $embed = [
-            'title'  => "Nuevo reclamo #{$reclamoId}",
-            'color'  => 0xE74C3C,
+            'title'  => $esPrimero
+                ? "Nuevo reclamo #{$reclamoId}"
+                : "Nuevo comentario en reclamo #{$reclamoId}",
+            'color'  => $esPrimero ? 0xE74C3C : 0xE67E22,
             'fields' => [
                 ['name' => 'Nick', 'value' => $auth['usr'], 'inline' => true],
                 ['name' => 'Carpeta R2', 'value' => $folderPrefix, 'inline' => true],
-                ['name' => 'Mensaje', 'value' => mb_substr((string) $mensaje, 0, 1024)],
+                ['name' => 'Mensaje', 'value' => mb_substr($mensaje, 0, 1024)],
             ],
             'timestamp' => gmdate('c'),
         ];

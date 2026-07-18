@@ -1,10 +1,10 @@
 <?php
 /**
  * GET /api/reclamos/pending_notice.php  [requiere token]
- * Devuelve el reclamo resuelto más viejo que el jugador todavía no vio
- * (estado='resuelto' AND leido=0), o { reclamo: null } si no tiene ninguno.
- * Se consulta en todas las páginas del sitio para mostrar el banner
- * (ver loadReclamoNotice() en app.js), igual que site/status.php.
+ * Devuelve los tickets del jugador con novedades del staff sin ver
+ * (no_leido = 1), para el banner site-wide de app.js. El banner ahora es
+ * un link al hilo (/reclamos/?ver={id}) en lugar de mostrar la respuesta
+ * inline: abrir el detalle es lo que marca la novedad como leída.
  */
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/config/reclamos_db.php';
@@ -17,16 +17,15 @@ $auth = requireAuth();
 
 try {
     $stmt = ReclamosDatabase::get()->prepare(
-        "SELECT TOP 1 id, mensaje, respuesta, respondido_en
-         FROM reclamos.reclamos
-         WHERE nick = :nick AND estado = 'resuelto' AND leido = 0
-         ORDER BY respondido_en ASC"
+        "SELECT id, estado FROM reclamos.reclamos
+         WHERE nick = :nick AND no_leido = 1
+         ORDER BY id ASC"
     );
     $stmt->execute([':nick' => $auth['usr']]);
-    $row = $stmt->fetch();
+    $rows = $stmt->fetchAll();
 
-    echo json_encode(['reclamo' => $row ?: null], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+    echo json_encode(['pendientes' => $rows], JSON_THROW_ON_ERROR);
 } catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'No se pudo consultar el reclamo.']);
+    echo json_encode(['error' => 'No se pudo consultar los reclamos.']);
 }

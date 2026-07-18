@@ -3395,9 +3395,11 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
   flex-wrap: wrap;
 }
 .site-status-banner__dismiss {
+  display: inline-block;
   background: none;
   border: 1px solid currentColor;
   color: inherit;
+  text-decoration: none;
   border-radius: var(--radius);
   padding: 0.15rem 0.7rem;
   font-size: 0.75rem;
@@ -3800,20 +3802,146 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
   border: 1px solid var(--gold-border);
 }
 
-/* ── ControlPanel: miniaturas de imágenes de un reclamo ────────── */
-.cp-reclamo-images {
+/* ── Reclamos: tickets con hilo ────────────────────────────────── */
+.form-card--wide { max-width: 640px; width: 100%; }
+
+.reclamo-tabs {
+  display: flex;
+  gap: var(--gap-xs);
+  margin-bottom: var(--gap-md);
+  border-bottom: 1px solid var(--purple-border);
+}
+.reclamo-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  font-family: var(--font-title);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: color var(--t), border-color var(--t);
+}
+.reclamo-tab:hover { color: var(--text); }
+.reclamo-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+.reclamo-tab-badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #f87171;
+  color: #fff;
+  font-size: 0.68rem;
+  text-align: center;
+}
+
+.reclamo-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--bg-surface);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius);
+  padding: var(--gap-sm) var(--gap-md);
+  margin-bottom: var(--gap-sm);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color var(--t), transform var(--t);
+}
+.reclamo-card:hover { border-color: var(--gold-border); transform: translateY(-1px); }
+.reclamo-card--nuevo { border-color: #1f6e3c; }
+
+.reclamo-card__top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.reclamo-card__fecha { margin-left: auto; color: var(--text-dim); font-size: 0.75rem; }
+.reclamo-card__extracto { margin: 0.35rem 0 0.2rem; font-size: 0.85rem; color: var(--text); }
+.reclamo-card__meta { color: var(--text-dim); font-size: 0.72rem; }
+
+.reclamo-estado {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.reclamo-estado--abierto  { color: #eab308; border-color: rgba(234,179,8,0.4); }
+.reclamo-estado--resuelto { color: #4ade80; border-color: rgba(74,222,128,0.4); }
+
+.reclamo-nuevo-badge {
+  font-size: 0.68rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #1f6e3c;
+  color: #fff;
+}
+
+.reclamo-detalle-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: var(--gap-md);
+  font-family: var(--font-title);
+  color: var(--text-bright);
+}
+
+.reclamo-msg {
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.9rem;
+  margin-bottom: var(--gap-sm);
+  max-width: 92%;
+  background: var(--bg-surface);
+}
+.reclamo-msg--jugador { margin-right: auto; }
+.reclamo-msg--admin {
+  margin-left: auto;
+  border-color: var(--gold-border);
+  background: rgba(200,168,75,0.06);
+}
+.reclamo-msg__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-bottom: 0.3rem;
+}
+.reclamo-msg__head strong { color: var(--gold-light); }
+.reclamo-msg p { margin: 0; font-size: 0.87rem; white-space: pre-wrap; word-break: break-word; }
+.reclamo-msg__imgs {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
-  margin-bottom: 0.4rem;
+  margin-top: 0.45rem;
 }
-.cp-reclamo-images img {
-  width: 60px;
-  height: 60px;
+.reclamo-msg__imgs img {
+  width: 72px;
+  height: 72px;
   object-fit: cover;
   border-radius: var(--radius);
   border: 1px solid var(--gold-border);
 }
+
+.reclamo-reply-box {
+  margin-top: var(--gap-md);
+  padding-top: var(--gap-md);
+  border-top: 1px solid var(--purple-border);
+}
+.reclamo-reply-actions {
+  display: flex;
+  gap: var(--gap-xs);
+  margin-top: var(--gap-xs);
+  align-items: center;
+}
+.reclamo-reply-actions .btn:last-child { margin-left: auto; }
 
 /* ── Reclamos: grid de miniaturas (hasta 5 imágenes) ──────────── */
 .reclamo-preview-grid {

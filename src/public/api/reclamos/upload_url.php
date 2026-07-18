@@ -4,15 +4,16 @@
  * Devuelve una presigned URL (PUT) para subir una imagen directamente a R2
  * desde el navegador, más la URL pública final del archivo.
  *
- * Body JSON: { "reclamoId": 123, "contentType": "image/jpeg" }
- * El reclamo tiene que existir, pertenecerle al usuario del token y todavía
- * no estar finalizado (imagenes_json IS NULL) — así no se puede subir a la
- * carpeta de un reclamo ajeno ni agregar imágenes después de enviado.
+ * Body JSON: { "mensajeId": 456, "contentType": "image/jpeg" }
+ * Las imágenes se atan a un MENSAJE del hilo (no al ticket): el mensaje
+ * tiene que ser del jugador del token, pertenecer a un ticket suyo y no
+ * estar finalizado (imagenes_json IS NULL) — así no se puede subir a la
+ * carpeta de un reclamo ajeno ni agregar imágenes a mensajes ya enviados.
  *
  * El "filename" que mande el cliente NO se usa para nada — el nombre del
  * objeto en R2 se genera acá para evitar path traversal / overwrite.
- * La carpeta es reclamos/{reclamoId}/ — así Discord puede mostrar
- * directamente dónde están las fotos de cada reclamo.
+ * La carpeta sigue siendo reclamos/{reclamoId}/ (por ticket, no por
+ * mensaje) — así Discord y el staff encuentran todo lo del ticket junto.
  */
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/config/reclamos_db.php';
@@ -29,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $auth = requireAuth();
 $body = json_decode(file_get_contents('php://input'), true);
 
-$reclamoId   = isset($body['reclamoId']) ? (int) $body['reclamoId'] : 0;
+$mensajeId   = isset($body['mensajeId']) ? (int) $body['mensajeId'] : 0;
 $contentType = $body['contentType'] ?? '';
 
 $allowed = [
@@ -38,8 +39,8 @@ $allowed = [
     'image/webp' => 'webp',
 ];
 
-if ($reclamoId <= 0) {
-    http_response_code(400); echo json_encode(['error' => 'Falta reclamoId.']); exit;
+if ($mensajeId <= 0) {
+    http_response_code(400); echo json_encode(['error' => 'Falta mensajeId.']); exit;
 }
 
 if (!isset($allowed[$contentType])) {
@@ -49,19 +50,27 @@ if (!isset($allowed[$contentType])) {
 }
 
 try {
+    // El join con la cabecera valida la propiedad del ticket completo, no
+    // solo el autor del mensaje.
     $check = ReclamosDatabase::get()->prepare(
-        'SELECT TOP 1 1 FROM reclamos.reclamos
-         WHERE id = :id AND nick = :nick AND imagenes_json IS NULL'
+        "SELECT m.reclamo_id
+         FROM reclamos.mensajes m
+         JOIN reclamos.reclamos r ON r.id = m.reclamo_id
+         WHERE m.id = :id AND m.autor_tipo = 'jugador' AND m.autor_nick = :nick
+           AND r.nick = :nick2 AND m.imagenes_json IS NULL"
     );
-    $check->execute([':id' => $reclamoId, ':nick' => $auth['usr']]);
-    if ($check->fetchColumn() === false) {
+    $check->execute([':id' => $mensajeId, ':nick' => $auth['usr'], ':nick2' => $auth['usr']]);
+    $reclamoId = $check->fetchColumn();
+
+    if ($reclamoId === false) {
         http_response_code(404);
-        echo json_encode(['error' => 'Reclamo no encontrado o ya finalizado.']);
+        echo json_encode(['error' => 'Mensaje no encontrado o ya finalizado.']);
         exit;
     }
+    $reclamoId = (int) $reclamoId;
 } catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'No se pudo verificar el reclamo.']);
+    echo json_encode(['error' => 'No se pudo verificar el mensaje.']);
     exit;
 }
 

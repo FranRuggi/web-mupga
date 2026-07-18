@@ -1,17 +1,19 @@
 <?php
 /**
  * POST /api/reclamos/create.php  [requiere token]
- * Paso 1 del flujo: crea la fila del reclamo (sin imágenes todavía) y
- * devuelve el id, que después se usa como carpeta en R2
- * (reclamos/{id}/...) para subir las imágenes.
+ * Paso 1 del flujo: crea el ticket (reclamos.reclamos) y su primer
+ * mensaje (reclamos.mensajes) — el id del TICKET es el que se usa como
+ * carpeta en R2 (reclamos/{id}/...), el id del MENSAJE es al que se le
+ * atan las imágenes después vía upload_url.php + finalize.php.
  *
  * Body JSON: { "mensaje": "..." }
  * El nick sale de la sesión (token), nunca del body.
  *
- * Rate limit: 1 reclamo cada 5 minutos por IP (hasheada con SHA2_256,
- * nunca se guarda la IP en texto plano). Ventana de tiempo con
+ * Rate limit: 1 ticket nuevo cada 5 minutos por IP (hasheada con
+ * SHA2_256, nunca se guarda la IP en texto plano). Ventana de tiempo con
  * DATEADD(HOUR, 3, GETDATE()) — NUNCA GETUTCDATE(), ver incidente
- * documentado en CLAUDE.md (GETUTCDATE() rota en este VPS).
+ * documentado en CLAUDE.md (GETUTCDATE() rota en este VPS). No aplica a
+ * comentarios de seguimiento en un ticket ya existente (ver reply.php).
  *
  * RECLAMOS_DISABLE_RATE_LIMIT=true en .env desactiva el chequeo — SOLO
  * para testing mientras se prueba el flujo completo. Sacar la variable
@@ -69,21 +71,29 @@ try {
         }
     }
 
-    $insert = $db->prepare(
-        "INSERT INTO reclamos.reclamos (nick, mensaje, ip_hash, created_at)
+    $insertTicket = $db->prepare(
+        "INSERT INTO reclamos.reclamos (nick, ip_hash, created_at)
          OUTPUT INSERTED.id
-         VALUES (:nick, :mensaje, HASHBYTES('SHA2_256', :ip), DATEADD(HOUR, 3, GETDATE()))"
+         VALUES (:nick, HASHBYTES('SHA2_256', :ip), DATEADD(HOUR, 3, GETDATE()))"
     );
-    $insert->execute([
-        ':nick'    => $auth['usr'],
-        ':mensaje' => $mensaje,
-        ':ip'      => $ip,
+    $insertTicket->execute([':nick' => $auth['usr'], ':ip' => $ip]);
+    $reclamoId = (int) $insertTicket->fetchColumn();
+
+    $insertMensaje = $db->prepare(
+        "INSERT INTO reclamos.mensajes (reclamo_id, autor_tipo, autor_nick, mensaje, created_at)
+         OUTPUT INSERTED.id
+         VALUES (:reclamo_id, 'jugador', :nick, :mensaje, DATEADD(HOUR, 3, GETDATE()))"
+    );
+    $insertMensaje->execute([
+        ':reclamo_id' => $reclamoId,
+        ':nick'       => $auth['usr'],
+        ':mensaje'    => $mensaje,
     ]);
-    $id = (int) $insert->fetchColumn();
+    $mensajeId = (int) $insertMensaje->fetchColumn();
 
     $db->commit();
 
-    echo json_encode(['id' => $id], JSON_THROW_ON_ERROR);
+    echo json_encode(['id' => $reclamoId, 'mensajeId' => $mensajeId], JSON_THROW_ON_ERROR);
 } catch (Throwable $e) {
     if ($db && $db->inTransaction()) $db->rollBack();
     http_response_code(500);

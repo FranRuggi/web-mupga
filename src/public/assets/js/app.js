@@ -347,32 +347,31 @@ function formatScheduledEnd(iso) {
   return m ? `${m[3]}/${m[2]} ${m[4]}:${m[5]} hs` : '';
 }
 
-// ── Aviso de reclamo resuelto ─────────────────────────────────
-// Igual que loadSiteStatus() pero personal: si el jugador tiene un
-// reclamo resuelto sin leer, aparece un banner en CUALQUIER página hasta
-// que lo confirma (botón "Entendido" → reclamos/mark_read.php).
+// ── Aviso de reclamo con respuesta nueva ──────────────────────
+// Igual que loadSiteStatus() pero personal: si el jugador tiene tickets
+// con novedades del staff sin ver, aparece un banner en CUALQUIER página
+// que linkea directo al hilo (/reclamos/?ver={id}). Abrir el hilo es lo
+// que lo marca como leído (detalle.php) — no hay botón "Entendido".
 async function loadReclamoNotice() {
   if (typeof isAuthenticated !== 'function' || !isAuthenticated()) return;
+  // En /reclamos/ ya está el badge de la pestaña "Mis reclamos" — el
+  // banner ahí arriba sería redundante.
+  if (window.location.pathname.includes('/reclamos')) return;
 
   const res = await authFetch('reclamos/pending_notice.php');
   if (!res || !res.ok) return;
 
-  const { reclamo } = await res.json().catch(() => ({ reclamo: null }));
-  if (!reclamo) return;
+  const { pendientes } = await res.json().catch(() => ({ pendientes: [] }));
+  if (!pendientes?.length) return;
+
+  const primero = pendientes[0];
+  const extra   = pendientes.length > 1 ? ` (y ${pendientes.length - 1} más)` : '';
 
   const b = document.createElement('div');
   b.className = 'site-status-banner site-status-banner--reclamo';
   b.innerHTML =
-    `<strong>Reclamo #${esc(reclamo.id)} respondido:</strong> ${esc(reclamo.respuesta)} ` +
-    `<button type="button" class="site-status-banner__dismiss">Entendido</button>`;
-
-  b.querySelector('.site-status-banner__dismiss').addEventListener('click', async () => {
-    b.remove();
-    await authFetch('reclamos/mark_read.php', {
-      method: 'POST',
-      body: JSON.stringify({ id: reclamo.id }),
-    });
-  });
+    `<strong>El staff respondió tu reclamo #${esc(primero.id)}${esc(extra)}.</strong> ` +
+    `<a class="site-status-banner__dismiss" href="${BASE}/reclamos/?ver=${esc(primero.id)}">Ver respuesta</a>`;
 
   document.body.prepend(b);
 }
