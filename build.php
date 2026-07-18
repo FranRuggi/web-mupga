@@ -30,6 +30,7 @@ $pages = [
     'donate/success/index.html' => 'src/public/donate/success/index.php',
     'donate/error/index.html'   => 'src/public/donate/error/index.php',
     'mudial/index.html'         => 'src/public/mudial/index.php',
+    'reclamos/index.html'       => 'src/public/reclamos/index.php',
     'donate2/index.html'        => 'src/public/donate2/index.php',
     'controlpanel/index.html'   => 'src/public/controlpanel/index.php',
     'privacy/index.html'        => 'src/public/privacy/index.php',

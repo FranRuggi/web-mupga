@@ -3766,6 +3766,39 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
   border: 1px solid var(--gold-border);
 }
 
+/* ── Reclamos: grid de miniaturas (hasta 5 imágenes) ──────────── */
+.reclamo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: var(--gap-xs);
+  margin-top: var(--gap-sm);
+}
+.reclamo-preview-item {
+  position: relative;
+  aspect-ratio: 1;
+}
+.reclamo-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--gold-border);
+}
+.reclamo-preview-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: #f87171;
+  color: #fff;
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 /* ── Noticias: listado con miniatura ────────────────────────── */
 .news-card--list {
   display: flex;
