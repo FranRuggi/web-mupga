@@ -10,11 +10,17 @@
 -- El script es re-ejecutable sin errores (usa IF NOT EXISTS).
 --
 -- El login accede a DOS bases distintas, cada una con su propio
--- CREATE USER y sus propios permisos puntuales:
+-- CREATE USER:
 --   - MuOnline (base del juego):   SELECT sobre dbo.vw_web_auth únicamente.
---   - mupga_admin (base del sitio): schema reclamos (SELECT + INSERT sobre
---     reclamos.reclamos, nada de UPDATE/DELETE, sin roles db_datareader/
---     db_datawriter).
+--   - mupga_admin (base del sitio): DUEÑO del schema reclamos (CREATE SCHEMA
+--     ... AUTHORIZATION mupga_reclamos_svc). Ser dueño del schema le da
+--     control total sobre todo lo que hay adentro (SELECT/INSERT/UPDATE/
+--     DELETE/DDL) — NO es una restricción de mínimo privilegio real, es el
+--     mismo patrón que usa prode (GRANT CONTROL ON SCHEMA::prode). El
+--     GRANT SELECT, INSERT de más abajo es redundante (el dueño ya puede
+--     todo) pero se deja como referencia de la intención original. Fuera
+--     del schema reclamos, sigue sin tener ningún acceso a dbo ni a otros
+--     schemas de mupga_admin.
 -- ============================================================
 
 -- ── Bloque A — Login a nivel de servidor (una sola vez) ───────
@@ -78,8 +84,8 @@ BEGIN
 END;
 GO
 
--- Permisos puntuales: SELECT + INSERT nada más. Sin UPDATE/DELETE,
--- sin roles db_datareader/db_datawriter (esos darían acceso a todo el schema dbo).
+-- Redundante (mupga_reclamos_svc ya es dueño del schema, ver nota arriba),
+-- se deja explícito como documentación de qué operaciones usa la app.
 GRANT SELECT, INSERT ON reclamos.reclamos TO mupga_reclamos_svc;
 GO
 
@@ -94,7 +100,6 @@ WHERE s.name = 'reclamos'
 ORDER BY t.name;
 GO
 
--- Permisos efectivos del login sobre reclamos.reclamos, para confirmar
--- en SSMS que quedaron exactamente SELECT + INSERT (correr logueado como
--- mupga_reclamos_svc, o revisar con fn_my_permissions):
--- SELECT * FROM fn_my_permissions('reclamos.reclamos', 'OBJECT');
+-- mupga_reclamos_svc es dueño del schema reclamos → tiene control total ahí
+-- (no solo SELECT/INSERT). Para confirmarlo, logueate como mupga_reclamos_svc
+-- en SSMS y corré: SELECT * FROM fn_my_permissions('reclamos.reclamos', 'OBJECT');

@@ -12,6 +12,10 @@
  * nunca se guarda la IP en texto plano). Ventana de tiempo con
  * DATEADD(HOUR, 3, GETDATE()) — NUNCA GETUTCDATE(), ver incidente
  * documentado en CLAUDE.md (GETUTCDATE() rota en este VPS).
+ *
+ * RECLAMOS_DISABLE_RATE_LIMIT=true en .env desactiva el chequeo — SOLO
+ * para testing mientras se prueba el flujo completo. Sacar la variable
+ * (o ponerla en false/vacío) antes de que esto quede en producción.
  */
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/config/reclamos_db.php';
@@ -43,22 +47,26 @@ try {
     $db = ReclamosDatabase::get();
     $db->beginTransaction();
 
-    // WITH (UPDLOCK, HOLDLOCK) — mismo patrón anti-TOCTOU que el fix de
-    // seguridad del prode: sin esto, dos requests simultáneos del mismo IP
-    // podrían pasar el chequeo de rate limit a la vez.
-    $check = $db->prepare(
-        "SELECT TOP 1 1
-         FROM reclamos.reclamos WITH (UPDLOCK, HOLDLOCK)
-         WHERE ip_hash = HASHBYTES('SHA2_256', :ip)
-           AND created_at > DATEADD(MINUTE, -5, DATEADD(HOUR, 3, GETDATE()))"
-    );
-    $check->execute([':ip' => $ip]);
+    $rateLimitDisabled = ($_ENV['RECLAMOS_DISABLE_RATE_LIMIT'] ?? '') === 'true';
 
-    if ($check->fetchColumn() !== false) {
-        $db->rollBack();
-        http_response_code(429);
-        echo json_encode(['error' => 'Ya mandaste un reclamo hace poco, esperá unos minutos.']);
-        exit;
+    if (!$rateLimitDisabled) {
+        // WITH (UPDLOCK, HOLDLOCK) — mismo patrón anti-TOCTOU que el fix de
+        // seguridad del prode: sin esto, dos requests simultáneos del mismo IP
+        // podrían pasar el chequeo de rate limit a la vez.
+        $check = $db->prepare(
+            "SELECT TOP 1 1
+             FROM reclamos.reclamos WITH (UPDLOCK, HOLDLOCK)
+             WHERE ip_hash = HASHBYTES('SHA2_256', :ip)
+               AND created_at > DATEADD(MINUTE, -5, DATEADD(HOUR, 3, GETDATE()))"
+        );
+        $check->execute([':ip' => $ip]);
+
+        if ($check->fetchColumn() !== false) {
+            $db->rollBack();
+            http_response_code(429);
+            echo json_encode(['error' => 'Ya mandaste un reclamo hace poco, esperá unos minutos.']);
+            exit;
+        }
     }
 
     $insert = $db->prepare(
