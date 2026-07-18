@@ -9,6 +9,21 @@
 
 class R2Presign
 {
+    // Si RECLAMOS_R2_PUBLIC_URL viene sin esquema (ej. "reclamos.mupga.com.ar"
+    // en vez de "https://reclamos.mupga.com.ar"), las URLs resultantes se
+    // interpretan como rutas RELATIVAS dentro de <img src>, no como URLs
+    // absolutas — rompe la carga embebida aunque la URL "andaría" pegada
+    // directo en la barra de direcciones. Normalizamos acá para no depender
+    // de que el .env esté cargado con el formato exacto.
+    public static function normalizePublicUrl(string $url): string
+    {
+        $url = rtrim(trim($url), '/');
+        if ($url !== '' && !preg_match('#^https?://#i', $url)) {
+            $url = 'https://' . $url;
+        }
+        return $url;
+    }
+
     public static function presignPut(
         string $endpoint,
         string $bucket,

@@ -15,6 +15,7 @@
  */
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/config/reclamos_db.php';
+require_once SRC_ROOT . '/lib/R2Presign.php';
 require_once dirname(__DIR__) . '/_cors.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -35,7 +36,7 @@ if ($reclamoId <= 0) {
 }
 
 $folderPrefix = 'reclamos/' . $reclamoId . '/';
-$publicPrefix = rtrim($_ENV['RECLAMOS_R2_PUBLIC_URL'] ?? '', '/') . '/' . $folderPrefix;
+$publicPrefix = R2Presign::normalizePublicUrl($_ENV['RECLAMOS_R2_PUBLIC_URL'] ?? '') . '/' . $folderPrefix;
 foreach ($imagenes as $url) {
     if (!is_string($url) || strpos($url, $publicPrefix) !== 0) {
         http_response_code(400);

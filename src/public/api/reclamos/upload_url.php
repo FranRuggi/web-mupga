@@ -69,7 +69,7 @@ $bucket    = $_ENV['RECLAMOS_R2_BUCKET']     ?? '';
 $accessKey = $_ENV['RECLAMOS_R2_ACCESS_KEY'] ?? '';
 $secretKey = $_ENV['RECLAMOS_R2_SECRET_KEY'] ?? '';
 $endpoint  = $_ENV['RECLAMOS_R2_ENDPOINT']   ?? '';
-$publicUrl = $_ENV['RECLAMOS_R2_PUBLIC_URL'] ?? '';
+$publicUrl = R2Presign::normalizePublicUrl($_ENV['RECLAMOS_R2_PUBLIC_URL'] ?? '');
 
 if ($bucket === '' || $accessKey === '' || $secretKey === '' || $endpoint === '' || $publicUrl === '') {
     http_response_code(500);
@@ -92,7 +92,7 @@ try {
 
     echo json_encode([
         'uploadUrl' => $uploadUrl,
-        'publicUrl' => rtrim($publicUrl, '/') . '/' . $objectKey,
+        'publicUrl' => $publicUrl . '/' . $objectKey,
     ], JSON_THROW_ON_ERROR);
 } catch (Throwable $e) {
     http_response_code(500);
