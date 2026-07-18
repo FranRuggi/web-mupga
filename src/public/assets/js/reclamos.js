@@ -22,7 +22,15 @@ const RECLAMOS_TIPOS_OK     = ['image/jpeg', 'image/png', 'image/webp'];
 let _archivos = []; // File[]
 
 let $alert, $form, $mensaje, $errMensaje,
-    $dropzone, $dropzoneInput, $previews, $btnSubmit;
+    $dropzone, $dropzoneInput, $previews, $btnSubmit,
+    $spinner, $btnText, $progress;
+
+// Evita que un reload/cierre accidental a mitad del envío deje un reclamo
+// a medio crear en la base (fila sin imágenes, sin poder reintentar).
+function beforeUnloadGuard(e) {
+  e.preventDefault();
+  e.returnValue = '';
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!isAuthenticated()) {
@@ -40,6 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
   $dropzoneInput = document.getElementById('reclamo-image-file');
   $previews      = document.getElementById('reclamo-previews');
   $btnSubmit     = document.getElementById('btn-reclamo-submit');
+  $spinner       = document.getElementById('reclamo-spinner');
+  $btnText       = document.getElementById('reclamo-btn-text');
+  $progress      = document.getElementById('reclamo-progress');
 
   initDropzone();
   $form.addEventListener('submit', onSubmit);
@@ -124,6 +135,7 @@ async function onSubmit(e) {
   }
 
   setLoading(true);
+  setProgress('Creando tu reclamo…');
 
   try {
     // Paso 1: crear el reclamo (rate limit se valida acá) — el id resultante
@@ -146,12 +158,14 @@ async function onSubmit(e) {
 
     // Paso 2: subir cada imagen a la carpeta reclamos/{id}/
     const imagenes = [];
-    for (const file of _archivos) {
-      const publicUrl = await uploadImagen(id, file);
+    for (let i = 0; i < _archivos.length; i++) {
+      setProgress(`Subiendo imagen ${i + 1} de ${_archivos.length}…`);
+      const publicUrl = await uploadImagen(id, _archivos[i]);
       imagenes.push(publicUrl);
     }
 
     // Paso 3: guardar las URLs y notificar Discord
+    setProgress('Guardando y avisando al staff…');
     const res = await authFetch('reclamos/finalize.php', {
       method: 'POST',
       body: JSON.stringify({ reclamoId: id, imagenes }),
@@ -205,7 +219,27 @@ async function uploadImagen(reclamoId, file) {
 // ── UI helpers ───────────────────────────────────────────────
 function setLoading(loading) {
   $btnSubmit.disabled = loading;
-  $btnSubmit.textContent = loading ? 'Enviando…' : 'Enviar reclamo';
+  $btnSubmit.dataset.loading = loading ? 'true' : 'false';
+  $spinner.hidden = !loading;
+  $btnText.textContent = loading ? 'Enviando…' : 'Enviar reclamo';
+
+  // Bloqueados mientras se envía: nada de tocar el mensaje o las imágenes
+  // a mitad de camino (ya se está subiendo lo que había al momento del submit).
+  $mensaje.disabled = loading;
+  $dropzone.style.pointerEvents = loading ? 'none' : '';
+  $dropzone.style.opacity = loading ? '0.5' : '';
+
+  if (loading) {
+    window.addEventListener('beforeunload', beforeUnloadGuard);
+  } else {
+    window.removeEventListener('beforeunload', beforeUnloadGuard);
+    $progress.hidden = true;
+  }
+}
+
+function setProgress(text) {
+  $progress.textContent = text;
+  $progress.hidden = false;
 }
 
 function showAlert(msg, isError) {

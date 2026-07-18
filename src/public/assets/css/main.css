@@ -1448,6 +1448,19 @@ h1, h2, h3, h4 {
   pointer-events: none;
 }
 
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 0.5rem;
+  vertical-align: -2px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ── UserCP ─────────────────────────────────────────────────── */
 .usercp-layout {
   padding: var(--gap-lg) var(--gap-lg) var(--gap-xl);

@@ -66,6 +66,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
       <a href="<?= $base ?>/donate2/"   class="nav-link">WCoin</a>
       <a href="https://wiki.mupga.com.ar" class="nav-link" target="_blank" rel="noopener">Wiki</a>
       <a href="<?= $base ?>/mudial/"   class="nav-link">Prode</a>
+      <a href="<?= $base ?>/reclamos/" class="nav-link">Reclamos</a>
       <!-- Links para usuarios NO autenticados (JS los oculta si hay sesión) -->
       <a href="<?= $base ?>/login/"     class="nav-link"     data-guest-show>Login</a>
       <a href="<?= $base ?>/register/"  class="nav-link nav-cta" data-guest-show>Registrarme</a>

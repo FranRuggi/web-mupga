@@ -38,7 +38,11 @@ ob_start();
         </div>
 
         <div class="form-actions">
-          <button class="btn btn-primary btn-full" type="submit" id="btn-reclamo-submit">Enviar reclamo</button>
+          <button class="btn btn-primary btn-full" type="submit" id="btn-reclamo-submit">
+            <span class="spinner" id="reclamo-spinner" hidden></span>
+            <span id="reclamo-btn-text">Enviar reclamo</span>
+          </button>
+          <p class="form-hint" id="reclamo-progress" hidden></p>
         </div>
       </form>
 
