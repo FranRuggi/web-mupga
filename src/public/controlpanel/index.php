@@ -25,6 +25,7 @@ ob_start();
       <button class="cp-tab" data-tab="news">Noticias</button>
       <button class="cp-tab" data-tab="serverinfo">Info del servidor</button>
       <button class="cp-tab" data-tab="downloads">Descargas</button>
+      <button class="cp-tab" data-tab="reclamos">Reclamos</button>
     </div>
 
     <!-- ── Estado del sitio ── -->
@@ -158,6 +159,26 @@ ob_start();
           <button class="btn btn-secondary" id="dl-cancel" hidden>Cancelar edición</button>
         </div>
         <p class="cp-feedback" id="dl-feedback"></p>
+      </div>
+    </section>
+
+    <!-- ── Reclamos ── -->
+    <section class="cp-section account-card" id="cp-tab-reclamos" hidden>
+      <p class="account-card__title">Reclamos</p>
+      <div id="reclamos-admin-list"><p class="state-message">Cargando…</p></div>
+
+      <div class="cp-form" id="reclamos-response-form" hidden>
+        <p class="account-card__title" id="reclamos-form-title">Responder reclamo</p>
+        <input type="hidden" id="reclamo-resp-id" value="">
+        <label class="cp-field">
+          <span>Respuesta</span>
+          <textarea id="reclamo-resp-text" rows="4" maxlength="2000"></textarea>
+        </label>
+        <div class="cp-actions">
+          <button class="btn btn-primary" id="reclamo-resp-send">Enviar respuesta</button>
+          <button class="btn btn-secondary" id="reclamo-resp-cancel">Cancelar</button>
+        </div>
+        <p class="cp-feedback" id="reclamos-feedback"></p>
       </div>
     </section>
 

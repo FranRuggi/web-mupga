@@ -473,6 +473,77 @@ function initDownloads() {
   });
 }
 
+// ── Reclamos ──────────────────────────────────────────────────
+
+let reclamosCache = [];
+
+async function loadReclamosAdmin() {
+  const { ok, data } = await adminFetch('reclamos.php');
+  const el = document.getElementById('reclamos-admin-list');
+  if (!ok || !data?.items) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
+
+  reclamosCache = data.items;
+
+  el.innerHTML = reclamosCache.map(r => {
+    let imgs = [];
+    try { imgs = r.imagenes_json ? JSON.parse(r.imagenes_json) : []; } catch { /* imagenes_json vacío o inválido */ }
+    const resuelto = r.estado === 'resuelto';
+
+    return `
+    <div class="cp-row" style="align-items:flex-start">
+      <div class="cp-row__info">
+        <strong>#${esc(r.id)} — ${esc(r.nick)}</strong>
+        <span class="cp-chip ${resuelto ? 'cp-chip--on' : 'cp-chip--off'}">${resuelto ? '● resuelto' : '○ nuevo'}</span>
+        <span class="cp-dim">${esc(r.created_at)}</span>
+        <p style="margin:0.4rem 0">${esc(r.mensaje)}</p>
+        ${imgs.length ? `<div class="cp-reclamo-images">
+          ${imgs.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt=""></a>`).join('')}
+        </div>` : ''}
+        ${resuelto ? `<p class="cp-dim">Respondido por ${esc(r.respondido_por ?? '')} · ${esc(r.respondido_en ?? '')}<br>${esc(r.respuesta ?? '')}</p>` : ''}
+      </div>
+      <div class="cp-row__actions">
+        ${!resuelto ? `<button class="btn btn-secondary btn-sm" data-reclamo-responder="${r.id}">Responder</button>` : ''}
+      </div>
+    </div>`;
+  }).join('') || '<p class="state-message">Sin reclamos.</p>';
+
+  el.querySelectorAll('[data-reclamo-responder]').forEach(b => b.addEventListener('click', () => {
+    const r = reclamosCache.find(x => String(x.id) === b.dataset.reclamoResponder);
+    if (!r) return;
+    document.getElementById('reclamo-resp-id').value      = r.id;
+    document.getElementById('reclamo-resp-text').value    = '';
+    document.getElementById('reclamos-form-title').textContent = `Responder reclamo #${r.id} (${r.nick})`;
+    document.getElementById('reclamos-response-form').hidden = false;
+    document.getElementById('reclamos-response-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }));
+}
+
+function initReclamos() {
+  document.getElementById('reclamo-resp-cancel').addEventListener('click', () => {
+    document.getElementById('reclamos-response-form').hidden = true;
+  });
+
+  document.getElementById('reclamo-resp-send').addEventListener('click', async () => {
+    const id        = Number(document.getElementById('reclamo-resp-id').value);
+    const respuesta = document.getElementById('reclamo-resp-text').value.trim();
+
+    if (!id || !respuesta) {
+      feedback('reclamos-feedback', 'Escribí una respuesta.', true);
+      return;
+    }
+
+    const { ok, data } = await adminFetch('reclamos.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'responder', id, respuesta }),
+    });
+    feedback('reclamos-feedback', ok ? 'Respuesta enviada ✔' : (data?.error ?? 'Error'), !ok);
+    if (ok) {
+      document.getElementById('reclamos-response-form').hidden = true;
+      loadReclamosAdmin();
+    }
+  });
+}
+
 // ── Init + guard ──────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -498,9 +569,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   initNews();
   initServerInfo();
   initDownloads();
+  initReclamos();
 
   loadStatus();
   loadNewsAdmin();
   loadServerInfoAdmin();
   loadDownloadsAdmin();
+  loadReclamosAdmin();
 });

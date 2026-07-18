@@ -3372,6 +3372,26 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
   margin-right: 0.4rem;
 }
 
+.site-status-banner--reclamo {
+  background: linear-gradient(90deg, #163d24, #1f6e3c, #163d24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.site-status-banner__dismiss {
+  background: none;
+  border: 1px solid currentColor;
+  color: inherit;
+  border-radius: var(--radius);
+  padding: 0.15rem 0.7rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.site-status-banner__dismiss:hover { background: rgba(255,255,255,0.1); }
+
 .site-status-overlay {
   position: fixed;
   inset: 0;
@@ -3762,6 +3782,21 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 }
 .cp-dropzone__preview img {
   max-height: 140px;
+  border-radius: var(--radius);
+  border: 1px solid var(--gold-border);
+}
+
+/* ── ControlPanel: miniaturas de imágenes de un reclamo ────────── */
+.cp-reclamo-images {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+.cp-reclamo-images img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
   border-radius: var(--radius);
   border: 1px solid var(--gold-border);
 }

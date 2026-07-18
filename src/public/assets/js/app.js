@@ -347,11 +347,42 @@ function formatScheduledEnd(iso) {
   return m ? `${m[3]}/${m[2]} ${m[4]}:${m[5]} hs` : '';
 }
 
+// ── Aviso de reclamo resuelto ─────────────────────────────────
+// Igual que loadSiteStatus() pero personal: si el jugador tiene un
+// reclamo resuelto sin leer, aparece un banner en CUALQUIER página hasta
+// que lo confirma (botón "Entendido" → reclamos/mark_read.php).
+async function loadReclamoNotice() {
+  if (typeof isAuthenticated !== 'function' || !isAuthenticated()) return;
+
+  const res = await authFetch('reclamos/pending_notice.php');
+  if (!res || !res.ok) return;
+
+  const { reclamo } = await res.json().catch(() => ({ reclamo: null }));
+  if (!reclamo) return;
+
+  const b = document.createElement('div');
+  b.className = 'site-status-banner site-status-banner--reclamo';
+  b.innerHTML =
+    `<strong>Reclamo #${esc(reclamo.id)} respondido:</strong> ${esc(reclamo.respuesta)} ` +
+    `<button type="button" class="site-status-banner__dismiss">Entendido</button>`;
+
+  b.querySelector('.site-status-banner__dismiss').addEventListener('click', async () => {
+    b.remove();
+    await authFetch('reclamos/mark_read.php', {
+      method: 'POST',
+      body: JSON.stringify({ id: reclamo.id }),
+    });
+  });
+
+  document.body.prepend(b);
+}
+
 // ── Init ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
   markActiveNav();
   loadSiteStatus();
+  loadReclamoNotice();
 
   const cta = document.getElementById('hero-cta');
   if (cta && typeof isAuthenticated === 'function' && isAuthenticated()) {

@@ -76,7 +76,9 @@ try {
 // Notificación a Discord — best-effort, nunca rompe la respuesta al cliente.
 try {
     $webhook = $_ENV['DISCORD_WEBHOOK_RECLAMOS'] ?? '';
-    if ($webhook !== '') {
+    if ($webhook === '') {
+        error_log("reclamos: DISCORD_WEBHOOK_RECLAMOS vacío, no se notificó el reclamo #{$reclamoId}");
+    } else {
         $embed = [
             'title'  => "Nuevo reclamo #{$reclamoId}",
             'color'  => 0xE74C3C,
@@ -100,13 +102,28 @@ try {
         $payload = json_encode(['embeds' => [$embed]], JSON_THROW_ON_ERROR);
         $context = stream_context_create([
             'http' => [
-                'method'  => 'POST',
-                'header'  => "Content-Type: application/json\r\n",
-                'content' => $payload,
-                'timeout' => 5,
+                'method'        => 'POST',
+                'header'        => "Content-Type: application/json\r\n",
+                'content'       => $payload,
+                'timeout'       => 5,
+                // Sin esto, file_get_contents devuelve false ante un 4xx/5xx
+                // y se pierde el cuerpo de la respuesta (donde Discord explica
+                // el error) — no se podía saber por qué fallaba.
+                'ignore_errors' => true,
             ],
         ]);
-        @file_get_contents($webhook, false, $context);
+        $result = @file_get_contents($webhook, false, $context);
+
+        $status = 0;
+        foreach ($http_response_header ?? [] as $h) {
+            if (preg_match('#^HTTP/\S+\s+(\d+)#', $h, $m)) { $status = (int) $m[1]; break; }
+        }
+
+        if ($result === false) {
+            error_log("reclamos: request a Discord falló (sin respuesta) para reclamo #{$reclamoId}");
+        } elseif ($status !== 204) {
+            error_log("reclamos: Discord respondió HTTP {$status} para reclamo #{$reclamoId}: {$result}");
+        }
     }
 } catch (Throwable $e) {
     error_log('reclamos: fallo al notificar a Discord: ' . $e->getMessage());
