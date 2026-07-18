@@ -1459,6 +1459,7 @@ h1, h2, h3, h4 {
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+.spinner[hidden] { display: none; }  /* el display:inline-block de arriba pisa al atributo hidden */
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── UserCP ─────────────────────────────────────────────────── */
