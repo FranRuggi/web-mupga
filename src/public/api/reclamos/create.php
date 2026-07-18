@@ -55,18 +55,27 @@ try {
         // WITH (UPDLOCK, HOLDLOCK) — mismo patrón anti-TOCTOU que el fix de
         // seguridad del prode: sin esto, dos requests simultáneos del mismo IP
         // podrían pasar el chequeo de rate limit a la vez.
+        // Trae los segundos transcurridos desde el último reclamo del mismo
+        // hash dentro de la ventana, para decirle al jugador cuánto le falta.
         $check = $db->prepare(
-            "SELECT TOP 1 1
+            "SELECT TOP 1 DATEDIFF(SECOND, created_at, DATEADD(HOUR, 3, GETDATE()))
              FROM reclamos.reclamos WITH (UPDLOCK, HOLDLOCK)
              WHERE ip_hash = HASHBYTES('SHA2_256', :ip)
-               AND created_at > DATEADD(MINUTE, -5, DATEADD(HOUR, 3, GETDATE()))"
+               AND created_at > DATEADD(MINUTE, -5, DATEADD(HOUR, 3, GETDATE()))
+             ORDER BY created_at DESC"
         );
         $check->execute([':ip' => $ip]);
+        $transcurrido = $check->fetchColumn();
 
-        if ($check->fetchColumn() !== false) {
+        if ($transcurrido !== false) {
             $db->rollBack();
+            $restante = max(0, 300 - (int) $transcurrido); // ventana de 5 min en segundos
+            $minutos  = (int) ceil($restante / 60);
+            $texto    = $minutos <= 1
+                ? 'Ya mandaste un reclamo hace poco, esperá menos de un minuto y probá de nuevo.'
+                : "Ya mandaste un reclamo hace poco, esperá {$minutos} minutos y probá de nuevo.";
             http_response_code(429);
-            echo json_encode(['error' => 'Ya mandaste un reclamo hace poco, esperá unos minutos.']);
+            echo json_encode(['error' => $texto, 'retry_in_seconds' => $restante]);
             exit;
         }
     }

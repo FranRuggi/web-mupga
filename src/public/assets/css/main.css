@@ -3839,6 +3839,7 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
   font-size: 0.68rem;
   text-align: center;
 }
+.reclamo-tab-badge[hidden] { display: none; }  /* el display:inline-block de arriba pisa al atributo hidden */
 
 .reclamo-card {
   display: block;
