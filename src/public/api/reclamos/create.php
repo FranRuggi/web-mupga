@@ -11,9 +11,12 @@
  *
  * Rate limit: 1 ticket nuevo cada 5 minutos por IP (hasheada con
  * SHA2_256, nunca se guarda la IP en texto plano). Ventana de tiempo con
- * DATEADD(HOUR, 3, GETDATE()) — NUNCA GETUTCDATE(), ver incidente
- * documentado en CLAUDE.md (GETUTCDATE() rota en este VPS). No aplica a
- * comentarios de seguimiento en un ticket ya existente (ver reply.php).
+ * GETUTCDATE() — ver incidente de timezone documentado en CLAUDE.md: la
+ * timezone local del SO del VPS cambia sin aviso, así que cualquier
+ * offset fijo sobre GETDATE() queda desactualizado tarde o temprano.
+ * GETUTCDATE() lee el reloj UTC interno del SO, inmune a ese problema.
+ * No aplica a comentarios de seguimiento en un ticket ya existente (ver
+ * reply.php).
  *
  * RECLAMOS_DISABLE_RATE_LIMIT=true en .env desactiva el chequeo — SOLO
  * para testing mientras se prueba el flujo completo. Sacar la variable
@@ -58,10 +61,10 @@ try {
         // Trae los segundos transcurridos desde el último reclamo del mismo
         // hash dentro de la ventana, para decirle al jugador cuánto le falta.
         $check = $db->prepare(
-            "SELECT TOP 1 DATEDIFF(SECOND, created_at, DATEADD(HOUR, 3, GETDATE()))
+            "SELECT TOP 1 DATEDIFF(SECOND, created_at, GETUTCDATE())
              FROM reclamos.reclamos WITH (UPDLOCK, HOLDLOCK)
              WHERE ip_hash = HASHBYTES('SHA2_256', :ip)
-               AND created_at > DATEADD(MINUTE, -5, DATEADD(HOUR, 3, GETDATE()))
+               AND created_at > DATEADD(MINUTE, -5, GETUTCDATE())
              ORDER BY created_at DESC"
         );
         $check->execute([':ip' => $ip]);
@@ -83,7 +86,7 @@ try {
     $insertTicket = $db->prepare(
         "INSERT INTO reclamos.reclamos (nick, ip_hash, created_at)
          OUTPUT INSERTED.id
-         VALUES (:nick, HASHBYTES('SHA2_256', :ip), DATEADD(HOUR, 3, GETDATE()))"
+         VALUES (:nick, HASHBYTES('SHA2_256', :ip), GETUTCDATE())"
     );
     $insertTicket->execute([':nick' => $auth['usr'], ':ip' => $ip]);
     $reclamoId = (int) $insertTicket->fetchColumn();
@@ -91,7 +94,7 @@ try {
     $insertMensaje = $db->prepare(
         "INSERT INTO reclamos.mensajes (reclamo_id, autor_tipo, autor_nick, mensaje, created_at)
          OUTPUT INSERTED.id
-         VALUES (:reclamo_id, 'jugador', :nick, :mensaje, DATEADD(HOUR, 3, GETDATE()))"
+         VALUES (:reclamo_id, 'jugador', :nick, :mensaje, GETUTCDATE())"
     );
     $insertMensaje->execute([
         ':reclamo_id' => $reclamoId,

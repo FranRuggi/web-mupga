@@ -56,7 +56,7 @@ try {
         $cooldown = $db->prepare(
             "SELECT TOP 1 1 FROM reclamos.mensajes WITH (UPDLOCK, HOLDLOCK)
              WHERE reclamo_id = :id AND autor_tipo = 'jugador'
-               AND created_at > DATEADD(SECOND, -30, DATEADD(HOUR, 3, GETDATE()))"
+               AND created_at > DATEADD(SECOND, -30, GETUTCDATE())"
         );
         $cooldown->execute([':id' => $reclamoId]);
         if ($cooldown->fetchColumn() !== false) {
@@ -71,7 +71,7 @@ try {
     $insert = $db->prepare(
         "INSERT INTO reclamos.mensajes (reclamo_id, autor_tipo, autor_nick, mensaje, created_at)
          OUTPUT INSERTED.id
-         VALUES (:reclamo_id, 'jugador', :nick, :mensaje, DATEADD(HOUR, 3, GETDATE()))"
+         VALUES (:reclamo_id, 'jugador', :nick, :mensaje, GETUTCDATE())"
     );
     $insert->execute([':reclamo_id' => $reclamoId, ':nick' => $auth['usr'], ':mensaje' => $mensaje]);
     $mensajeId = (int) $insert->fetchColumn();
