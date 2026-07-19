@@ -193,17 +193,59 @@ UTC-5 en lugar de UTC — comportamiento incorrecto, causa desconocida (posiblem
 del SO o de la instancia SQL Server Express). `GETDATE()` devuelve hora de Argentina (UTC-3),
 que es el comportamiento esperado según la zona horaria del VPS.
 
-Workaround aplicado: `GETUTCDATE()` reemplazado por `DATEADD(HOUR, 3, GETDATE())` en toda
-referencia de `savePrediction()` (condición de cutoff y `submitted_at` en ambos paths del MERGE).
-`match_datetime_utc` almacena UTC real, por lo que `DATEADD(HOUR, 3, GETDATE())` es la expresión
-correcta para obtener el instante UTC actual en este servidor.
+Workaround aplicado en su momento: `GETUTCDATE()` reemplazado por `DATEADD(HOUR, 3, GETDATE())`
+en `savePrediction()`. **Este workaround quedó obsoleto y se revirtió el 2026-07-19** — ver
+incidente siguiente. No reintroducirlo.
 
-**Regla permanente para este proyecto:** nunca usar `GETUTCDATE()` en queries de `prode.*`.
-Usar siempre `DATEADD(HOUR, 3, GETDATE())` para obtener UTC real.
+### 2026-07-19 — La timezone del SO del VPS volvió a cambiar (rompió el cutoff de la final)
 
-**Acción pendiente:** auditar la DB en busca de predicciones con `submitted_at` posterior a
-`match_datetime_utc` o dentro de los 60 minutos previos al inicio; evaluar si corresponde
-anular puntos otorgados por esas predicciones.
+**Qué se descubrió:** el día de la final del mundial, `savePrediction()` empezó a rechazar
+predicciones con "Partido no encontrado o predicciones cerradas" para el partido 116 (la final)
+más de 1 hora antes del cutoff real de 60 minutos — con 21 predicciones ya cargadas en la DB
+para ese mismo partido, así que no era un problema de datos faltantes.
+
+**Causa raíz:** el workaround del incidente anterior (`DATEADD(HOUR, 3, GETDATE())`) asumía que
+la timezone local del SO del VPS era fija en Argentina (UTC-3). Para el 19/07 esa timezone había
+cambiado a **UTC+2** (verificado con `SYSDATETIMEOFFSET()` → `+02:00`), así que sumar 3 horas
+fijas sobre `GETDATE()` calculaba un "ahora" **5 horas adelantado** respecto al UTC real —
+suficiente para saltarse el cutoff y rechazar predicciones de un partido que ni había empezado.
+El bug es sistémico (afecta a cualquier `DATEADD(HOUR, N, GETDATE())` con `N` fijo) pero solo se
+manifestó de forma visible en la final porque es el único partido donde la gente predijo sobre
+la hora — en fase de grupos las predicciones se cargaron con horas/días de anticipación, así que
+nunca se comió el margen de error.
+
+**Diagnóstico usado (repetible):** correr en el VPS
+`SELECT GETDATE(), GETUTCDATE(), SYSDATETIMEOFFSET();` y comparar contra la hora real. Si
+`SYSDATETIMEOFFSET()` da un offset ≠ al asumido en el código, hay que recalcular.
+
+**Fix aplicado:** se sacó todo el offset hardcodeado (`DATEADD(HOUR, 3, GETDATE())`) y se
+reemplazó por `GETUTCDATE()` puro, en:
+- `src/db/ProdeRepository.php` → `savePrediction()` (cutoff + `submitted_at`)
+- `src/public/api/reclamos/create.php` → rate limit de 5 min + `created_at`
+- `src/public/api/reclamos/reply.php` → cooldown de 30s + `created_at`
+- `src/public/api/admin/reclamos.php` → `created_at` de respuestas del staff
+
+Verificado el 2026-07-19: `GETUTCDATE()` coincidía exacto con el UTC derivado de
+`SYSDATETIMEOFFSET()` y con la hora real. En reclamos el bug anterior era solo cosmético (el
+`created_at` guardado y el "ahora" comparado usaban la misma fórmula sesgada, así que el sesgo se
+cancelaba en el `DATEDIFF` — el rate limit nunca dejó de funcionar bien, solo se veían mal las
+horas mostradas al staff).
+
+**Regla permanente para este proyecto (reemplaza la anterior):** **nunca hardcodear un offset
+fijo sobre `GETDATE()`** (tipo `DATEADD(HOUR, N, GETDATE())`) para simular UTC — la timezone
+local del SO de este VPS **no es estable**, ya cambió dos veces (ART → UTC+2, y quién sabe qué
+sigue). Usar siempre `GETUTCDATE()` directo.
+
+**Si esto se vuelve a romper** (predicciones o rate-limits rechazando de forma rara sin razón
+aparente en los datos): correr el diagnóstico de arriba (`GETDATE()`, `GETUTCDATE()`,
+`SYSDATETIMEOFFSET()` + hora real) ANTES de tocar código. Si `GETUTCDATE()` ya no coincide con
+`SYSDATETIMEOFFSET()`-UTC, ahí sí hay que volver a un offset manual calculado con el valor de
+`SYSDATETIMEOFFSET()` de ese momento — nunca asumir un offset fijo sin verificarlo en vivo primero.
+Archivos a revisar: los cuatro listados arriba (buscar `GETUTCDATE()` en `src/`).
+
+**Acción pendiente (incidente 2026-06-19, sigue abierta):** auditar la DB en busca de
+predicciones con `submitted_at` posterior a `match_datetime_utc` o dentro de los 60 minutos
+previos al inicio; evaluar si corresponde anular puntos otorgados por esas predicciones.
 
 ## Objetivo del producto
 
