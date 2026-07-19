@@ -114,9 +114,12 @@ class ProdeRepository {
     ): bool {
         $this->db->beginTransaction();
         try {
-            // GETUTCDATE() es unreliable en este VPS (devuelve UTC-5, no UTC).
-            // GETDATE() devuelve hora de Argentina (UTC-3). UTC real = GETDATE() + 3 horas.
-            // match_datetime_utc almacena UTC real. Todas las comparaciones usan DATEADD(HOUR, 3, GETDATE()).
+            // La timezone local del SO de este VPS cambia sin aviso (visto: ART UTC-3,
+            // luego UTC+2) — cualquier offset fijo sobre GETDATE() queda desactualizado
+            // tarde o temprano (incidente 2026-06-19, repetido 2026-07-19). GETUTCDATE()
+            // lee el reloj UTC interno del SO directamente, sin pasar por el ajuste de
+            // timezone local, así que es inmune a ese problema. match_datetime_utc
+            // almacena UTC real; todas las comparaciones usan GETUTCDATE() sin offsets.
             //
             // Validación server-side: existencia + estado + cutoff UTC.
             // is_locked excluido de la condición temporal; UPDLOCK/HOLDLOCK eliminan la race TOCTOU.
@@ -124,7 +127,7 @@ class ProdeRepository {
                 "SELECT id FROM prode.matches WITH (UPDLOCK, HOLDLOCK)
                  WHERE id = ?
                    AND status = 'pending'
-                   AND DATEADD(HOUR, 3, GETDATE()) < DATEADD(MINUTE, -60, match_datetime_utc)"
+                   AND GETUTCDATE() < DATEADD(MINUTE, -60, match_datetime_utc)"
             );
             $stmt->execute([$matchId]);
 
@@ -133,7 +136,7 @@ class ProdeRepository {
             }
 
             // MERGE: INSERT si no existe, UPDATE si ya existe.
-            // submitted_at usa DATEADD(HOUR, 3, GETDATE()) — UTC real, consistente con match_datetime_utc.
+            // submitted_at usa GETUTCDATE() — UTC real, consistente con match_datetime_utc.
             $stmt = $this->db->prepare(
                 'MERGE prode.predictions AS t
                  USING (SELECT ? AS account, ? AS match_id) AS s
@@ -142,10 +145,10 @@ class ProdeRepository {
                      UPDATE SET
                          pred_score_home = ?,
                          pred_score_away = ?,
-                         submitted_at    = DATEADD(HOUR, 3, GETDATE())
+                         submitted_at    = GETUTCDATE()
                  WHEN NOT MATCHED THEN
                      INSERT (account, match_id, pred_score_home, pred_score_away, submitted_at)
-                     VALUES (?, ?, ?, ?, DATEADD(HOUR, 3, GETDATE()));'
+                     VALUES (?, ?, ?, ?, GETUTCDATE());'
             );
             $stmt->execute([
                 $account, $matchId,
