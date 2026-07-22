@@ -126,7 +126,7 @@ try {
 
             $insert = $db->prepare(
                 "INSERT INTO reclamos.mensajes (reclamo_id, autor_tipo, autor_nick, mensaje, created_at)
-                 VALUES (:id, 'admin', :nick, :mensaje, DATEADD(HOUR, 3, GETDATE()))"
+                 VALUES (:id, 'admin', :nick, :mensaje, GETUTCDATE())"
             );
             $insert->execute([':id' => $id, ':nick' => $admin['usr'], ':mensaje' => $mensaje]);
 
