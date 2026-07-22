@@ -62,7 +62,7 @@ foreach (TIENDA_IMPORT_FIELDS as $field => $label) {
         http_response_code(400);
         echo json_encode(['error' => "{$label} está vacío."]); exit;
     }
-    $contents[$field] = $raw;
+    $contents[$field] = cashShopNormalizeEncoding($raw);
 }
 
 try {

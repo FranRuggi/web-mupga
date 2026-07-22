@@ -21,6 +21,21 @@ function cashShopIconPath(int $itemId): array {
     return [intdiv($itemId, 512), $itemId % 512];
 }
 
+/**
+ * El "Zythe CashShop Editor" guarda estos .txt con el codepage de Windows
+ * (Windows-1252), no UTF-8 — un archivo mayormente ASCII puede tener algún
+ * acento suelto en ese encoding (ej. "automáticamente"). Si ya es UTF-8
+ * válido se deja igual (no-op); si no, se asume Windows-1252 y se convierte.
+ * Necesario porque la conexión a la DB está declarada UTF-8 (SQLSRV_ENCODING_UTF8)
+ * y un byte Windows-1252 suelto ahí rompe con SQLSTATE[IMSSP].
+ */
+function cashShopNormalizeEncoding(string $raw): string {
+    if ($raw === '' || mb_check_encoding($raw, 'UTF-8')) {
+        return $raw;
+    }
+    return mb_convert_encoding($raw, 'UTF-8', 'Windows-1252');
+}
+
 /** Líneas no vacías, sin comentarios de header ni el marcador final "end" */
 function cashShopSplitLines(string $content): array {
     $lines = preg_split('/\r\n|\r|\n/', $content);
