@@ -156,7 +156,7 @@ async function loadTiendaMisCompras() {
 
   el.innerHTML = `
     <p class="tienda-pending-title">Pendientes de reclamar (tecla "X")</p>
-    ${data.items.map(renderTiendaPendingItem).join('')}`;
+    <div class="tienda-pending-list">${data.items.map(renderTiendaPendingItem).join('')}</div>`;
 }
 
 async function loadTiendaBalance() {

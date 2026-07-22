@@ -2295,6 +2295,13 @@ h1, h2, h3, h4 {
   padding-top: 0.6rem;
 }
 
+.tienda-pending-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+.tienda-pending-list::-webkit-scrollbar { width: 3px; }
+.tienda-pending-list::-webkit-scrollbar-thumb { background: var(--purple-border); border-radius: 2px; }
+
 .tienda-pending-item {
   display: flex;
   align-items: center;
