@@ -16,9 +16,6 @@ ob_start();
   </div>
 
   <section class="section">
-    <div id="tienda-balance" class="account-card" style="margin-bottom:var(--gap-md)">
-      <p class="state-message">Cargando saldo…</p>
-    </div>
     <div id="tienda-container">
       <div class="card-grid card-grid--3">
         <?php for ($i = 0; $i < 6; $i++): ?>

@@ -121,7 +121,9 @@ async function loadTiendaCatalog() {
   renderTienda(data.categories ?? [], data.products);
 }
 
-// ── Saldo + compra ────────────────────────────────────────────
+// ── Saldo + compras pendientes (widget del sidebar) ────────────
+// El widget vive en layout.php, oculto por defecto — solo se muestra
+// acá si hay sesión, para no aparecer vacío en el resto del sitio.
 
 function tiendaBalanceFeedback(msg, isError) {
   const el = document.getElementById('tienda-balance-feedback');
@@ -130,29 +132,48 @@ function tiendaBalanceFeedback(msg, isError) {
   el.style.color = isError ? '#e05555' : 'var(--cyan)';
 }
 
-async function loadTiendaBalance() {
-  const el = document.getElementById('tienda-balance');
+function renderTiendaPendingItem(item) {
+  return `
+    <div class="tienda-pending-item">
+      <img class="tienda-pending-icon" src="${BASE}/assets/img/${esc(item.icon_path)}" alt="" loading="lazy">
+      <span>${esc(tiendaSplitName(item.name).title)}</span>
+    </div>`;
+}
 
-  if (!isAuthenticated()) {
-    el.innerHTML = `<p class="state-message">
-      <a href="${BASE}/login/?redirect=${encodeURIComponent('/tienda/')}">Iniciá sesión</a> para comprar ítems.
-    </p>`;
+async function loadTiendaMisCompras() {
+  const el = document.getElementById('tienda-mis-compras');
+  if (!el) return;
+
+  const res = await authFetch('tienda/mis_compras.php');
+  if (!res) return;
+  const data = await res.json();
+  if (!res.ok || !data.items) return;
+
+  if (!data.items.length) {
+    el.innerHTML = '';
     return;
   }
+
+  el.innerHTML = `
+    <p class="tienda-pending-title">Pendientes de reclamar (tecla "X")</p>
+    ${data.items.map(renderTiendaPendingItem).join('')}`;
+}
+
+async function loadTiendaBalance() {
+  const widget = document.getElementById('tienda-sidebar-widget');
+  if (!widget || !isAuthenticated()) return;
 
   const res = await authFetch('account/balance.php');
   if (!res) return; // authFetch ya redirigió a login si hacía falta
 
   const data = await res.json();
-  if (!res.ok) {
-    el.innerHTML = '<p class="state-message">Error al cargar el saldo.</p>';
-    return;
-  }
+  if (!res.ok) return;
 
   tiendaBalance = data.WCoinC ?? 0;
-  el.innerHTML = `
-    <p class="account-card__title">Tu saldo: 🪙 <span id="tienda-balance-amount">${tiendaFmtPrice(tiendaBalance)}</span> WCoin</p>
-    <p class="cp-feedback" id="tienda-balance-feedback"></p>`;
+  document.getElementById('tienda-balance-amount').textContent = tiendaFmtPrice(tiendaBalance);
+  widget.hidden = false;
+
+  loadTiendaMisCompras();
 }
 
 async function buyTiendaProduct(productId, price, name, btn) {
@@ -183,9 +204,9 @@ async function buyTiendaProduct(productId, price, name, btn) {
   }
 
   tiendaBalance = data.nuevo_balance;
-  const amountEl = document.getElementById('tienda-balance-amount');
-  if (amountEl) amountEl.textContent = tiendaFmtPrice(tiendaBalance);
+  document.getElementById('tienda-balance-amount').textContent = tiendaFmtPrice(tiendaBalance);
   tiendaBalanceFeedback(data.message, false);
+  loadTiendaMisCompras();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

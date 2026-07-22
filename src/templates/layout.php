@@ -64,6 +64,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
       <a href="<?= $base ?>/info/"      class="nav-link">Info</a>
       <a href="<?= $base ?>/downloads/" class="nav-link">Descargas</a>
       <a href="<?= $base ?>/donate2/"   class="nav-link">WCoin</a>
+      <a href="<?= $base ?>/tienda/"    class="nav-link">Tienda</a>
       <a href="https://wiki.mupga.com.ar" class="nav-link" target="_blank" rel="noopener">Wiki</a>
       <a href="<?= $base ?>/mudial/"   class="nav-link">Prode</a>
       <a href="<?= $base ?>/reclamos/" class="nav-link">Reclamos</a>
@@ -97,6 +98,14 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
           <div class="skeleton" style="height:0.8rem;margin-bottom:<?= $i < 4 ? '0.6rem' : '0' ?>"></div>
         <?php endfor; ?>
       </div>
+    </div>
+
+    <!-- Poblado por tienda.js solo en /tienda/ — oculto en el resto de las páginas -->
+    <div class="widget" id="tienda-sidebar-widget" hidden>
+      <p class="widget-title">🪙 Tu saldo WCoin</p>
+      <div class="tienda-balance-amount" id="tienda-balance-amount">0</div>
+      <p class="cp-feedback" id="tienda-balance-feedback"></p>
+      <div id="tienda-mis-compras"></div>
     </div>
 
   </aside>

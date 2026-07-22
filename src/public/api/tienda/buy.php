@@ -51,7 +51,7 @@ try {
 
     // 1. Producto — precio e índices para armar la fila de CashShopInventory
     $stmt = $db->prepare(
-        'SELECT price_wcoin, package_main_index, product_base_index, product_main_index
+        'SELECT name, price_wcoin, package_main_index, product_base_index, product_main_index
            FROM webshop.products WHERE id = ? AND active = 1'
     );
     $stmt->execute([$productId]);
@@ -126,9 +126,9 @@ try {
 
     echo json_encode([
         'success'       => true,
-        'message'       => 'Compra realizada. Reclamalo desde el CashShop in-game (tecla "X").',
+        'message'       => "¡Compraste {$product['name']}! Reclamalo desde el CashShop in-game (tecla \"X\").",
         'nuevo_balance' => $nuevoBalance,
-    ], JSON_THROW_ON_ERROR);
+    ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
 
 } catch (Throwable $e) {
     if ($db && $db->inTransaction()) {

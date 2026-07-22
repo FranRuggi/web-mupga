@@ -38,6 +38,7 @@
 | Rankings Gens                             | `Gens_Duprian`, `Gens_Varnert`, `Gens_Rank` | Solo lectura                           |
 | Ver saldo WCoin / GoblinPoint             | `CashShopData`                       | Solo lectura; puede estar desfasado si está online |
 | Ver historial de WCoin                    | `CashLog`                            | Solo lectura                                    |
+| Ver compras pendientes de reclamar (tienda) | `CashShopInventory` (join con `webshop.products`) | Solo lectura, filtrada por AccountID propio |
 | Conteo de jugadores online                | `MEMB_STAT` (COUNT WHERE ConnectStat=1) | Operación segura y frecuente                 |
 | Info del Castle Siege (propietario, tax)  | `MuCastle_DATA`                      | Solo lectura                                    |
 | Info de noticias del sitio                | `mupga_admin.dbo.news`               | Solo lectura; reemplaza a `WEBENGINE_NEWS`      |
