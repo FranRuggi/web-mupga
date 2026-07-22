@@ -2236,6 +2236,38 @@ h1, h2, h3, h4 {
   .download-card__meta { justify-content: center; }
 }
 
+/* ── Tienda WCoin ── */
+.tienda-category { font-family: var(--font-title); color: var(--gold); margin: var(--gap-lg) 0 var(--gap-sm); }
+.tienda-category:first-child { margin-top: 0; }
+
+.tienda-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  transition: border-color var(--t), background var(--t);
+}
+.tienda-card:hover { border-color: var(--gold-border); background: var(--bg-raised); }
+
+.tienda-card__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: contain;
+  background: var(--gold-glow);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius);
+  padding: 0.4rem;
+}
+
+.tienda-card__title { font-family: var(--font-title); font-size: 0.95rem; color: var(--text-bright); }
+.tienda-card__desc { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; flex-grow: 1; }
+
+.tienda-card__footer { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.tienda-card__price { font-family: var(--font-title); color: var(--gold); font-size: 0.95rem; }
+
 /* ── Guía de instalación (descargas) ── */
 .dl-guide { max-width: 860px; margin: 0 auto; }
 
