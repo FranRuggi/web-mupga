@@ -3,6 +3,7 @@ require_once dirname(__DIR__, 2) . '/bootstrap.php';
 
 $pageTitle = 'Tienda WCoin';
 $extraJs   = 'tienda.js';
+$bodyClass = 'page-tienda'; // en mobile, muestra el saldo antes que el catálogo — ver main.css
 
 ob_start();
 ?>

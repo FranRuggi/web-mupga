@@ -996,6 +996,11 @@ h1, h2, h3, h4 {
   }
 
   .card-grid--3 { grid-template-columns: repeat(2, 1fr); }
+
+  /* Tienda: el saldo/pendientes tienen que verse ANTES de scrollear
+     todo el catálogo, no perdidos al final de la página. */
+  body.page-tienda .page-wrapper { grid-template-areas: "header" "sidebar" "main" "footer"; }
+  body.page-tienda .site-sidebar { grid-template-columns: 1fr; border-top: none; border-bottom: 1px solid var(--purple-border); }
 }
 
 @media (max-width: 768px) {

@@ -48,7 +48,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
 ?>
   <link rel="stylesheet" href="<?= $base ?>/assets/css/main.css<?= $v ?>">
 </head>
-<body>
+<body<?= !empty($bodyClass) ? ' class="' . htmlspecialchars($bodyClass, ENT_QUOTES) . '"' : '' ?>>
 
 <div class="page-wrapper">
 
