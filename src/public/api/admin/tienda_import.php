@@ -11,8 +11,11 @@
  *   client_product  → Client/IBSProduct.txt
  *
  * El catálogo vive en la base principal (schema webshop, no mupga_admin)
- * porque la compra necesita ser atómica con CashShopData/CashShopInventory
- * en la misma transacción — ver database/webshop_setup.sql.
+ * porque la futura compra (buy.php) necesita ser atómica con
+ * CashShopData/CashShopInventory en la misma transacción — pero ESTE
+ * endpoint solo toca webshop.*, así que conecta con el login de mínimo
+ * privilegio webshop_user (WebshopDatabase), no con Database::get().
+ * Ver database/webshop_setup.sql.
  *
  * Es un reemplazo TOTAL del catálogo (TRUNCATE + INSERT), no un merge
  * incremental — así "recargar" siempre refleja exactamente los archivos
@@ -21,6 +24,7 @@
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/lib/AdminAuth.php';
 require_once SRC_ROOT . '/lib/CashShopImport.php';
+require_once SRC_ROOT . '/config/webshop_db.php';
 require_once dirname(__DIR__) . '/_cors.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -80,7 +84,7 @@ try {
 
     $catalog = buildCashShopCatalog($ibsPackages, $ibsProducts, $packagesByBase, $products, $iconExists);
 
-    $db = Database::get();
+    $db = WebshopDatabase::get();
     $db->beginTransaction();
 
     $db->exec('TRUNCATE TABLE webshop.products');

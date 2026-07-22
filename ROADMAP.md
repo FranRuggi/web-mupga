@@ -75,7 +75,7 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 
 ## Fase 5 — Deploy y testing
 
-> Guía completa paso a paso en `docs/deploy.md`.
+> Guía completa paso a paso en `runbooks/deploy.md`.
 
 ### Código (ya listo en el repo)
 - [x] `.htaccess` con rewrite para Authorization header — 2026-06-02
@@ -91,7 +91,7 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [ ] Subir `dist/` a Cloudflare Pages (o conectar el repo con output dir = `dist`)
 - [ ] Configurar dominio custom en Pages (`mupga.com.ar`)
 
-### VPS — pasos manuales (seguir `docs/deploy.md`)
+### VPS — pasos manuales (seguir `runbooks/deploy.md`)
 - [ ] Clonar el repo en el VPS (`C:\mupga\`)
 - [ ] Instalar extensión `pdo_sqlsrv` para la versión de PHP de XAMPP
 - [ ] Habilitar `mod_rewrite` en `httpd.conf`
@@ -291,3 +291,4 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-07-01 — [Feat] Compra de VIP con WCoins en /usercp/: endpoint api/account/buyvip.php (transacción PDO con UPDLOCK/HOLDLOCK, descuento WCoinC, sp_SetAccountGOLDVIP, log CashLog); sección "VIP Oro" en usercp con confirmación, feedback en tiempo real y actualización del balance
 - 2026-07-14 — [Fase 7] Editor de formato en ControlPanel (noticias): toolbar markdown-lite (negrita/cursiva/subrayado/tachado/subtítulo/lista/link), picker de emojis y vista previa en vivo; renderRichText() en app.js (escapa antes de formatear — whitelist de tags, links solo http/https), news.js renderiza el cuerpo con formato; SQLSRV_ENCODING_UTF8 en admin_db.php para emojis/tildes
 - 2026-07-22 — [Chore] Orden de repo: se elimina `htdocs/` (WebEngine, ~1.350 archivos) — su contenido ya estaba capturado en `.claude/docs/data-dictionary.md`/`capability-matrix.md`; se resolvieron ahí mismo los 3 "a verificar" pendientes (Gens_Duprian/Varnert en vez de IGC_Gens, Master Level vive en MasterSkillTree y no en Character, columnas de LOG_CREDITOS) contra `database/script.sql`. Se eliminan también el prototipo estático pre-`src/` (index.html/info.html/css/js en la raíz), migration.md, el .svg de roadmap, el `gitignore` duplicado y test_donate_temp.php. Se consolida `db/schema/` dentro de `database/schema/`, y `docs/` + PASOS_MANUALES_PRODE.md + la colección Postman de Prode se mueven a `runbooks/` nuevo (para no colisionar con `.claude/docs/`). Las .dll de sqlsrv se mudan a `tools/xampp-sqlsrv-dll/` (se conservan, no se usan para nada crítico). `data/` se deja igual con un README aclarando que es un shim temporal de la Fase 7.
+- 2026-07-22 — [Feat] Tienda de ítems WCoin (Etapa 1, catálogo): schema `webshop` en la base principal con login propio `webshop_user` (CONTROL solo sobre ese schema, sin acceso a CashShopData); `src/config/webshop_db.php`; `tienda_import.php` reconectado a `WebshopDatabase` en vez de la conexión principal; vars `WEBSHOP_DB_*` en `.env.example`; runbook `runbooks/tienda-setup-manual.md` con los pasos para probar en local; sección "Módulo Tienda de Ítems (WCoin)" agregada a `CLAUDE.md`.

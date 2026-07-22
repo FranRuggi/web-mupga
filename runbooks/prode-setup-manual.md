@@ -135,7 +135,8 @@ git rm -r src/public/mudial/
 git rm src/config/prode_db.php
 git rm src/db/ProdeRepository.php
 git rm database/prode_setup.sql
-git rm PASOS_MANUALES_PRODE.md
+git rm runbooks/prode-setup-manual.md
+git rm runbooks/prode-actualizar-partido.postman_collection.json
 ```
 
 Y revertir los cambios en `layout.php` (quitar el link "Prode"), `CLAUDE.md` y `.env.example`.

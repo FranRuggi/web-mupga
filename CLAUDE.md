@@ -156,6 +156,46 @@ guardar contenido roto).
 **Regla de etapas:** implementar una etapa, avisar y ESPERAR confirmación de Franco antes
 de la siguiente. Estado por etapa en `ROADMAP.md` (Fase 7).
 
+## Módulo Tienda de Ítems (WCoin)
+
+Página `/tienda/` (a implementar) donde jugadores logueados compran ítems del CashShop
+in-game con su saldo WCoin, equivalente a la tienda que ya existe apretando "X" en el
+cliente. No confundir con el módulo de donaciones/exchange (`/donate/`, `/donate2/`), que es
+para comprar WCoin con dinero real — esto es para *gastar* WCoin ya comprado.
+
+**Cómo funciona:** `CashShopInventory` es la bandeja de "comprado, pendiente de reclamar"
+que ya usa el CashShop in-game — insertar ahí la fila correcta alcanza para que el
+GameServer entregue el ítem cuando el jugador lo reclama (mismo mecanismo probado en
+producción, no hace falta llamar a `WZ_GremoryCase_AddItem` a mano). El catálogo de
+productos se genera importando 2 archivos de config del GameServer
+(`CashShopPackageMuEmu.txt`, `CashShopProductMuEmu.txt`) + 3 del cliente (`IBSCategory.txt`,
+`IBSPackage.txt`, `IBSProduct.txt`) — deben estar sincronizados entre sí y son los mismos
+que Franco edita para el CashShop in-game.
+
+**Schema DB:** `webshop` (en la base principal `MuOnline`, NO en `mupga_admin`) — así la
+futura compra puede ser atómica con `CashShopData`/`CashShopInventory` en una sola
+transacción. Tablas: `webshop.categories`, `webshop.products` (catálogo completo,
+reconstruido en cada import).
+
+**Usuario SQL:** `webshop_user`. Permisos: CONTROL en schema `webshop` únicamente — nada de
+`CashShopData` ni otras tablas del juego. Setup: `database/webshop_setup.sql`. Pendiente
+para cuando se implemente la compra: `GRANT SELECT ON SCHEMA::webshop` al login principal
+(`DB_USER`), para leer el precio dentro de la transacción de compra.
+
+**Archivos:** `src/lib/CashShopImport.php` (parsers puros de los 5 archivos, sin DB),
+`src/public/api/admin/tienda_import.php` (reimporta el catálogo completo, protegido con
+`requireAdmin()`, conecta con `WebshopDatabase`). Tab "Tienda" en `/controlpanel/` para subir
+los 5 archivos. Íconos de ítems: `src/public/assets/img/shop/item/` (commiteados una sola
+vez, resueltos por fórmula `grupo = ItemID ÷ 512`, `índice = ItemID % 512`).
+
+**Conexión:** `src/config/webshop_db.php` (clase `WebshopDatabase`, PDO separada). Env vars:
+`WEBSHOP_DB_HOST/PORT/NAME/USER/PASS`.
+
+**Pasos para probar:** ver `runbooks/tienda-setup-manual.md`.
+
+**Pendiente:** endpoint de compra (`buy.php`) y página pública `/tienda/` — ver Fase 5 en
+`ROADMAP.md`.
+
 ## Incidentes de Seguridad
 
 ### 2026-06-19 — Bypass del cutoff de predicciones (Prode)

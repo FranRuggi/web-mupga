@@ -261,7 +261,7 @@ no confirmado si es pre-WebEngine o propia de su módulo de créditos). No confu
 ---
 
 ### MUPGA_ACCOUNT_COUNTRY — País de registro (tabla propia del sitio)
-> Creada por el sitio custom. Script: `db/schema/mupga_tables.sql`.
+> Creada por el sitio custom. Script: `database/schema/mupga_tables.sql`.
 > **No es de WebEngine ni del GameServer.**
 
 | Columna       | Tipo              | Descripción                                        |
