@@ -58,14 +58,15 @@ Browser → Cloudflare Pages (frontend estático)
    `.claude/docs/capability-matrix.md`.
 2. **Siempre** PDO/sqlsrv con **sentencias preparadas**. Nunca concatenar input del usuario en
    SQL. (Este proyecto tiene foco fuerte en anti-cheat y prevención de abuso.)
-3. **No inventar el schema.** Toda estructura de DB sale de leer `htdocs/` (código WebEngine) y
-   el dump `script.sql`. Si algo no está confirmado ahí, marcarlo como "a verificar".
-4. `htdocs/` es **solo referencia / lectura**. No modificar WebEngine. El sitio nuevo vive en `src/`.
-5. Nunca commitear credenciales ni datos de jugadores (ya cubierto en `.gitignore`).
+3. **No inventar el schema.** Toda estructura de DB sale de `.claude/docs/data-dictionary.md`
+   y el dump local `database/script.sql`. Si algo no está confirmado ahí, marcarlo como
+   "a verificar" (y resolverlo contra el dump, no contra suposiciones).
+4. Nunca commitear credenciales ni datos de jugadores (ya cubierto en `.gitignore`).
    Credenciales del sitio → variables de entorno, jamás hardcodeadas.
-6. **Nunca usar tablas `WEBENGINE_*`.** Esas tablas pertenecen al CMS reemplazado
-   (WebEngine) y no existen en producción. Si una feature las necesita, implementar
-   tabla propia o documentar el caso como pendiente.
+5. **Nunca usar tablas `WEBENGINE_*`.** Esas tablas pertenecen al CMS reemplazado
+   (WebEngine, ya no está en el repo — ver Fase 1 en `ROADMAP.md`) y no existen en
+   producción. Si una feature las necesita, implementar tabla propia o documentar el caso
+   como pendiente.
 
 ## Flujo de trabajo (importante)
 
@@ -84,10 +85,18 @@ Browser → Cloudflare Pages (frontend estático)
 - `.claude/docs/` — referencia pesada que leen los skills on-demand:
   - `data-dictionary.md` — tablas, columnas, stored procedures (se genera en Fase 1).
   - `capability-matrix.md` — qué es seguro / riesgoso / prohibido en la DB (Fase 1).
-- `script.sql` — dump productivo en la raíz (gitignoreado, solo lectura local).
-- `db/schema/` — exports de schema-only, versionables (opcional).
-- `htdocs/` — código WebEngine actual (referencia, solo lectura).
+- `database/script.sql` — dump productivo (gitignoreado, solo lectura local).
+- `database/` — scripts de setup/seed SQL versionables por módulo, y `database/schema/`
+  con exports de schema-only.
+- `runbooks/` — guías operativas humanas (deploy, setup manual de módulos) — no confundir
+  con `.claude/docs/`, que es la referencia que lee Claude.
+- `tools/` — utilitarios de desarrollo local (ej. extensiones PHP para XAMPP).
 - `src/` — el sitio custom nuevo.
+
+`htdocs/` (código de WebEngine, el CMS reemplazado) se eliminó del repo una vez que la Fase 1
+(ingeniería inversa) quedó completa y aprobada — todo lo que documentaba ya vive en
+`.claude/docs/data-dictionary.md` y `capability-matrix.md`. Sigue recuperable desde el
+historial de git si hiciera falta revisar algo puntual.
 
 ## Módulo Prode
 

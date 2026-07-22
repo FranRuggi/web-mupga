@@ -1,0 +1,15 @@
+32@1@105@Magic Backpack@170@1000@Vault Expansion Magic Backpack@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1050|@7330@2@1@1050|@0@508@669
+32@2@109@Vault Expansion Certificate@170@1000@Vault Expansion Certificate@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1090|@7331@2@1@1090|@0@508@669
+32@3@110@Talisman of Luck@170@200@Incrementa la probabilidad de exito en las combinaciones de la Chaos Machine@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1100|@7221@2@1@1100|@0@508@669
+32@4@111@Scroll of Health@170@500@Incremento del HP +200@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1110|@7244@2@1@1110|@0@508@669
+32@5@112@Scroll of Mana@170@500@Incremento del Mana +300@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1120|@7245@2@1@1120|@0@508@669
+32@6@113@Silver Key@170@500@A traves de la combinacion en el Chaos Goblin en Noria Puedes Crear una Silver Box@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1130|@7280@2@1@1130|@0@508@669
+32@7@114@Gold Key@170@1000@A traves de la combinacion en el Chaos Goblin en Noria Puedes Crear una Golden Box@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1140|@7281@2@1@1140|@0@508@669
+35@1@106@Spirit of Guardian@170@500@Absorbe 30% del Da?o Recibido.    #Aumento de +50 de HP.    #Aumento de +10 de Ataque Speed.    #Vida 255.    #Level a usar 23.@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1060|@6721@2@3@1060|1061|1062|@0@508@669
+35@2@108@Demon@170@500@Aumento 40% de Dmg & Wizard Dmg.   #Aumento de +10 de Ataque Speed.   #Vida 255   #Level a usar 28.@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1080|@6720@2@3@1080|1081|1082|@0@508@669
+35@3@107@Pet Unicorn@170@500@Aumenta en un +50% el Zen Adquirido   #Incrementa la Defensa +50   #Recoge Zen Automaticamente   #Nivel de Uso apartir de Level 28@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1070|@6762@2@3@1070|1071|1072|@0@508@669
+35@4@116@Imp@170@200@Aumenta el da?o un 30%@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1160|@6657@2@3@1160|1161|1162|@0@508@669
+37@1@100@Devil Square Ticket@170@1000@Ticket para ingresar al Devil Square@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1000|@6702@2@2@1000|1001|@0@508@669
+37@2@101@Blood Castle Ticket@170@1000@Ticket para ingresar al Blood Castle@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1010|@6703@2@2@1010|1011|@0@508@669
+37@3@102@Kalima Ticket@170@1000@Ticket para ingresar a Kalima@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1020|@6704@2@2@1020|1021|@0@508@669
+37@4@103@Illusion Temple Ticket@170@1000@Ticket para ingresar a Ilussion Temple@@182@185@0@0@177@1@W Coin (C)@W Coin (C)@181@200@0@1030|@6717@2@2@1030|1031|@0@508@669

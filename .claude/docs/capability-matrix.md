@@ -40,19 +40,18 @@
 | Ver historial de WCoin                    | `CashLog`                            | Solo lectura                                    |
 | Conteo de jugadores online                | `MEMB_STAT` (COUNT WHERE ConnectStat=1) | Operación segura y frecuente                 |
 | Info del Castle Siege (propietario, tax)  | `MuCastle_DATA`                      | Solo lectura                                    |
-| Info de noticias del sitio                | `WEBENGINE_NEWS`                     | Solo lectura                                    |
-| Ver votos mensuales                       | `WEBENGINE_VOTE_LOGS`                | Solo lectura                                    |
-| Ver logs de créditos                      | `WEBENGINE_CREDITS_LOGS`             | Solo lectura                                    |
-| Ver configuración de créditos             | `WEBENGINE_CREDITS_CONFIG`           | Solo lectura                                    |
-| Ver descargas                             | `WEBENGINE_DOWNLOADS`                | Solo lectura                                    |
+| Info de noticias del sitio                | `mupga_admin.dbo.news`               | Solo lectura; reemplaza a `WEBENGINE_NEWS`      |
+| Ver descargas                             | `mupga_admin.dbo.downloads`          | Solo lectura; reemplaza a `WEBENGINE_DOWNLOADS` |
+| Ver votos mensuales / logs y config de créditos | — | **Pendiente**: existían en WebEngine (`WEBENGINE_VOTE_LOGS`, `WEBENGINE_CREDITS_LOGS`, `WEBENGINE_CREDITS_CONFIG`) pero esas tablas están prohibidas (regla dura "nunca usar tablas `WEBENGINE_*`" en `CLAUDE.md`) y `src/` no tiene reemplazo propio todavía — no implementar hasta crear tabla propia |
 
 ---
 
 ## OPERACIONES DE ESCRITURA — SEGURAS
 
 Estas escrituras son seguras tanto si el jugador está online como offline en MuPGA (MuEmu Louis v31).
-Algunas afectan tablas del CMS web (WEBENGINE_*), otras escriben directamente sobre datos de juego —
-verificado en producción sin casos de corrupción.
+Algunas afectan tablas propias del sitio nuevo (`mupga_admin.dbo.*`, `MUPGA_ACCOUNT_COUNTRY`),
+otras escriben directamente sobre datos de juego — verificado en producción sin casos de
+corrupción. Ninguna usa tablas `WEBENGINE_*` (prohibidas, ver `CLAUDE.md`).
 
 > **Nota sobre el chequeo online (actualizado 2026-06-09):** todos los endpoints de escritura sobre
 > `Character` verifican `MEMB_STAT.ConnectStat` antes de ejecutar. Si la cuenta está conectada
@@ -72,21 +71,27 @@ verificado en producción sin casos de corrupción.
 | Limpiar estado PK                                  | `Character` (`PkLevel`, `PkTime`)               |
 | Reset de stats                                     | `Character` (`Strength`, `Dexterity`, `Vitality`, `Energy`, `Leadership`, `LevelUpPoint`) |
 | Agregar puntos de stats                            | `Character` (idem)                              |
-| Reset de árbol Master (mlPoint)                    | `Character` (`mlPoint`)                         |
+| Reset de árbol Master                              | `MasterSkillTree` (`MasterLevel`, `MasterPoint`) — **no** `Character.mlPoint`, esa columna no existe |
 | Reset de personaje (nivel, clase, stats, resets)   | `Character` (`cLevel`, `Class`, `Strength`, etc.) |
 | Actualizar contadores de reset (`WZ_SetResetInfo`) | `Character` (`ResetCount`, `ResetDay`, `ResetWek`, `ResetMon`) |
 | Actualizar master reset (`WZ_SetMasterResetInfo`)  | `Character` (`MasterResetCount`)                |
-| Registrar solicitud de verificación de email       | `WEBENGINE_REGISTER_ACCOUNT`                    |
-| Loguear intento fallido de login                   | `WEBENGINE_FLA`                                 |
-| Bloquear IP                                        | `WEBENGINE_BLOCKED_IP`                          |
-| Crear/editar/eliminar noticias                     | `WEBENGINE_NEWS`, `WEBENGINE_NEWS_TRANSLATIONS` |
-| Crear/editar configuración de créditos             | `WEBENGINE_CREDITS_CONFIG`                      |
-| Guardar log de créditos                            | `WEBENGINE_CREDITS_LOGS`                        |
-| Registrar voto de usuario                          | `WEBENGINE_VOTES`, `WEBENGINE_VOTE_LOGS`        |
-| Registrar transacción PayPal                       | `WEBENGINE_PAYPAL_TRANSACTIONS`                 |
-| Actualizar país del usuario                        | `WEBENGINE_ACCOUNT_COUNTRY`                     |
-| Solicitud de cambio de contraseña                  | `WEBENGINE_PASSCHANGE_REQUEST`                  |
-| Gestionar bans del sitio                           | `WEBENGINE_BANS`, `WEBENGINE_BAN_LOG`           |
+| Crear/editar/eliminar noticias                     | `mupga_admin.dbo.news`                          |
+| Crear/editar descargas                             | `mupga_admin.dbo.downloads`                     |
+| Actualizar país del usuario                        | `MUPGA_ACCOUNT_COUNTRY` (tabla propia; ver `src/public/api/auth/{login,register}.php`) |
+
+**Pendiente / no implementado** (existía en WebEngine, no tiene reemplazo propio en `src/`
+todavía — no usar las tablas `WEBENGINE_*` originales, están prohibidas):
+verificación de email al registrarse, IPs bloqueadas, configuración/log de créditos, sistema
+de votos, log de transacciones PayPal (ahora hay una API de pagos externa aparte, ver Tienda
+WCoin en `ROADMAP.md`), solicitud de cambio de contraseña por email (reset sin sesión),
+gestión de bans del sitio.
+
+**Riesgoso / roto en producción:** `src/public/api/auth/login.php` intenta loguear intentos
+fallidos de login en `WEBENGINE_FLA` para anti-brute-force, envuelto en `try/catch` "por si la
+tabla no existe". Como esa tabla está prohibida y no existe en producción, **el catch siempre
+se dispara y el anti-brute-force queda desactivado silenciosamente** — no hay límite de
+intentos de login activo hoy. Hace falta una tabla propia (o un mecanismo distinto) para
+recuperar esta protección.
 
 ---
 
@@ -122,10 +127,13 @@ es demasiado alto o el impacto en el GameServer sería impredecible.
 - **Info de personaje** (nivel, clase, mapa, stats, resets) — solo lectura; aclarar que puede estar desactualizado si está online
 - **Info de cuenta** (username, email, estado VIP, saldo WCoin) — solo lectura
 - **Registro de cuenta** — escritura solo en MEMB_INFO de cuenta nueva
-- **Login y gestión de sesión** — validación en MEMB_INFO, log en WEBENGINE_FLA
+- **Login y gestión de sesión** — validación en MEMB_INFO; el anti-brute-force por IP está
+  **roto en producción** (ver nota en la sección de escritura más arriba) — pendiente de
+  arreglar con una tabla propia
 - **Cambio de contraseña** (con verificación offline) — escritura en MEMB_INFO
-- **Noticias y descargas** — solo tablas WEBENGINE_*
-- **Sistema de votos** (reward en WCoin o créditos) — escritura en WEBENGINE_VOTES y CashShopData offline
+- **Noticias y descargas** — tablas propias `mupga_admin.dbo.news` / `dbo.downloads`
+- **Sistema de votos** (reward en WCoin o créditos) — **pendiente**, requiere tabla propia
+  (no hay reemplazo de `WEBENGINE_VOTES` todavía)
 - **Página de información del servidor** (rates, comandos, eventos) — datos estáticos
 
 ### Features de escritura sobre datos de juego (SEGURAS, online u offline)
