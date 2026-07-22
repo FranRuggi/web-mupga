@@ -4,8 +4,9 @@
  * Catálogo activo de la tienda WCoin, agrupado por categoría.
  * Fuente: webshop.categories / webshop.products (ver tienda_import.php).
  *
- * Respuesta: { "categories": [{id,name}], "products": [{id,category_id,
- *   name,description,price_wcoin,icon_path}] }
+ * Respuesta: { "categories": [{category_id,name}], "products": [{id,
+ *   category_id,product_base_index,name,description,price_wcoin,icon_path}] }
+ * product_base_index agrupa variantes del mismo ítem (ej. 1/7/30 días).
  * icon_path es relativo a assets/img/shop/item/ (placeholder.gif si no
  * tiene ícono propio) — el frontend arma la URL completa con BASE.
  */
@@ -23,16 +24,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 try {
     $db = WebshopDatabase::get();
 
-    $categories = $db->query(
-        'SELECT category_id, name FROM webshop.categories ORDER BY name'
-    )->fetchAll();
+    $categories = array_map(
+        fn(array $r): array => ['category_id' => (int) $r['category_id'], 'name' => $r['name']],
+        $db->query('SELECT category_id, name FROM webshop.categories ORDER BY name')->fetchAll()
+    );
 
     $rows = $db->query(
-        'SELECT id, category_id, name, description, price_wcoin,
+        'SELECT id, category_id, product_base_index, name, description, price_wcoin,
                 icon_group, icon_index, has_icon
            FROM webshop.products
           WHERE active = 1
-          ORDER BY category_id, price_wcoin'
+          ORDER BY category_id, product_base_index, price_wcoin'
     )->fetchAll();
 
     $products = array_map(function (array $r): array {
@@ -41,12 +43,13 @@ try {
             : 'shop/item/placeholder.gif';
 
         return [
-            'id'          => (int) $r['id'],
-            'category_id' => $r['category_id'] !== null ? (int) $r['category_id'] : null,
-            'name'        => $r['name'],
-            'description' => $r['description'],
-            'price_wcoin' => (int) $r['price_wcoin'],
-            'icon_path'   => $iconPath,
+            'id'                 => (int) $r['id'],
+            'category_id'        => $r['category_id'] !== null ? (int) $r['category_id'] : null,
+            'product_base_index' => (int) $r['product_base_index'],
+            'name'               => $r['name'],
+            'description'        => $r['description'],
+            'price_wcoin'        => (int) $r['price_wcoin'],
+            'icon_path'          => $iconPath,
         ];
     }, $rows);
 
