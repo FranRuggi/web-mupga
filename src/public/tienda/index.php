@@ -3,7 +3,6 @@ require_once dirname(__DIR__, 2) . '/bootstrap.php';
 
 $pageTitle = 'Tienda WCoin';
 $extraJs   = 'tienda.js';
-$bodyClass = 'page-tienda'; // en mobile, muestra el saldo antes que el catálogo — ver main.css
 
 ob_start();
 ?>
@@ -17,6 +16,8 @@ ob_start();
   </div>
 
   <section class="section">
+    <div id="tienda-balance" class="account-card" style="margin-bottom:var(--gap-lg)" hidden></div>
+
     <div id="tienda-container">
       <div class="card-grid card-grid--3">
         <?php for ($i = 0; $i < 6; $i++): ?>

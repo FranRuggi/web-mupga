@@ -121,9 +121,8 @@ async function loadTiendaCatalog() {
   renderTienda(data.categories ?? [], data.products);
 }
 
-// ── Saldo + compras pendientes (widget del sidebar) ────────────
-// El widget vive en layout.php, oculto por defecto — solo se muestra
-// acá si hay sesión, para no aparecer vacío en el resto del sitio.
+// ── Saldo + compras pendientes (banner arriba del catálogo) ───
+// El contenedor vive en tienda/index.php, oculto hasta confirmar sesión.
 
 function tiendaBalanceFeedback(msg, isError) {
   const el = document.getElementById('tienda-balance-feedback');
@@ -149,19 +148,15 @@ async function loadTiendaMisCompras() {
   const data = await res.json();
   if (!res.ok || !data.items) return;
 
-  if (!data.items.length) {
-    el.innerHTML = '';
-    return;
-  }
-
-  el.innerHTML = `
-    <p class="tienda-pending-title">Pendientes de reclamar (tecla "X")</p>
-    <div class="tienda-pending-list">${data.items.map(renderTiendaPendingItem).join('')}</div>`;
+  el.innerHTML = data.items.length
+    ? `<p class="tienda-pending-title">Pendientes de reclamar (tecla "X")</p>
+       <div class="tienda-pending-list">${data.items.map(renderTiendaPendingItem).join('')}</div>`
+    : '';
 }
 
 async function loadTiendaBalance() {
-  const widget = document.getElementById('tienda-sidebar-widget');
-  if (!widget || !isAuthenticated()) return;
+  const banner = document.getElementById('tienda-balance');
+  if (!banner || !isAuthenticated()) return;
 
   const res = await authFetch('account/balance.php');
   if (!res) return; // authFetch ya redirigió a login si hacía falta
@@ -170,8 +165,16 @@ async function loadTiendaBalance() {
   if (!res.ok) return;
 
   tiendaBalance = data.WCoinC ?? 0;
-  document.getElementById('tienda-balance-amount').textContent = tiendaFmtPrice(tiendaBalance);
-  widget.hidden = false;
+  banner.innerHTML = `
+    <div class="tienda-balance-row">
+      <div>
+        <p class="widget-title" style="margin-bottom:0.3rem">🪙 Tu saldo WCoin</p>
+        <div class="tienda-balance-amount" id="tienda-balance-amount">${tiendaFmtPrice(tiendaBalance)}</div>
+      </div>
+      <div class="tienda-pending-wrap" id="tienda-mis-compras"></div>
+    </div>
+    <p class="cp-feedback" id="tienda-balance-feedback"></p>`;
+  banner.hidden = false;
 
   loadTiendaMisCompras();
 }

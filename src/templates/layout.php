@@ -48,7 +48,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
 ?>
   <link rel="stylesheet" href="<?= $base ?>/assets/css/main.css<?= $v ?>">
 </head>
-<body<?= !empty($bodyClass) ? ' class="' . htmlspecialchars($bodyClass, ENT_QUOTES) . '"' : '' ?>>
+<body>
 
 <div class="page-wrapper">
 
@@ -98,14 +98,6 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
           <div class="skeleton" style="height:0.8rem;margin-bottom:<?= $i < 4 ? '0.6rem' : '0' ?>"></div>
         <?php endfor; ?>
       </div>
-    </div>
-
-    <!-- Poblado por tienda.js solo en /tienda/ — oculto en el resto de las páginas -->
-    <div class="widget" id="tienda-sidebar-widget" hidden>
-      <p class="widget-title">🪙 Tu saldo WCoin</p>
-      <div class="tienda-balance-amount" id="tienda-balance-amount">0</div>
-      <p class="cp-feedback" id="tienda-balance-feedback"></p>
-      <div id="tienda-mis-compras"></div>
     </div>
 
   </aside>
