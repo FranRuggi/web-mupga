@@ -1,9 +1,11 @@
 /* ============================================================
    MuPGA — tienda.js
-   Catálogo público de la Tienda WCoin (Etapa 2 — solo lectura,
-   el botón Comprar todavía no hace nada, falta el endpoint de compra).
-   Depende de app.js (apiFetch, esc, BASE).
+   Catálogo + compra real de la Tienda WCoin.
+   Depende de app.js (apiFetch, esc, BASE) y auth.js (authFetch,
+   isAuthenticated).
    ============================================================ */
+
+let tiendaBalance = 0; // saldo en memoria, se sincroniza tras cada compra
 
 // La descripción viene con "#" como separador de línea (formato del
 // CashShop in-game) — se parte en items en vez de mostrar todo junto.
@@ -26,7 +28,7 @@ function tiendaFmtPrice(n) {
 
 // Una tarjeta por product_base_index — si tiene más de 1 variante
 // (ej. duraciones distintas del mismo ítem), se muestran en un <select>
-// que actualiza el precio mostrado.
+// que actualiza precio + id del producto a comprar.
 function renderTiendaCard(variants) {
   const first = variants[0];
   const { title } = tiendaSplitName(first.name);
@@ -42,28 +44,37 @@ function renderTiendaCard(variants) {
     : '';
 
   return `
-    <div class="tienda-card" data-prices="${variants.map(v => v.price_wcoin).join(',')}">
+    <div class="tienda-card" data-ids="${variants.map(v => v.id).join(',')}" data-prices="${variants.map(v => v.price_wcoin).join(',')}">
       <img class="tienda-card__icon" src="${BASE}/assets/img/${esc(first.icon_path)}" alt="" loading="lazy">
       <div class="tienda-card__title">${esc(title)}</div>
       ${desc}
       ${select}
       <div class="tienda-card__footer">
         <span class="tienda-card__price">🪙 ${tiendaFmtPrice(first.price_wcoin)}</span>
-        <button class="btn btn-primary btn-sm" disabled title="Próximamente">Comprar</button>
+        <button class="btn btn-primary btn-sm tienda-buy-btn" data-name="${esc(title)}">Comprar</button>
       </div>
     </div>`;
 }
 
-// El <select> de variante actualiza el precio mostrado en su propia card
-function initTiendaVariantSelects(container) {
+// Selector de variante: actualiza precio mostrado. Botón Comprar: usa
+// siempre el id/precio de la variante seleccionada en ese momento.
+function initTiendaCards(container) {
   container.querySelectorAll('.tienda-card').forEach(card => {
-    const select = card.querySelector('.tienda-card__variant');
-    if (!select) return;
-    const prices = card.dataset.prices.split(',').map(Number);
+    const ids     = card.dataset.ids.split(',').map(Number);
+    const prices  = card.dataset.prices.split(',').map(Number);
+    const select  = card.querySelector('.tienda-card__variant');
     const priceEl = card.querySelector('.tienda-card__price');
-    select.addEventListener('change', () => {
-      priceEl.textContent = `🪙 ${tiendaFmtPrice(prices[Number(select.value)])}`;
-    });
+    const btn     = card.querySelector('.tienda-buy-btn');
+
+    const idx = () => select ? Number(select.value) : 0;
+
+    if (select) {
+      select.addEventListener('change', () => {
+        priceEl.textContent = `🪙 ${tiendaFmtPrice(prices[idx()])}`;
+      });
+    }
+
+    btn.addEventListener('click', () => buyTiendaProduct(ids[idx()], prices[idx()], btn.dataset.name, btn));
   });
 }
 
@@ -95,7 +106,7 @@ function renderTienda(categories, products) {
     html += `</div>`;
   }
   container.innerHTML = html;
-  initTiendaVariantSelects(container);
+  initTiendaCards(container);
 }
 
 async function loadTiendaCatalog() {
@@ -110,4 +121,74 @@ async function loadTiendaCatalog() {
   renderTienda(data.categories ?? [], data.products);
 }
 
-document.addEventListener('DOMContentLoaded', loadTiendaCatalog);
+// ── Saldo + compra ────────────────────────────────────────────
+
+function tiendaBalanceFeedback(msg, isError) {
+  const el = document.getElementById('tienda-balance-feedback');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = isError ? '#e05555' : 'var(--cyan)';
+}
+
+async function loadTiendaBalance() {
+  const el = document.getElementById('tienda-balance');
+
+  if (!isAuthenticated()) {
+    el.innerHTML = `<p class="state-message">
+      <a href="${BASE}/login/?redirect=${encodeURIComponent('/tienda/')}">Iniciá sesión</a> para comprar ítems.
+    </p>`;
+    return;
+  }
+
+  const res = await authFetch('account/balance.php');
+  if (!res) return; // authFetch ya redirigió a login si hacía falta
+
+  const data = await res.json();
+  if (!res.ok) {
+    el.innerHTML = '<p class="state-message">Error al cargar el saldo.</p>';
+    return;
+  }
+
+  tiendaBalance = data.WCoinC ?? 0;
+  el.innerHTML = `
+    <p class="account-card__title">Tu saldo: 🪙 <span id="tienda-balance-amount">${tiendaFmtPrice(tiendaBalance)}</span> WCoin</p>
+    <p class="cp-feedback" id="tienda-balance-feedback"></p>`;
+}
+
+async function buyTiendaProduct(productId, price, name, btn) {
+  if (!isAuthenticated()) {
+    window.location.href = `${BASE}/login/?redirect=${encodeURIComponent('/tienda/')}`;
+    return;
+  }
+  if (!confirm(`¿Comprar "${name}" por ${tiendaFmtPrice(price)} WCoin?`)) return;
+
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = 'Comprando…';
+
+  const res = await authFetch('tienda/buy.php', {
+    method: 'POST',
+    body: JSON.stringify({ product_id: productId }),
+  });
+
+  btn.disabled = false;
+  btn.textContent = original;
+
+  if (!res) return; // authFetch ya redirigió si hacía falta
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    tiendaBalanceFeedback(data?.error ?? 'Error al comprar.', true);
+    return;
+  }
+
+  tiendaBalance = data.nuevo_balance;
+  const amountEl = document.getElementById('tienda-balance-amount');
+  if (amountEl) amountEl.textContent = tiendaFmtPrice(tiendaBalance);
+  tiendaBalanceFeedback(data.message, false);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadTiendaBalance();
+  loadTiendaCatalog();
+});

@@ -78,6 +78,7 @@ corrupción. Ninguna usa tablas `WEBENGINE_*` (prohibidas, ver `CLAUDE.md`).
 | Crear/editar/eliminar noticias                     | `mupga_admin.dbo.news`                          |
 | Crear/editar descargas                             | `mupga_admin.dbo.downloads`                     |
 | Actualizar país del usuario                        | `MUPGA_ACCOUNT_COUNTRY` (tabla propia; ver `src/public/api/auth/{login,register}.php`) |
+| Compra en Tienda WCoin (`tienda/buy.php`)          | `CashShopData` (`WCoinC`), `CashShopInventory` (entrega — misma bandeja que usa el CashShop in-game, `InventoryType`/`ProductType` = 83/80 confirmados constantes), `CashLog`. Transacción con `UPDLOCK/HOLDLOCK` sobre `CashShopData`, mismo patrón que `buyvip.php`. |
 
 **Pendiente / no implementado** (existía en WebEngine, no tiene reemplazo propio en `src/`
 todavía — no usar las tablas `WEBENGINE_*` originales, están prohibidas):
