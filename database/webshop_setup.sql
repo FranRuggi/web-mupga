@@ -1,52 +1,36 @@
 -- ============================================================
--- MuPGA Tienda WCoin — Setup de schema, usuario y tablas
+-- MuPGA Tienda WCoin — Setup de schema y tablas
 -- Ejecutar como sa (o DBA con permisos suficientes) en MuOnline
 --
--- Login propio (webshop_user), mismo patrón que prode_user: control
--- total del schema webshop y NADA más — ni lectura de CashShopData.
--- El import de catálogo (tienda_import.php) conecta con este login.
---
--- La compra (buy.php, todavía no implementado) sí necesita ser atómica
--- con CashShopData/CashShopInventory en una sola transacción, así que
--- ESA conexión sigue siendo la principal (Database::get(), login de
--- DB_USER) — a la que además hay que agregarle GRANT SELECT sobre
--- webshop.products cuando se implemente esa etapa (Bloque C).
+-- A diferencia de Prode, este módulo NO usa un login/usuario propio:
+-- la compra necesita ser atómica con CashShopData/CashShopInventory
+-- (misma transacción, misma conexión), así que el schema vive en la
+-- base principal y se accede con el mismo login que ya usa
+-- Database::get() (ver DB_USER en el .env del sitio).
 --
 -- ANTES DE EJECUTAR:
---   Reemplazar {{WEBSHOP_DB_PASSWORD}} con la contraseña elegida
+--   Reemplazar {{DB_USER}} por el login real usado en DB_USER (.env)
 --
 -- El script es re-ejecutable sin errores (usa IF NOT EXISTS / OBJECT_ID).
 -- ============================================================
 
--- ── Bloque A — Login, usuario y schema ───────────────────────
-IF NOT EXISTS (
-    SELECT 1 FROM sys.server_principals WHERE name = 'webshop_user'
-)
-BEGIN
-    CREATE LOGIN webshop_user WITH PASSWORD = '{{WEBSHOP_DB_PASSWORD}}';
-END;
 
-IF NOT EXISTS (
-    SELECT 1 FROM sys.database_principals WHERE name = 'webshop_user'
-)
-BEGIN
-    CREATE USER webshop_user FOR LOGIN webshop_user;
-END;
 
+
+-- ── Bloque A — Schema y permisos ─────────────────────────────
 IF NOT EXISTS (
     SELECT 1 FROM sys.schemas WHERE name = 'webshop'
 )
 BEGIN
-    EXEC('CREATE SCHEMA webshop AUTHORIZATION webshop_user');
+    EXEC('CREATE SCHEMA webshop');
 END;
+CREATE LOGIN webshop_user WITH PASSWORD = 'passsssword';
 
--- ── Bloque B — Control total del schema webshop ──────────────
+CREATE USER webshop_user FOR LOGIN webshop_user;
+
 GRANT CONTROL ON SCHEMA::webshop TO webshop_user;
 
--- ── Bloque C — Pendiente para cuando se implemente buy.php ───
--- GRANT SELECT ON SCHEMA::webshop TO {{DB_USER}};  -- login principal, para leer precio en la transacción de compra
-
--- ── Bloque D — Tablas ────────────────────────────────────────
+-- ── Bloque B — Tablas ────────────────────────────────────────
 
 -- Categorías del cash shop (de Client/IBSCategory.txt)
 IF OBJECT_ID('webshop.categories', 'U') IS NULL
@@ -105,3 +89,5 @@ FROM sys.tables t
 JOIN sys.schemas s ON s.schema_id = t.schema_id
 WHERE s.name = 'webshop'
 ORDER BY t.name;
+
+

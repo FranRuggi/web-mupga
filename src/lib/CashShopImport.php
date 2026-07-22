@@ -26,7 +26,7 @@ function cashShopSplitLines(string $content): array {
     $lines = preg_split('/\r\n|\r|\n/', $content);
     return array_values(array_filter($lines, function (string $line): bool {
         $t = trim($line);
-        return $t !== '' && !str_starts_with($t, '//') && strcasecmp($t, 'end') !== 0;
+        return $t !== '' && substr($t, 0, 2) !== '//' && strcasecmp($t, 'end') !== 0;
     }));
 }
 
