@@ -21,6 +21,15 @@
       "rate": "1 USDT = 1.000 WCoins",
       "notes": "Sin mínimo ni máximo",
       "qr_popup": true
+    },
+    {
+      "provider": "Western Union",
+      "icon": "💵",
+      "rate": "Envío de dinero a coordinar",
+      "notes": "Escribinos por WhatsApp o abrí un ticket para coordinar el monto y la cotización antes de enviar. La acreditación puede demorar hasta 24 horas.",
+      "contact_only": true,
+      "whatsapp_url": "https://chat.whatsapp.com/DqaUqom63aFALaBsK2l7of",
+      "ticket_url": "../reclamos/"
     }
   ],
   "how_it_works": "Realizá tu donación por el medio que prefieras y avisanos por Discord con el comprobante. En las próximas 2 a 6 horas tendrás tus WCoins acreditadas en tu cuenta.",

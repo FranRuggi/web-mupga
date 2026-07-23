@@ -1868,6 +1868,23 @@ h1, h2, h3, h4 {
   box-shadow: 0 0 14px rgba(200,168,75,0.18);
 }
 
+.donate2-card-btn--wsp {
+  background: linear-gradient(135deg, #25d366, #1ebe5d);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(37,211,102,0.2);
+}
+.donate2-card-btn--wsp:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37,211,102,0.38);
+}
+
+.donate2-card-action--split {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 /* ── Binance QR modal ────────────────────────────────────────── */
 
 .donate2-modal {
