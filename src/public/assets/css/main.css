@@ -1809,6 +1809,29 @@ h1, h2, h3, h4 {
   margin-top: 1.25rem;
 }
 
+.donate2-promo {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.donate2-promo .donate2-card-action {
+  margin-top: 0.75rem;
+  text-align: center;
+}
+
+.donate2-note {
+  max-width: 640px;
+  margin: 0 auto var(--gap-lg);
+  padding: 0.85rem 1.1rem;
+  background: rgba(200,168,75,0.06);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-md);
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
 .donate2-card-btn {
   display: inline-flex;
   align-items: center;

@@ -12,6 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  document.querySelectorAll('[data-promo]').forEach(wrap => {
+    const select = wrap.querySelector('.donate2-promo-select');
+    const link   = wrap.querySelector('[data-promo-link]');
+    if (!select || !link) return;
+    select.addEventListener('change', () => { link.href = select.value; });
+  });
+
   const modal    = document.getElementById('binance-modal');
   if (!modal) return;
 
