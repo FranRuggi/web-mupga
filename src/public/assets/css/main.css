@@ -552,6 +552,9 @@ h1, h2, h3, h4 {
 .hero-social-link:hover { color: #fff; background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); }
 .hero-social-link--discord:hover  { color: #7289da; border-color: #7289da; background: rgba(114,137,218,0.12); }
 .hero-social-link--whatsapp:hover { color: #25d366; border-color: #25d366; background: rgba(37,211,102,0.12); }
+.hero-social-link--tiktok:hover   { color: #ff004f; border-color: #ff004f; background: rgba(255,0,79,0.12); }
+.hero-social-link--youtube:hover  { color: #ff0000; border-color: #ff0000; background: rgba(255,0,0,0.12); }
+.hero-social-link--facebook:hover { color: #1877f2; border-color: #1877f2; background: rgba(24,119,242,0.12); }
 
 /* ── Hero greeting ─────────────────────────────────────────── */
 #hero-greeting {
