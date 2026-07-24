@@ -4,8 +4,8 @@
  * Reimporta el catálogo completo de la tienda WCoin (webshop.categories +
  * webshop.products) a partir de los 5 archivos de config del CashShop
  * in-game (multipart/form-data):
- *   server_package  → Server/CashShopPackageMuEmu.txt
- *   server_product  → Server/CashShopProductMuEmu.txt
+ *   server_package  → Server/CashShopPackage.txt
+ *   server_product  → Server/CashShopProduct.txt
  *   client_category → Client/IBSCategory.txt
  *   client_package  → Client/IBSPackage.txt
  *   client_product  → Client/IBSProduct.txt
@@ -37,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $admin = requireAdmin();
 
 const TIENDA_IMPORT_FIELDS = [
-    'server_package'  => 'CashShopPackageMuEmu.txt',
-    'server_product'  => 'CashShopProductMuEmu.txt',
+    'server_package'  => 'CashShopPackage.txt',
+    'server_product'  => 'CashShopProduct.txt',
     'client_category' => 'IBSCategory.txt',
     'client_package'  => 'IBSPackage.txt',
     'client_product'  => 'IBSProduct.txt',
@@ -74,7 +74,7 @@ try {
 
     if (empty($products)) {
         http_response_code(400);
-        echo json_encode(['error' => 'CashShopProductMuEmu.txt no tiene ninguna fila reconocible.']); exit;
+        echo json_encode(['error' => 'CashShopProduct.txt no tiene ninguna fila reconocible.']); exit;
     }
 
     $iconDir = SRC_ROOT . '/public/assets/img/shop/item';

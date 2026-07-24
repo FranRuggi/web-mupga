@@ -65,13 +65,14 @@ DELETE FROM webshop.categories WHERE category_id = 999;
 1. Con XAMPP corriendo, entrar a `http://localhost/controlpanel/` (o la ruta local que uses)
    logueado con una cuenta que esté en `mupga_admin.dbo.admins` con `active=1`.
 2. Ir al tab **Tienda**.
-3. Subir los 5 archivos, todos desde la carpeta `tiendaweb/` del repo:
-   - Server / CashShopPackageMuEmu.txt → `tiendaweb/Server/CashShopPackageMuEmu.txt`
-   - Server / CashShopProductMuEmu.txt → `tiendaweb/Server/CashShopProductMuEmu.txt`
-   - Client / IBSCategory.txt → `tiendaweb/Client/IBSCategory.txt`
-   - Client / IBSPackage.txt → `tiendaweb/Client/IBSPackage.txt`
-   - Client / IBSProduct.txt → `tiendaweb/Client/IBSProduct.txt`
-4. Click **Reimportar catálogo**.
+3. Arrastrá los 5 archivos (se identifican solos por nombre, no importa el orden), todos
+   desde la carpeta `tiendaweb/` del repo:
+   - `tiendaweb/Server/CashShopPackage.txt`
+   - `tiendaweb/Server/CashShopProduct.txt`
+   - `tiendaweb/Client/IBSCategory.txt`
+   - `tiendaweb/Client/IBSPackage.txt`
+   - `tiendaweb/Client/IBSProduct.txt`
+4. Confirmar que el checklist marca los 5 con ✔ y click **Reimportar catálogo**.
 
 **Resultado esperado:** "Catálogo reimportado ✔ (10 categorías, 27 productos)" y la lista de
 íconos faltantes debe mostrar únicamente Silver Key (ItemID 7280) y Gold Key (ItemID 7281).

@@ -9,8 +9,8 @@
  * src/public/api/admin/tienda_import.php para cómo se usan.
  *
  * Archivos esperados:
- *   Server/CashShopPackageMuEmu.txt — agrupa productos bajo una categoría/paquete
- *   Server/CashShopProductMuEmu.txt — precio + stats reales del ítem por variante
+ *   Server/CashShopPackage.txt — agrupa productos bajo una categoría/paquete
+ *   Server/CashShopProduct.txt — precio + stats reales del ítem por variante
  *   Client/IBSCategory.txt          — nombre de cada categoría
  *   Client/IBSPackage.txt           — descripción larga por paquete
  *   Client/IBSProduct.txt           — nombre visible por variante (base+main)
@@ -81,7 +81,7 @@ function parseIbsProduct(string $content): array {
 }
 
 /**
- * CashShopPackageMuEmu.txt → [product_base_index => ['package_main_index'=>, 'category_id'=>]]
+ * CashShopPackage.txt → [product_base_index => ['package_main_index'=>, 'category_id'=>]]
  * Columnas: Cat ID Main Item Coin Price Bonus PBase1..10 PMain1..10 // Comment
  */
 function parseCashShopPackage(string $content): array {
@@ -105,7 +105,7 @@ function parseCashShopPackage(string $content): array {
 }
 
 /**
- * CashShopProductMuEmu.txt → lista de variantes de producto (una por fila)
+ * CashShopProduct.txt → lista de variantes de producto (una por fila)
  * Columnas: ID Number Value Item Level Skill Luck Option ExOpt AncOp JOH Oexe
  *           Socket1..5 Qtd Duration // Comment
  */

@@ -590,8 +590,8 @@ function initReclamos() {
 // ── Tienda WCoin: drag & drop general, se identifican por nombre ──
 
 const TIENDA_IMPORT_SLOTS = [
-  { field: 'server_package',  filename: 'CashShopPackageMuEmu.txt', label: 'Server · CashShopPackageMuEmu.txt' },
-  { field: 'server_product',  filename: 'CashShopProductMuEmu.txt', label: 'Server · CashShopProductMuEmu.txt' },
+  { field: 'server_package',  filename: 'CashShopPackage.txt', label: 'Server · CashShopPackage.txt' },
+  { field: 'server_product',  filename: 'CashShopProduct.txt', label: 'Server · CashShopProduct.txt' },
   { field: 'client_category', filename: 'IBSCategory.txt',          label: 'Client · IBSCategory.txt' },
   { field: 'client_package',  filename: 'IBSPackage.txt',           label: 'Client · IBSPackage.txt' },
   { field: 'client_product',  filename: 'IBSProduct.txt',           label: 'Client · IBSProduct.txt' },

@@ -168,7 +168,7 @@ que ya usa el CashShop in-game — insertar ahí la fila correcta alcanza para q
 GameServer entregue el ítem cuando el jugador lo reclama (mismo mecanismo probado en
 producción, no hace falta llamar a `WZ_GremoryCase_AddItem` a mano). El catálogo de
 productos se genera importando 2 archivos de config del GameServer
-(`CashShopPackageMuEmu.txt`, `CashShopProductMuEmu.txt`) + 3 del cliente (`IBSCategory.txt`,
+(`CashShopPackage.txt`, `CashShopProduct.txt`) + 3 del cliente (`IBSCategory.txt`,
 `IBSPackage.txt`, `IBSProduct.txt`) — deben estar sincronizados entre sí y son los mismos
 que Franco edita para el CashShop in-game.
 
