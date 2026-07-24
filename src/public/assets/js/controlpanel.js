@@ -587,26 +587,90 @@ function initReclamos() {
   });
 }
 
-// ── Tienda WCoin ──────────────────────────────────────────────
+// ── Tienda WCoin: drag & drop general, se identifican por nombre ──
 
-const TIENDA_IMPORT_FIELDS = {
-  'tienda-server-package':  'server_package',
-  'tienda-server-product':  'server_product',
-  'tienda-client-category': 'client_category',
-  'tienda-client-package':  'client_package',
-  'tienda-client-product':  'client_product',
-};
+const TIENDA_IMPORT_SLOTS = [
+  { field: 'server_package',  filename: 'CashShopPackageMuEmu.txt', label: 'Server · CashShopPackageMuEmu.txt' },
+  { field: 'server_product',  filename: 'CashShopProductMuEmu.txt', label: 'Server · CashShopProductMuEmu.txt' },
+  { field: 'client_category', filename: 'IBSCategory.txt',          label: 'Client · IBSCategory.txt' },
+  { field: 'client_package',  filename: 'IBSPackage.txt',           label: 'Client · IBSPackage.txt' },
+  { field: 'client_product',  filename: 'IBSProduct.txt',           label: 'Client · IBSProduct.txt' },
+];
+
+let tiendaFiles = {}; // field -> File, se va llenando a medida que se sueltan/eligen archivos
+
+function matchTiendaSlot(filename) {
+  return TIENDA_IMPORT_SLOTS.find(s => s.filename.toLowerCase() === filename.toLowerCase());
+}
+
+function renderTiendaChecklist() {
+  document.getElementById('tienda-checklist').innerHTML = TIENDA_IMPORT_SLOTS.map(slot => {
+    const file = tiendaFiles[slot.field];
+    return `
+      <li class="cp-checklist__item${file ? ' cp-checklist__item--done' : ''}">
+        <span class="cp-checklist__icon">${file ? '✔' : '○'}</span>
+        <span class="cp-checklist__label">${esc(slot.label)}</span>
+        ${file ? `<button type="button" class="cp-checklist__remove" data-field="${slot.field}" title="Quitar">✕</button>` : ''}
+      </li>`;
+  }).join('');
+
+  document.getElementById('tienda-import').disabled = TIENDA_IMPORT_SLOTS.some(s => !tiendaFiles[s.field]);
+}
+
+function addTiendaFiles(fileList) {
+  const unrecognized = [];
+  Array.from(fileList).forEach(file => {
+    const slot = matchTiendaSlot(file.name);
+    if (slot) tiendaFiles[slot.field] = file;
+    else unrecognized.push(file.name);
+  });
+
+  renderTiendaChecklist();
+  feedback(
+    'tienda-feedback',
+    unrecognized.length ? `No reconocido (el nombre no coincide con ninguno de los 5 esperados): ${unrecognized.join(', ')}` : '',
+    unrecognized.length > 0
+  );
+}
 
 function initTienda() {
+  const dz    = document.getElementById('tienda-dropzone');
+  const input = document.getElementById('tienda-file-input');
+
+  renderTiendaChecklist();
+
+  dz.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => {
+    if (input.files.length) addTiendaFiles(input.files);
+    input.value = '';
+  });
+
+  ['dragover', 'dragenter'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.classList.add('cp-dropzone--over');
+  }));
+  ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.classList.remove('cp-dropzone--over');
+  }));
+  dz.addEventListener('drop', e => {
+    if (e.dataTransfer?.files?.length) addTiendaFiles(e.dataTransfer.files);
+  });
+
+  document.getElementById('tienda-checklist').addEventListener('click', (e) => {
+    const btn = e.target.closest('.cp-checklist__remove');
+    if (!btn) return;
+    delete tiendaFiles[btn.dataset.field];
+    renderTiendaChecklist();
+  });
+
   document.getElementById('tienda-import').addEventListener('click', async () => {
     const form = new FormData();
-    for (const [inputId, field] of Object.entries(TIENDA_IMPORT_FIELDS)) {
-      const file = document.getElementById(inputId).files[0];
+    for (const slot of TIENDA_IMPORT_SLOTS) {
+      const file = tiendaFiles[slot.field];
       if (!file) {
-        feedback('tienda-feedback', `Falta seleccionar el archivo de "${inputId}".`, true);
+        feedback('tienda-feedback', `Falta el archivo "${slot.label}".`, true);
         return;
       }
-      form.append(field, file);
+      form.append(slot.field, file);
     }
 
     const btn = document.getElementById('tienda-import');
@@ -637,10 +701,12 @@ function initTienda() {
             faltantes.map(f => `${esc(f.name)} (ItemID ${esc(String(f.item_id))})`).join(', ')
           }</p>`
         : '';
+
+      tiendaFiles = {};
     } catch {
       feedback('tienda-feedback', 'Error de red al importar el catálogo', true);
     } finally {
-      btn.disabled = false;
+      renderTiendaChecklist();
       btn.textContent = 'Reimportar catálogo';
     }
   });

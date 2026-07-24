@@ -4015,6 +4015,45 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
   border: 1px solid var(--gold-border);
 }
 
+/* Checklist de archivos reconocidos por nombre (import de Tienda) */
+.cp-checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.cp-checklist__item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  transition: border-color var(--t), color var(--t), background var(--t);
+}
+.cp-checklist__item--done {
+  color: var(--text);
+  border-color: rgba(88,214,141,0.35);
+  background: rgba(88,214,141,0.06);
+}
+.cp-checklist__icon { flex-shrink: 0; color: var(--text-dim); }
+.cp-checklist__item--done .cp-checklist__icon { color: #58d68d; }
+.cp-checklist__label { flex: 1; min-width: 0; }
+.cp-checklist__remove {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius);
+  transition: color var(--t), background var(--t);
+}
+.cp-checklist__remove:hover { color: #e05555; background: rgba(224,85,85,0.12); }
+
 /* ── Reclamos: tickets con hilo ────────────────────────────────── */
 .form-card--wide { max-width: 640px; width: 100%; }
 

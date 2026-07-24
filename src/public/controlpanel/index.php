@@ -204,32 +204,23 @@ ob_start();
     <section class="cp-section account-card" id="cp-tab-tienda" hidden>
       <p class="account-card__title">Tienda WCoin — Reimportar catálogo</p>
       <p class="cp-hint">
-        Subí los 5 archivos de config del CashShop in-game (deben estar sincronizados entre
-        sí). Esto reemplaza el catálogo completo de la tienda web.
+        Arrastrá los 5 archivos de config del CashShop in-game — se identifican solos por
+        nombre, podés soltarlos todos juntos o de a uno. Deben estar sincronizados entre sí:
+        esto reemplaza el catálogo completo de la tienda web.
       </p>
       <div class="cp-form">
-        <label class="cp-field">
-          <span>Server / CashShopPackageMuEmu.txt</span>
-          <input type="file" id="tienda-server-package" accept=".txt">
-        </label>
-        <label class="cp-field">
-          <span>Server / CashShopProductMuEmu.txt</span>
-          <input type="file" id="tienda-server-product" accept=".txt">
-        </label>
-        <label class="cp-field">
-          <span>Client / IBSCategory.txt</span>
-          <input type="file" id="tienda-client-category" accept=".txt">
-        </label>
-        <label class="cp-field">
-          <span>Client / IBSPackage.txt</span>
-          <input type="file" id="tienda-client-package" accept=".txt">
-        </label>
-        <label class="cp-field">
-          <span>Client / IBSProduct.txt</span>
-          <input type="file" id="tienda-client-product" accept=".txt">
-        </label>
+        <div class="cp-dropzone" id="tienda-dropzone">
+          <input type="file" id="tienda-file-input" accept=".txt" multiple hidden>
+          <div id="tienda-dropzone-idle">
+            📂 Arrastrá acá los 5 archivos o <u>hacé click para elegirlos</u>
+            <br><small>Se reconocen automáticamente por su nombre de archivo</small>
+          </div>
+        </div>
+
+        <ul class="cp-checklist" id="tienda-checklist"></ul>
+
         <div class="cp-actions">
-          <button class="btn btn-primary" id="tienda-import">Reimportar catálogo</button>
+          <button class="btn btn-primary" id="tienda-import" disabled>Reimportar catálogo</button>
         </div>
         <p class="cp-feedback" id="tienda-feedback"></p>
         <div id="tienda-import-result"></div>
