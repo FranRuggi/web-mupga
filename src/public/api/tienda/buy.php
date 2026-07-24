@@ -10,15 +10,21 @@
  * constantes contra producción — ver CLAUDE.md, Módulo Tienda de Ítems.
  *
  * Transacción PDO atómica (mismo patrón que account/buyvip.php):
- *   1. Leer producto (precio, índices) de webshop.products
+ *   1. Leer producto (precio, índices, categoría) de webshop.products
  *   2. SELECT WCoinC con UPDLOCK + HOLDLOCK — previene doble compra simultánea
  *   3. Si balance < precio → ROLLBACK + error
  *   4. UPDATE CashShopData: descontar el precio
  *   5. INSERT CashShopInventory — entrega del ítem
  *   6. INSERT CashLog — auditoría (Amount negativo)
  *   7. COMMIT
+ *   8. INSERT webshop.purchases — auditoría propia para estadísticas (qué se
+ *      compró). Va DESPUÉS del commit y por una conexión separada
+ *      (WebshopDatabase/webshop_user) porque Database::get() solo tiene
+ *      SELECT sobre el schema webshop. Si falla, no revierte la compra —
+ *      ver database/webshop_purchases_setup.sql.
  */
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
+require_once SRC_ROOT . '/config/webshop_db.php';
 require_once dirname(__DIR__) . '/_cors.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -50,9 +56,13 @@ try {
     $db->beginTransaction();
 
     // 1. Producto — precio e índices para armar la fila de CashShopInventory
+    //    (+ nombre de categoría, solo para la auditoría de estadísticas del paso 8)
     $stmt = $db->prepare(
-        'SELECT name, price_wcoin, package_main_index, product_base_index, product_main_index
-           FROM webshop.products WHERE id = ? AND active = 1'
+        'SELECT wp.name, wp.price_wcoin, wp.package_main_index, wp.product_base_index, wp.product_main_index,
+                wc.name AS category_name
+           FROM webshop.products wp
+           LEFT JOIN webshop.categories wc ON wc.category_id = wp.category_id
+          WHERE wp.id = ? AND wp.active = 1'
     );
     $stmt->execute([$productId]);
     $product = $stmt->fetch();
@@ -119,6 +129,25 @@ try {
     $stmt->execute([$auth['usr'], -$price]);
 
     $db->commit();
+
+    // 8. Auditoría propia para estadísticas — la compra ya se concretó (WCoin
+    //    descontado + ítem entregado), así que un fallo acá no debe afectar la
+    //    respuesta al jugador ni intentar revertir nada.
+    try {
+        $stmtStats = WebshopDatabase::get()->prepare(
+            'INSERT INTO webshop.purchases (account_id, product_id, product_name, category_name, price_wcoin, purchased_at)
+             VALUES (?, ?, ?, ?, ?, GETUTCDATE())'
+        );
+        $stmtStats->execute([
+            $auth['usr'],
+            $productId,
+            $product['name'],
+            $product['category_name'],
+            $price,
+        ]);
+    } catch (Throwable $e) {
+        // Silencioso a propósito — ver comentario arriba.
+    }
 
     $stmt = $db->prepare('SELECT WCoinC FROM CashShopData WHERE AccountID = ?');
     $stmt->execute([$auth['usr']]);

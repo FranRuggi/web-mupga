@@ -28,6 +28,7 @@ ob_start();
       <button class="cp-tab" data-tab="reclamos">Reclamos</button>
       <button class="cp-tab" data-tab="tienda">Tienda</button>
       <button class="cp-tab" data-tab="wcoin">WCoins</button>
+      <button class="cp-tab" data-tab="estadisticas">Estadísticas</button>
     </div>
 
     <!-- ── Estado del sitio ── -->
@@ -266,6 +267,29 @@ ob_start();
 
       <p class="account-card__title" style="margin-top:var(--gap-md)">Últimos créditos manuales</p>
       <div id="wcoin-history"><p class="state-message">Cargando…</p></div>
+    </section>
+
+    <!-- ── Estadísticas de compras (Tienda WCoin) ── -->
+    <section class="cp-section account-card" id="cp-tab-estadisticas" hidden>
+      <p class="account-card__title">Estadísticas de la Tienda WCoin</p>
+      <p class="cp-hint">
+        En qué gastan los jugadores su WCoin. Solo cuenta compras hechas desde la Tienda
+        web a partir de que se sumó esta auditoría — no incluye compras viejas ni gasto
+        de WCoin dentro del CashShop in-game.
+      </p>
+
+      <div class="cp-grid-2" id="stats-resumen">
+        <p class="state-message">Cargando…</p>
+      </div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-md)">Ítems más comprados</p>
+      <div id="stats-top-items"><p class="state-message">Cargando…</p></div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-md)">Jugadores que más gastan</p>
+      <div id="stats-top-compradores"><p class="state-message">Cargando…</p></div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-md)">Gasto por día (últimos 30 días)</p>
+      <div id="stats-por-dia"><p class="state-message">Cargando…</p></div>
     </section>
 
   </div>

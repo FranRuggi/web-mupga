@@ -733,6 +733,55 @@ function initWcoin() {
   });
 }
 
+// ── Estadísticas de compras (Tienda) ─────────────────────────
+
+async function loadEstadisticas() {
+  const { ok, data } = await adminFetch('tienda_stats.php');
+  if (!ok || !data) {
+    document.getElementById('stats-resumen').innerHTML = '<p class="state-message">Error al cargar.</p>';
+    return;
+  }
+
+  const r = data.resumen ?? {};
+  document.getElementById('stats-resumen').innerHTML = `
+    <div class="cp-status-box"><strong>${esc(String(r.total_compras ?? 0))}</strong>&nbsp;<span class="cp-dim">compras totales</span></div>
+    <div class="cp-status-box"><strong>${esc(String(r.total_wcoin ?? 0))}</strong>&nbsp;<span class="cp-dim">WCoin gastado</span></div>
+    <div class="cp-status-box"><strong>${esc(String(r.compradores_unicos ?? 0))}</strong>&nbsp;<span class="cp-dim">compradores únicos</span></div>`;
+
+  const items = data.top_items ?? [];
+  document.getElementById('stats-top-items').innerHTML = items.length
+    ? items.map(i => `
+      <div class="cp-row">
+        <div class="cp-row__info">
+          <strong>${esc(i.product_name)}</strong>
+          <span class="cp-dim">${i.category_name ? esc(i.category_name) + ' · ' : ''}${esc(String(i.unidades))} compradas · ${esc(String(i.wcoin_total))} WCoin</span>
+        </div>
+      </div>`).join('')
+    : '<p class="state-message">Todavía no hay compras registradas.</p>';
+
+  const compradores = data.top_compradores ?? [];
+  document.getElementById('stats-top-compradores').innerHTML = compradores.length
+    ? compradores.map(c => `
+      <div class="cp-row">
+        <div class="cp-row__info">
+          <strong>${esc(c.account_id)}</strong>
+          <span class="cp-dim">${esc(String(c.compras))} compras · ${esc(String(c.wcoin_total))} WCoin</span>
+        </div>
+      </div>`).join('')
+    : '<p class="state-message">Todavía no hay compras registradas.</p>';
+
+  const porDia = data.por_dia ?? [];
+  document.getElementById('stats-por-dia').innerHTML = porDia.length
+    ? porDia.map(d => `
+      <div class="cp-row">
+        <div class="cp-row__info">
+          <strong>${esc(d.fecha)}</strong>
+          <span class="cp-dim">${esc(String(d.compras))} compras · ${esc(String(d.wcoin_total))} WCoin</span>
+        </div>
+      </div>`).join('')
+    : '<p class="state-message">Sin compras en los últimos 30 días.</p>';
+}
+
 // ── Init + guard ──────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -768,4 +817,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadDownloadsAdmin();
   loadReclamosAdmin();
   loadWcoinHistory();
+  loadEstadisticas();
 });

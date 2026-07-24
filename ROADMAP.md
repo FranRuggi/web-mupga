@@ -4,7 +4,7 @@
 > agregar una línea con fecha en "Registro de cambios" al final.
 
 **Estado actual:** Fase 4 completa ✅ — Fase 5 en curso + Tienda WCoin integrada.
-**Última actualización:** 2026-07-22
+**Última actualización:** 2026-07-24
 
 ---
 
@@ -194,6 +194,12 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] UI: tab "WCoins" en `/controlpanel/` — verificar cuenta antes de habilitar el botón, confirm() antes de enviar, historial de últimos créditos — 2026-07-19
 - [ ] Probar end-to-end en producción (post-deploy + script SQL corrido)
 
+## Backlog — ideas pendientes
+- [ ] Analytics de clicks/embudo de conversión en la web (frontend → endpoint propio
+      de eventos, ej. `/api/analytics/track.php`). Complejo y amplio — evaluar recién
+      después de cerrar las estadísticas de compras (WCoin) de la Tienda. Discutido
+      con Franco 2026-07-24.
+
 ## Registro de cambios
 <!-- Claude Code agrega acá una línea por tarea completada. Formato:
      - YYYY-MM-DD — [Fase X] qué se hizo -->
@@ -305,3 +311,4 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-07-22 — [Fix] Tienda: saldo/pendientes sacado del sidebar global (quedaba cortado por la altura fija del panel) — ahora es un banner propio arriba del catálogo en /tienda/, con los pendientes como chips horizontales en vez de lista vertical con scroll. Revertido el hook de body class / reorder de grid que se había agregado para mobile, ya no hace falta.
 - 2026-07-19 — [Fix] Timezone del SO del VPS volvió a cambiar (ART UTC-3 → UTC+2), rompiendo el cutoff de predicciones de la final: reemplazado `DATEADD(HOUR, 3, GETDATE())` hardcodeado por `GETUTCDATE()` puro en `ProdeRepository::savePrediction()` y en Reclamos (`create.php`, `reply.php`, `admin/reclamos.php`); incidente y diagnóstico repetible documentados en CLAUDE.md
 - 2026-07-19 — [Fase 7 · Etapa 5] Acreditación manual de WCoins desde el ControlPanel: `POST /api/admin/wcoin.php` (lookup + credit, reusa `CreditsRepository::addWCoin()` y `AccountRepository::usernameExists()` vía `Database::get()`), auditoría propia en `mupga_admin.dbo.wcoin_credits` (`database/controlpanel_wcoin_credits.sql`, a correr en SSMS), tab "WCoins" nuevo en `/controlpanel/`
+- 2026-07-24 — [Feat] Tienda: estadísticas de compras (en qué gastan los jugadores su WCoin). Tabla `webshop.purchases` (`database/webshop_purchases_setup.sql`, sin GRANT nuevo porque `webshop_user` ya tiene CONTROL sobre el schema) con `product_name`/`category_name` denormalizados a propósito (el catálogo se trunca entero en cada reimport, un FK a `webshop.products` quedaría huérfano). `buy.php` ahora hace un INSERT ahí después del `COMMIT`, por la conexión separada `WebshopDatabase` (no la de `Database::get()`, que solo tiene SELECT sobre `webshop`) — un fallo en esa auditoría no revierte ni bloquea la compra, mismo criterio que `wcoin_credits`. Nuevo endpoint `GET /api/admin/tienda_stats.php` (resumen, top ítems, top compradores, gasto por día) y tab "Estadísticas" en `/controlpanel/`. Solo junta datos desde que se sumó esta tabla — no hay forma de reconstruir compras anteriores. Pendiente: correr `webshop_purchases_setup.sql` en SSMS (mirror local + VPS).
