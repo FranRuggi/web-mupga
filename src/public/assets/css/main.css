@@ -3764,10 +3764,11 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
   padding: 0.7rem 0.6rem;
   margin: 0 -0.6rem;
   border-bottom: 1px solid var(--border);
+  border-left: 2px solid transparent;
   border-radius: var(--radius);
-  transition: background var(--t);
+  transition: background var(--t), border-color var(--t);
 }
-.cp-row:hover { background: var(--bg-raised); }
+.cp-row:hover { background: var(--bg-raised); border-left-color: var(--gold-border); }
 .cp-row__info { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
 .cp-row__info strong {
   color: var(--text-bright);
@@ -3784,6 +3785,89 @@ details[open] .prode-rules-chevron { transform: rotate(90deg); }
 @media (max-width: 640px) {
   .cp-row { flex-direction: column; align-items: flex-start; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ControlPanel — polish pass 2 (más brillo, menos plano)
+   El título de cada tab usaba la misma etiqueta chiquita y gris
+   que un dato secundario cualquiera — quedaba deslucido siendo el
+   único encabezado visible. Acá se le da jerarquía real (más
+   grande, brillante, con barra de acento) y se deja el gris solo
+   para los subtítulos anidados (ej. "Nueva noticia" dentro de la
+   tab Noticias) — se distinguen por :first-of-type, sin tocar el
+   HTML de cada tab.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Fondo con un poco de atmósfera (glow dorado/violeta en las
+   esquinas) en vez del bg-surface plano — solo dentro del CP para
+   no afectar el account-card de /usercp/. */
+#cp-panel .account-card {
+  background:
+    radial-gradient(560px circle at 100% 0%, var(--gold-glow), transparent 60%),
+    radial-gradient(480px circle at 0% 100%, var(--purple-glow), transparent 55%),
+    var(--bg-surface);
+}
+
+#cp-panel .cp-section .account-card__title:first-of-type {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--text-bright);
+  text-shadow: 0 0 20px var(--gold-glow);
+}
+#cp-panel .cp-section .account-card__title:first-of-type::before {
+  content: '';
+  width: 4px;
+  height: 1.3em;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--gold-light), var(--purple-light));
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+#cp-panel .cp-section .account-card__title:not(:first-of-type) {
+  font-size: 0.78rem;
+  color: var(--gold-light);
+}
+
+#cp-panel .cp-hint { color: var(--text); }
+
+/* Tabs inactivas más legibles (antes casi invisibles sobre el fondo oscuro) */
+#cp-panel .cp-tab { color: var(--text); }
+#cp-panel .cp-tab:hover { color: var(--text-bright); }
+
+/* Stat tiles (tab Estadísticas): número grande y brillante en vez
+   de una línea de texto plana */
+.cp-stat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 1.1rem 0.8rem;
+  background: linear-gradient(180deg, rgba(200,168,75,0.1), transparent);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+.cp-stat-tile strong {
+  font-family: var(--font-title);
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  text-shadow: 0 0 18px var(--gold-glow);
+  line-height: 1.1;
+}
+.cp-stat-tile span {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.cp-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap-sm); }
+@media (max-width: 640px) { .cp-grid-3 { grid-template-columns: 1fr; } }
 
 /* ═══════════════════════════════════════════════════════════
    Polish pass — refinamiento visual global (mismo lenguaje
@@ -3922,6 +4006,9 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
   align-items: center;
   gap: var(--gap-xs);
 }
+/* display:flex de arriba pisa al atributo hidden (misma especificidad,
+   gana el autor sobre el user-agent) — mismo caso que .cp-emoji-picker */
+.cp-dropzone__preview[hidden] { display: none; }
 .cp-dropzone__preview img {
   max-height: 140px;
   border-radius: var(--radius);

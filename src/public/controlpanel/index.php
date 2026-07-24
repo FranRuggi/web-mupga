@@ -21,14 +21,14 @@ ob_start();
 
     <!-- Menú de secciones -->
     <div class="cp-tabs" role="tablist">
-      <button class="cp-tab active" data-tab="status">Estado del sitio</button>
-      <button class="cp-tab" data-tab="news">Noticias</button>
-      <button class="cp-tab" data-tab="serverinfo">Info del servidor</button>
-      <button class="cp-tab" data-tab="downloads">Descargas</button>
-      <button class="cp-tab" data-tab="reclamos">Reclamos</button>
-      <button class="cp-tab" data-tab="tienda">Tienda</button>
-      <button class="cp-tab" data-tab="wcoin">WCoins</button>
-      <button class="cp-tab" data-tab="estadisticas">Estadísticas</button>
+      <button class="cp-tab active" data-tab="status">🔔 Estado del sitio</button>
+      <button class="cp-tab" data-tab="news">📰 Noticias</button>
+      <button class="cp-tab" data-tab="serverinfo">🗂️ Info del servidor</button>
+      <button class="cp-tab" data-tab="downloads">📥 Descargas</button>
+      <button class="cp-tab" data-tab="reclamos">🎫 Reclamos</button>
+      <button class="cp-tab" data-tab="tienda">🛒 Tienda</button>
+      <button class="cp-tab" data-tab="wcoin">🪙 WCoins</button>
+      <button class="cp-tab" data-tab="estadisticas">📊 Estadísticas</button>
     </div>
 
     <!-- ── Estado del sitio ── -->
@@ -278,7 +278,7 @@ ob_start();
         de WCoin dentro del CashShop in-game.
       </p>
 
-      <div class="cp-grid-2" id="stats-resumen">
+      <div class="cp-grid-3" id="stats-resumen">
         <p class="state-message">Cargando…</p>
       </div>
 

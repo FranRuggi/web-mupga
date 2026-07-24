@@ -744,9 +744,9 @@ async function loadEstadisticas() {
 
   const r = data.resumen ?? {};
   document.getElementById('stats-resumen').innerHTML = `
-    <div class="cp-status-box"><strong>${esc(String(r.total_compras ?? 0))}</strong>&nbsp;<span class="cp-dim">compras totales</span></div>
-    <div class="cp-status-box"><strong>${esc(String(r.total_wcoin ?? 0))}</strong>&nbsp;<span class="cp-dim">WCoin gastado</span></div>
-    <div class="cp-status-box"><strong>${esc(String(r.compradores_unicos ?? 0))}</strong>&nbsp;<span class="cp-dim">compradores únicos</span></div>`;
+    <div class="cp-stat-tile"><strong>${esc(String(r.total_compras ?? 0))}</strong><span>Compras totales</span></div>
+    <div class="cp-stat-tile"><strong>${esc(String(r.total_wcoin ?? 0))}</strong><span>WCoin gastado</span></div>
+    <div class="cp-stat-tile"><strong>${esc(String(r.compradores_unicos ?? 0))}</strong><span>Compradores únicos</span></div>`;
 
   const items = data.top_items ?? [];
   document.getElementById('stats-top-items').innerHTML = items.length
