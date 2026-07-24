@@ -76,4 +76,3 @@ src/
 
 - Schema y columnas: `.claude/docs/data-dictionary.md`
 - Qué se puede escribir: `.claude/docs/capability-matrix.md`
-- Código de referencia (solo lectura): `htdocs/includes/classes/`

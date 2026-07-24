@@ -15,11 +15,13 @@ para conocer el nombre exacto de tablas, columnas, tipos y stored procedures.
    - Tipos: `varchar`, `int`, `smalldatetime`, `varbinary`, etc.
 4. Driver PHP: `PDO_SQLSRV`. Parámetros con `?` o `:nombre`. Nunca concatenar input del usuario.
 5. Si una tabla o columna no está en el diccionario, marcala como **"a verificar"** y no la uses
-   hasta confirmarla en `script.sql` o `htdocs/`.
-6. La tabla `Character` en IGCN S6 contiene tanto datos de personaje como de Master Level
-   (columnas `mLevel`, `mlPoint`, `mlExperience`).
-7. El sistema de créditos es dinámico: la tabla y columna objetivo están en `WEBENGINE_CREDITS_CONFIG`,
-   no hardcodeadas — usá el sistema de la clase `CreditSystem` de WebEngine como referencia.
+   hasta confirmarla en `database/script.sql`.
+6. El Master Level/Points **no están en `Character`** — viven en `MasterSkillTree`
+   (columnas `MasterLevel`, `MasterPoint`, `MasterExperience`, `MasterSkill`).
+7. WCoin se acredita con el SP `sp_AddWCoinWithLog` (ver `src/db/CreditsRepository.php`), nunca
+   escribiendo `CashShopData` a mano salvo dentro de una transacción con lock (ver `buyvip.php`
+   como ejemplo). **Nunca** usar `WEBENGINE_CREDITS_CONFIG` ni ninguna tabla `WEBENGINE_*` —
+   son del CMS reemplazado y no existen en producción (regla dura en `CLAUDE.md`).
 
 ## Referencia rápida de tablas críticas
 

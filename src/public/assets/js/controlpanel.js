@@ -587,6 +587,65 @@ function initReclamos() {
   });
 }
 
+// ── Tienda WCoin ──────────────────────────────────────────────
+
+const TIENDA_IMPORT_FIELDS = {
+  'tienda-server-package':  'server_package',
+  'tienda-server-product':  'server_product',
+  'tienda-client-category': 'client_category',
+  'tienda-client-package':  'client_package',
+  'tienda-client-product':  'client_product',
+};
+
+function initTienda() {
+  document.getElementById('tienda-import').addEventListener('click', async () => {
+    const form = new FormData();
+    for (const [inputId, field] of Object.entries(TIENDA_IMPORT_FIELDS)) {
+      const file = document.getElementById(inputId).files[0];
+      if (!file) {
+        feedback('tienda-feedback', `Falta seleccionar el archivo de "${inputId}".`, true);
+        return;
+      }
+      form.append(field, file);
+    }
+
+    const btn = document.getElementById('tienda-import');
+    btn.disabled = true;
+    btn.textContent = 'Importando…';
+    document.getElementById('tienda-import-result').innerHTML = '';
+
+    try {
+      // fetch directo (no authFetch): multipart necesita que el browser
+      // arme el Content-Type con boundary — no se puede fijar a mano.
+      const res  = await fetch(`${API}/admin/tienda_import.php`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${getToken()}` },
+        body: form,
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        feedback('tienda-feedback', data?.error ?? 'Error al importar el catálogo', true);
+        return;
+      }
+
+      feedback('tienda-feedback', `Catálogo reimportado ✔ (${data.categorias} categorías, ${data.productos} productos)`);
+
+      const faltantes = data.iconos_faltantes ?? [];
+      document.getElementById('tienda-import-result').innerHTML = faltantes.length
+        ? `<p class="cp-hint">Sin ícono disponible (${faltantes.length}): ${
+            faltantes.map(f => `${esc(f.name)} (ItemID ${esc(String(f.item_id))})`).join(', ')
+          }</p>`
+        : '';
+    } catch {
+      feedback('tienda-feedback', 'Error de red al importar el catálogo', true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Reimportar catálogo';
+    }
+  });
+}
+
 // ── WCoins ────────────────────────────────────────────────────
 
 let wcoinVerifiedAccount = ''; // cuenta ya validada por 'lookup' — habilita el botón Acreditar
@@ -700,6 +759,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initServerInfo();
   initDownloads();
   initReclamos();
+  initTienda();
   initWcoin();
 
   loadStatus();

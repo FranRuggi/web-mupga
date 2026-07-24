@@ -62,7 +62,7 @@
 | `_TBL_GUILDMEMB_`     | `GuildMember`                |
 | `_CLMN_GUILDMEMB_CHAR_` | `Name`                     |
 | `_CLMN_GUILDMEMB_NAME_` | `G_Name`                   |
-| `_TBL_GENS_`          | `IGC_Gens` (a verificar en dump) |
+| `_TBL_GENS_`          | `Gens_Duprian` o `Gens_Varnert` según facción (no existe `IGC_Gens`) |
 | `_CLMN_GENS_NAME_`    | `Name`                       |
 | `_CLMN_GENS_TYPE_`    | `Influence`                  |
 | `_CLMN_GENS_POINT_`   | `Points`                     |
@@ -145,8 +145,6 @@ PK: `Name`
 | `PkTime`          | int NULL              | Tiempo de castigo PK                          |
 | `ResetCount`      | int NOT NULL          | Cantidad de resets (el alias PHP `_CLMN_CHR_RSTS_` usa `RESETS`, pero el nombre real en DB es este) |
 | `MasterResetCount`| int NOT NULL          | Cantidad de master resets (el alias PHP `_CLMN_CHR_GRSTS_` usa `GrandResets`) |
-| `mLevel`          | int (a verificar en DDL completo) | Nivel Master (igcn.tables.php lo mapea en Character para IGCN S6) |
-| `mlPoint`         | int (a verificar en DDL completo) | Puntos de árbol Master                  |
 | `Quest`           | varbinary(50) NULL    | Estado de quests (binario)                    |
 | `CtlCode`         | tinyint NULL          | Código de control del personaje               |
 | `FruitPoint`      | int NULL              | Puntos de fruta                               |
@@ -245,12 +243,25 @@ PK: `ID` (IDENTITY)
 ---
 
 ### LOG_CREDITOS — Log de créditos del sitio
-> a verificar columnas exactas desde el dump
+PK: `id_creditos`
+
+| Columna       | Tipo                  | Descripción                    |
+|---------------|-----------------------|---------------------------------|
+| `id_creditos` | int IDENTITY(1,1) PK  |                                 |
+| `login`       | nvarchar(10) NULL     | AccountID                      |
+| `valor`       | int NOT NULL          | Monto acreditado                |
+| `data`        | smalldatetime NOT NULL| Fecha de la transacción         |
+| `ip`          | char(15) NULL         | IP de origen                    |
+| `tipo`        | smallint NOT NULL     | Tipo/origen del crédito         |
+
+Tabla legacy del CMS anterior (no lleva el prefijo `WEBENGINE_*`, pero es del mismo origen —
+no confirmado si es pre-WebEngine o propia de su módulo de créditos). No confundir con
+`CashLog`, que es la que usa `src/` vía `sp_AddWCoinWithLog`. No usar desde `src/`.
 
 ---
 
 ### MUPGA_ACCOUNT_COUNTRY — País de registro (tabla propia del sitio)
-> Creada por el sitio custom. Script: `db/schema/mupga_tables.sql`.
+> Creada por el sitio custom. Script: `database/schema/mupga_tables.sql`.
 > **No es de WebEngine ni del GameServer.**
 
 | Columna       | Tipo              | Descripción                                        |
@@ -270,7 +281,7 @@ Escrita en: `api/auth/register.php` via ip-api.com al crear la cuenta.
 |--------------------------|------------------------------------------------|
 | `Warehouse`              | Almacén del personaje (binario, solo GS)       |
 | `WarehouseGuild`         | Almacén del guild (binario, solo GS)           |
-| `MasterSkillTree`        | Árbol de habilidades Master (binario, solo GS) |
+| `MasterSkillTree`        | Nivel/puntos/exp Master (`MasterLevel`, `MasterPoint`, `MasterExperience` — int/bigint, legibles) + árbol de habilidades (`MasterSkill` varbinary, solo GS). No están en `Character` pese a lo que sugiere el alias PHP `_CLMN_CHR_*_`. |
 | `ItemLog`                | Log de ítems del juego                         |
 | `MuCastle_DATA`          | Datos del Castillo de Mu (Castle Siege)        |
 | `MuCastle_REG_SIEGE`     | Registro de guild para Castle Siege            |
