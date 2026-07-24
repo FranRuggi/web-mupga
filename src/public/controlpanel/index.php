@@ -26,6 +26,7 @@ ob_start();
       <button class="cp-tab" data-tab="serverinfo">Info del servidor</button>
       <button class="cp-tab" data-tab="downloads">Descargas</button>
       <button class="cp-tab" data-tab="reclamos">Reclamos</button>
+      <button class="cp-tab" data-tab="wcoin">WCoins</button>
     </div>
 
     <!-- ── Estado del sitio ── -->
@@ -195,6 +196,39 @@ ob_start();
           <p class="cp-feedback" id="reclamos-feedback"></p>
         </div>
       </div>
+    </section>
+
+    <!-- ── WCoins ── -->
+    <section class="cp-section account-card" id="cp-tab-wcoin" hidden>
+      <p class="account-card__title">Acreditar WCoins</p>
+      <p class="cp-hint">Usa el mismo stored procedure que el resto del sitio (sp_AddWCoinWithLog). Verificá la cuenta antes de acreditar.</p>
+
+      <div class="cp-form">
+        <label class="cp-field">
+          <span>Cuenta (memb___id)</span>
+          <input type="text" id="wcoin-account" maxlength="10" autocomplete="off">
+        </label>
+        <div class="cp-actions">
+          <button class="btn btn-secondary" id="wcoin-lookup">Verificar cuenta</button>
+        </div>
+        <div class="cp-status-box" id="wcoin-lookup-result" hidden></div>
+
+        <label class="cp-field">
+          <span>Monto (WCoin, entero positivo)</span>
+          <input type="number" id="wcoin-amount" min="1" step="1">
+        </label>
+        <label class="cp-field">
+          <span>Motivo (opcional, se guarda en la auditoría)</span>
+          <input type="text" id="wcoin-reason" maxlength="300">
+        </label>
+        <div class="cp-actions">
+          <button class="btn btn-primary" id="wcoin-credit" disabled>Acreditar</button>
+        </div>
+        <p class="cp-feedback" id="wcoin-feedback"></p>
+      </div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-md)">Últimos créditos manuales</p>
+      <div id="wcoin-history"><p class="state-message">Cargando…</p></div>
     </section>
 
   </div>

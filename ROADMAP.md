@@ -187,6 +187,13 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] `GET /api/admin/check.php` + link "✦ Admin" dorado en la nav (solo visible para admins, cache en sessionStorage) — 2026-07-12
 - [x] Polish visual del ControlPanel: tabs estilo dorado, chips de estado con pulso, inputs con focus dorado, grillas responsive, hover en filas — 2026-07-12
 
+### Etapa 5 — Acreditación manual de WCoins
+- [x] `POST /api/admin/wcoin.php` — `lookup` (existe la cuenta + saldo) y `credit` (sp_AddWCoinWithLog vía `Database::get()`, mismo patrón que Prode; auditoría en `mupga_admin` separada, un fallo ahí no reporta error falso porque el WCoin ya se acreditó) — 2026-07-19
+- [x] `database/controlpanel_wcoin_credits.sql` — `CREATE TABLE dbo.wcoin_credits` (auditoría: admin, cuenta destino, monto, motivo, `created_at` explícito con `GETUTCDATE()`) — 2026-07-19
+- [ ] Correr el script en SSMS contra `mupga_admin` (manual — Franco)
+- [x] UI: tab "WCoins" en `/controlpanel/` — verificar cuenta antes de habilitar el botón, confirm() antes de enviar, historial de últimos créditos — 2026-07-19
+- [ ] Probar end-to-end en producción (post-deploy + script SQL corrido)
+
 ## Registro de cambios
 <!-- Claude Code agrega acá una línea por tarea completada. Formato:
      - YYYY-MM-DD — [Fase X] qué se hizo -->
@@ -290,3 +297,5 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-07-12 — [Fase 7] Setup previo ControlPanel: admin_db.php (conexión PDO separada a mupga_admin), variables ADMIN_DB_* en .env.example, script CLI test_admin_db.php para validar en el VPS
 - 2026-07-01 — [Feat] Compra de VIP con WCoins en /usercp/: endpoint api/account/buyvip.php (transacción PDO con UPDLOCK/HOLDLOCK, descuento WCoinC, sp_SetAccountGOLDVIP, log CashLog); sección "VIP Oro" en usercp con confirmación, feedback en tiempo real y actualización del balance
 - 2026-07-14 — [Fase 7] Editor de formato en ControlPanel (noticias): toolbar markdown-lite (negrita/cursiva/subrayado/tachado/subtítulo/lista/link), picker de emojis y vista previa en vivo; renderRichText() en app.js (escapa antes de formatear — whitelist de tags, links solo http/https), news.js renderiza el cuerpo con formato; SQLSRV_ENCODING_UTF8 en admin_db.php para emojis/tildes
+- 2026-07-19 — [Fix] Timezone del SO del VPS volvió a cambiar (ART UTC-3 → UTC+2), rompiendo el cutoff de predicciones de la final: reemplazado `DATEADD(HOUR, 3, GETDATE())` hardcodeado por `GETUTCDATE()` puro en `ProdeRepository::savePrediction()` y en Reclamos (`create.php`, `reply.php`, `admin/reclamos.php`); incidente y diagnóstico repetible documentados en CLAUDE.md
+- 2026-07-19 — [Fase 7 · Etapa 5] Acreditación manual de WCoins desde el ControlPanel: `POST /api/admin/wcoin.php` (lookup + credit, reusa `CreditsRepository::addWCoin()` y `AccountRepository::usernameExists()` vía `Database::get()`), auditoría propia en `mupga_admin.dbo.wcoin_credits` (`database/controlpanel_wcoin_credits.sql`, a correr en SSMS), tab "WCoins" nuevo en `/controlpanel/`

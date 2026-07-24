@@ -587,6 +587,93 @@ function initReclamos() {
   });
 }
 
+// ── WCoins ────────────────────────────────────────────────────
+
+let wcoinVerifiedAccount = ''; // cuenta ya validada por 'lookup' — habilita el botón Acreditar
+
+async function loadWcoinHistory() {
+  const { ok, data } = await adminFetch('wcoin.php');
+  const el = document.getElementById('wcoin-history');
+  if (!ok || !data?.items) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
+
+  el.innerHTML = data.items.map(c => `
+    <div class="cp-row">
+      <div class="cp-row__info">
+        <strong>${esc(c.target_account)}</strong> +${esc(String(c.amount))} WCoin
+        <span class="cp-dim">por ${esc(c.admin_id)} · ${fmtFechaCp(c.created_at)}${c.reason ? ' · ' + esc(c.reason) : ''}</span>
+      </div>
+    </div>`).join('') || '<p class="state-message">Sin créditos manuales todavía.</p>';
+}
+
+function resetWcoinCreditGate() {
+  wcoinVerifiedAccount = '';
+  document.getElementById('wcoin-credit').disabled = true;
+}
+
+function initWcoin() {
+  const accountInput = document.getElementById('wcoin-account');
+
+  accountInput.addEventListener('input', () => {
+    document.getElementById('wcoin-lookup-result').hidden = true;
+    resetWcoinCreditGate();
+  });
+
+  document.getElementById('wcoin-lookup').addEventListener('click', async () => {
+    const account = accountInput.value.trim();
+    resetWcoinCreditGate();
+    if (!account) { feedback('wcoin-feedback', 'Ingresá una cuenta.', true); return; }
+
+    const { ok, data } = await adminFetch('wcoin.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'lookup', account }),
+    });
+
+    const box = document.getElementById('wcoin-lookup-result');
+    box.hidden = false;
+    if (!ok) {
+      box.innerHTML = `<span class="cp-chip cp-chip--on">✕ ${esc(data?.error ?? 'Error')}</span>`;
+      return;
+    }
+    const b = data.balance;
+    box.innerHTML = `<span class="cp-chip cp-chip--off">✔ Cuenta encontrada</span>
+      <span class="cp-status-detail">Saldo actual: ${esc(String(b?.WCoinC ?? 0))} WCoin</span>`;
+    wcoinVerifiedAccount = account;
+    document.getElementById('wcoin-credit').disabled = false;
+  });
+
+  document.getElementById('wcoin-credit').addEventListener('click', async () => {
+    const account = accountInput.value.trim();
+    const amount  = Number(document.getElementById('wcoin-amount').value);
+    const reason  = document.getElementById('wcoin-reason').value.trim();
+
+    if (account !== wcoinVerifiedAccount) {
+      feedback('wcoin-feedback', 'Verificá la cuenta de nuevo antes de acreditar.', true);
+      return;
+    }
+    if (!Number.isInteger(amount) || amount <= 0) {
+      feedback('wcoin-feedback', 'El monto tiene que ser un entero positivo.', true);
+      return;
+    }
+    if (!confirm(`¿Acreditar ${amount} WCoin a la cuenta "${account}"? Esta acción no se puede deshacer.`)) return;
+
+    const { ok, data } = await adminFetch('wcoin.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'credit', account, amount, reason }),
+    });
+    const okMsg = data?.audit_log === false
+      ? `Acreditado ✔ — nuevo saldo: ${data.balance?.WCoinC ?? '?'} WCoin (⚠ no se pudo guardar en la auditoría del panel)`
+      : `Acreditado ✔ — nuevo saldo: ${data?.balance?.WCoinC ?? '?'} WCoin`;
+    feedback('wcoin-feedback', ok ? okMsg : (data?.error ?? 'Error'), !ok);
+    if (ok) {
+      document.getElementById('wcoin-amount').value = '';
+      document.getElementById('wcoin-reason').value = '';
+      resetWcoinCreditGate();
+      document.getElementById('wcoin-lookup-result').hidden = true;
+      loadWcoinHistory();
+    }
+  });
+}
+
 // ── Init + guard ──────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -613,10 +700,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   initServerInfo();
   initDownloads();
   initReclamos();
+  initWcoin();
 
   loadStatus();
   loadNewsAdmin();
   loadServerInfoAdmin();
   loadDownloadsAdmin();
   loadReclamosAdmin();
+  loadWcoinHistory();
 });
