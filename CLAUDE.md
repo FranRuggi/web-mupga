@@ -30,6 +30,30 @@ Browser → Cloudflare Pages (frontend estático)
   remota. Driver: `sqlsrv` / `PDO_SQLSRV`.
 - **La conexión sitio → base de datos es local dentro del VPS**, nunca desde una máquina externa.
 
+### Multi-sitio: un repo, un target de build por sitio (Fase 8)
+
+El repo genera **varios sitios independientes**, cada uno con su propio proyecto de
+Cloudflare Pages y su propio dominio, compartiendo el código (design system, layout,
+`app.js`, `auth.js`):
+
+```
+mupga.com.ar           → target `landing`   → proyecto Pages web-mupga-landing
+servidor1.mupga.com.ar → target `servidor1` → proyecto Pages web-mupga (el histórico)
+foro.mupga.com.ar      → target `foro`      → proyecto Pages web-mupga-foro
+```
+
+- `php build.php --target=X` genera `dist/X/`. Sin argumentos construye todos.
+- Cada target declara sus páginas y qué assets **no** necesita (`assets_exclude`) —
+  la landing no copia los ~970 íconos de `img/shop`.
+- `.github/workflows/deploy.yml` usa una matriz target→proyecto con `fail-fast: false`.
+- **No hay cuenta web maestra.** Cada servidor mantiene su base de cuentas totalmente
+  independiente; no hay vinculación automática entre servidores.
+- La tabla `mupga_admin.dbo.servidores` es la fuente de verdad de qué servidores
+  existen. Agregar un servidor = una fila, no un deploy de HTML. Su columna `api_url`
+  es la que permite validar cuentas contra el servidor correcto.
+- `config.js` distingue **`siteApi`** (contenido del sitio, `mupga_admin`, siempre el
+  VPS principal) de **`api`** (API del servidor de juego, resuelta por hostname).
+
 ### Consecuencias importantes para el desarrollo
 
 1. **PHP no inyecta nada en el HTML de producción.** Atributos como `data-payments-url`

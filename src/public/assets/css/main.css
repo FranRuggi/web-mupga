@@ -4378,3 +4378,241 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 .cp-field input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   opacity: 1;
 }
+
+/* ============================================================
+   LANDING (mupga.com.ar) — selector de servidores
+   Layout sin sidebar: la landing no pertenece a ningún servidor.
+   ============================================================ */
+
+.page-wrapper--landing {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "header"
+    "main"
+    "footer";
+}
+
+/* ── Hero de la landing ────────────────────────────────────── */
+.landing-hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--gap-xl) var(--gap-lg);
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 0%, var(--purple-glow) 0%, transparent 62%),
+    linear-gradient(180deg, var(--bg-mid) 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--purple-border);
+}
+
+.landing-hero__content { position: relative; z-index: 2; }
+
+.landing-hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 8vw, 4.6rem);
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 40px var(--gold-glow), 0 0 90px var(--gold-glow);
+  margin: 0.4rem 0 0.8rem;
+}
+
+.landing-hero__tagline {
+  color: var(--text-dim);
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+/* ── Grilla de servidores ──────────────────────────────────── */
+.servidor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: var(--gap-md);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.servidor-empty {
+  text-align: center;
+  color: var(--text-dim);
+  padding: var(--gap-lg) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-sm);
+}
+
+/* ── Card de servidor ──────────────────────────────────────── */
+.servidor-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: var(--gap-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform var(--t), border-color var(--t), box-shadow var(--t);
+}
+
+.servidor-card:not(.skeleton):hover {
+  transform: translateY(-4px);
+  border-color: var(--gold-border);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--gold-glow);
+}
+
+/* Franja superior de color según estado */
+.servidor-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--purple), var(--gold), transparent);
+  opacity: 0.7;
+}
+.servidor-card.is-proximo::before { background: linear-gradient(90deg, transparent, var(--cyan), transparent); }
+.servidor-card.is-mantenimiento::before,
+.servidor-card.is-cerrado::before { background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
+
+.servidor-card__banner {
+  height: 120px;
+  margin: calc(var(--gap-md) * -1) calc(var(--gap-md) * -1) 0;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.servidor-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-sm);
+  flex-wrap: wrap;
+}
+
+.servidor-card__name {
+  font-family: var(--font-title);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin: 0;
+}
+
+.servidor-card__desc {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Badge de estado ───────────────────────────────────────── */
+.servidor-badge {
+  font-family: var(--font-title);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.servidor-badge.is-activo {
+  color: #7ef0b0;
+  background: rgba(60, 220, 140, 0.1);
+  border-color: rgba(60, 220, 140, 0.32);
+}
+.servidor-badge.is-proximo {
+  color: var(--cyan);
+  background: var(--cyan-glow);
+  border-color: rgba(0, 196, 234, 0.4);
+}
+.servidor-badge.is-mantenimiento {
+  color: var(--gold-light);
+  background: var(--gold-glow);
+  border-color: var(--gold-border);
+}
+.servidor-badge.is-cerrado {
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.04);
+  border-color: var(--border);
+}
+
+/* ── Countdown de lanzamiento ──────────────────────────────── */
+.servidor-countdown {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  background: var(--cyan-glow);
+  border: 1px solid rgba(0, 196, 234, 0.28);
+  border-radius: var(--radius);
+}
+
+.servidor-countdown__label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.servidor-countdown__val {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--cyan);
+}
+
+/* ── Specs ─────────────────────────────────────────────────── */
+.servidor-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-top: auto;   /* empuja el CTA al fondo aunque las cards tengan distinto alto */
+}
+
+.servidor-spec {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-sm);
+  padding: 0.42rem 0.55rem;
+  border-radius: var(--radius);
+  font-size: 0.86rem;
+}
+
+.servidor-spec:nth-child(odd) { background: rgba(255,255,255,0.025); }
+
+.servidor-spec__k {
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.servidor-spec__v {
+  color: var(--text-bright);
+  font-weight: 500;
+  text-align: right;
+}
+
+/* ── CTA ───────────────────────────────────────────────────── */
+.servidor-card__cta {
+  width: 100%;
+  text-align: center;
+  margin-top: 0.3rem;
+}
+
+.servidor-card__cta.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .servidor-grid { grid-template-columns: 1fr; }
+  .landing-hero  { padding: var(--gap-lg) var(--gap-sm); }
+}

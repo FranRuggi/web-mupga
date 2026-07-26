@@ -3,8 +3,8 @@
 > **Checklist vivo.** Claude Code lo actualiza al completar cada tarea: marcar `[x]`, y
 > agregar una línea con fecha en "Registro de cambios" al final.
 
-**Estado actual:** Fase 4 completa ✅ — Fase 5 en curso + Tienda WCoin integrada.
-**Última actualización:** 2026-07-24
+**Estado actual:** Fase 8 (multi-servidor) — Etapa 1 implementada, esperando validación de Franco.
+**Última actualización:** 2026-07-26
 
 ---
 
@@ -194,6 +194,55 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [x] UI: tab "WCoins" en `/controlpanel/` — verificar cuenta antes de habilitar el botón, confirm() antes de enviar, historial de últimos créditos — 2026-07-19
 - [ ] Probar end-to-end en producción (post-deploy + script SQL corrido)
 
+## Fase 8 — Multi-servidor: landing, foro y vinculación de cuentas
+
+> Rama de trabajo: `feature/multi-servidor`. Testing en **preview de Cloudflare Pages
+> contra la API productiva** — no hay entorno local (ni SQL Server local ni espejo).
+> Los scripts SQL los corre Franco en SSMS contra la base productiva; son aditivos
+> y aislados (tabla nueva / base nueva), no tocan datos de juego existentes.
+>
+> Arquitectura decidida: **no hay cuenta web maestra**. Cada servidor mantiene su base
+> de cuentas totalmente independiente. Un solo repo, un target de build por sitio, un
+> proyecto de Cloudflare Pages por sitio.
+>
+> ```
+> mupga.com.ar           → landing / selector (target `landing`)
+> servidor1.mupga.com.ar → sitio del servidor actual (target `servidor1`)
+> foro.mupga.com.ar      → foro con cuenta propia (target `foro`, Etapa 2)
+> ```
+
+### Etapa 1 — Tabla `servidores` + selector dinámico
+- [x] `database/servidores_setup.sql` — `mupga_admin.dbo.servidores`, re-ejecutable, sin login nuevo
+      (`mupga_web_svc` ya tiene db_datareader/writer sobre la base) — 2026-07-26
+- [x] `GET /api/site/servidores.php` — público, `activo=1` orden `orden, id`, `no-store` en error — 2026-07-26
+- [x] `build.php` — targets (`--target=X`), salida `dist/<target>/`, exclusión de assets por target
+      (la landing no carga los ~970 íconos de `img/shop`), `exit(1)` si una página falla — 2026-07-26
+- [x] `src/templates/layout_landing.php` — layout sin sidebar ni nav de servidor; no carga `app.js`
+      (dispararía `loadSiteStatus()`/`loadReclamoNotice()` del servidor 1) — 2026-07-26
+- [x] `src/public/landing/index.php` + `landing.js` (autónomo, solo depende de `config.js`) + CSS — 2026-07-26
+- [x] `config.js` — `siteApi` (contenido, `mupga_admin`) separado de `api` (servidor de juego por hostname) — 2026-07-26
+- [x] `.github/workflows/deploy.yml` — matriz target→proyecto Pages, `fail-fast: false`,
+      dispara también en `feature/multi-servidor` — 2026-07-26
+- [x] `.env.example` — `CORS_ALLOWED_ORIGINS` documentado con el formato de alias de preview — 2026-07-26
+- [ ] Crear el proyecto Cloudflare Pages `web-mupga-landing` (manual — Franco)
+- [ ] Correr `database/servidores_setup.sql` en SSMS + cargar la fila del servidor 1 (manual — Franco)
+- [ ] Agregar los orígenes de preview a `CORS_ALLOWED_ORIGINS` del `.env` del VPS (manual — Franco)
+- [ ] Verificar el selector en la preview URL de la landing (manual — Franco) ← **STOP de la Etapa 1**
+
+### Etapa 2 — Foro con cuenta propia
+> Decidido: sin cookies (token Bearer con secret propio `FORUM_APP_SECRET`, claim `aud: forum`);
+> base `mupga_forum` + login `mupga_forum_svc`; `servidor_id` como INT **sin FK** (SQL Server no
+> soporta FK entre bases); `/api/forum/*` **NO exento del lockdown** (si el servidor está en
+> mantenimiento el foro cae también — los avisos van por Discord/WhatsApp).
+- [ ] Pendiente — arranca al cerrar la Etapa 1
+
+### Etapa 3 — Vinculación de cuenta de servidor + stats
+> Decidido: **API-to-API**, la API del foro nunca toca la DB de un servidor — llama a
+> `verify-account` en la `api_url` del servidor con HMAC server-to-server. Rate limit por IP,
+> por cuenta de foro, **y backoff por cuenta objetivo** (`servidor_id` + `game_account_name`):
+> el límite por IP solo no frena fuerza bruta lenta con rotación de IP.
+- [ ] Pendiente — arranca al cerrar la Etapa 2
+
 ## Backlog — ideas pendientes
 - [ ] Analytics de clicks/embudo de conversión en la web (frontend → endpoint propio
       de eventos, ej. `/api/analytics/track.php`). Complejo y amplio — evaluar recién
@@ -310,5 +359,6 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-07-22 — [Feat] Tienda: link "Tienda" agregado al nav principal (layout.php, entre WCoin y Wiki) — la página deja de ser oculta/no-linkeada.
 - 2026-07-22 — [Fix] Tienda: saldo/pendientes sacado del sidebar global (quedaba cortado por la altura fija del panel) — ahora es un banner propio arriba del catálogo en /tienda/, con los pendientes como chips horizontales en vez de lista vertical con scroll. Revertido el hook de body class / reorder de grid que se había agregado para mobile, ya no hace falta.
 - 2026-07-19 — [Fix] Timezone del SO del VPS volvió a cambiar (ART UTC-3 → UTC+2), rompiendo el cutoff de predicciones de la final: reemplazado `DATEADD(HOUR, 3, GETDATE())` hardcodeado por `GETUTCDATE()` puro en `ProdeRepository::savePrediction()` y en Reclamos (`create.php`, `reply.php`, `admin/reclamos.php`); incidente y diagnóstico repetible documentados en CLAUDE.md
+- 2026-07-26 — [Fase 8 · Etapa 1] Multi-servidor: tabla `mupga_admin.dbo.servidores` (script para SSMS), endpoint público `/api/site/servidores.php`, landing con selector dinámico (`layout_landing.php` + `landing/index.php` + `landing.js` + CSS), `build.php` parametrizado por target con salida `dist/<target>/` y exclusión de assets, `config.js` con `siteApi` separado de `api` y mapa hostname→API de juego, workflow con matriz target→proyecto Pages. Sin entorno local: el testing es en preview de Cloudflare contra la API productiva.
 - 2026-07-19 — [Fase 7 · Etapa 5] Acreditación manual de WCoins desde el ControlPanel: `POST /api/admin/wcoin.php` (lookup + credit, reusa `CreditsRepository::addWCoin()` y `AccountRepository::usernameExists()` vía `Database::get()`), auditoría propia en `mupga_admin.dbo.wcoin_credits` (`database/controlpanel_wcoin_credits.sql`, a correr en SSMS), tab "WCoins" nuevo en `/controlpanel/`
 - 2026-07-24 — [Feat] Tienda: estadísticas de compras (en qué gastan los jugadores su WCoin). Tabla `webshop.purchases` (`database/webshop_purchases_setup.sql`, sin GRANT nuevo porque `webshop_user` ya tiene CONTROL sobre el schema) con `product_name`/`category_name` denormalizados a propósito (el catálogo se trunca entero en cada reimport, un FK a `webshop.products` quedaría huérfano). `buy.php` ahora hace un INSERT ahí después del `COMMIT`, por la conexión separada `WebshopDatabase` (no la de `Database::get()`, que solo tiene SELECT sobre `webshop`) — un fallo en esa auditoría no revierte ni bloquea la compra, mismo criterio que `wcoin_credits`. Nuevo endpoint `GET /api/admin/tienda_stats.php` (resumen, top ítems, top compradores, gasto por día) y tab "Estadísticas" en `/controlpanel/`. Solo junta datos desde que se sumó esta tabla — no hay forma de reconstruir compras anteriores. Pendiente: correr `webshop_purchases_setup.sql` en SSMS (mirror local + VPS).

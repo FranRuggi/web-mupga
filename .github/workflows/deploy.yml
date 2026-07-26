@@ -1,8 +1,18 @@
 name: Build y deploy a Cloudflare Pages
 
+# Cada target del build es un SITIO con su propio proyecto de Cloudflare Pages
+# y su propio dominio, generados desde este mismo repo (ver build.php).
+#
+# Ramas que despliegan:
+#   main                  → production branch de cada proyecto Pages
+#   develop               → preview
+#   feature/multi-servidor → preview (rama de trabajo de las 3 etapas
+#                            multi-servidor; su alias estable es
+#                            https://feature-multi-servidor.<proyecto>.pages.dev)
+
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, feature/multi-servidor]
 
 permissions:
   contents: read
@@ -11,6 +21,24 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    strategy:
+      # Un proyecto Pages que todavía no existe (o falla) no debe cancelar
+      # el deploy de los demás sitios.
+      fail-fast: false
+      matrix:
+        include:
+          - target: landing
+            project: web-mupga-landing
+          - target: servidor1
+            project: web-mupga
+          # Etapa 2 — descomentar cuando exista el proyecto Pages del foro
+          # y el target tenga páginas en build.php:
+          # - target: foro
+          #   project: web-mupga-foro
+
+    name: ${{ matrix.target }} → ${{ matrix.project }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,15 +54,15 @@ jobs:
           echo "PAYMENTS_API_URL=${{ secrets.PAYMENTS_API_URL }}" >> .env
           echo "TURNSTILE_SITE_KEY=${{ secrets.TURNSTILE_SITE_KEY }}" >> .env
 
-      - name: Generar dist/
-        run: php build.php
+      - name: Generar dist/${{ matrix.target }}
+        run: php build.php --target=${{ matrix.target }}
 
       - name: Deploy a Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: web-mupga
-          directory: dist
+          projectName: ${{ matrix.project }}
+          directory: dist/${{ matrix.target }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref_name }}
