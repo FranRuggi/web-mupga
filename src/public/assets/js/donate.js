@@ -269,6 +269,16 @@ function extractApiErrors(errData) {
   return [];
 }
 
+// GET /api/currencies/quote y /api/payments/providers requieren rol Player —
+// piden un JWT de pagos corto (mismo mecanismo que usa order.php) para adjuntar
+// como Bearer en esos GETs directos a la API externa.
+async function getPaymentToken() {
+  const res = await authFetch('donate/payment_token.php');
+  if (!res || !res.ok) return null;
+  const data = await res.json().catch(() => ({}));
+  return data.token ?? null;
+}
+
 // ── Cambios de moneda / monto / email ─────────────────────────
 function onCurrencyChange() {
   invalidateQuote();
@@ -305,6 +315,11 @@ async function onCalculate() {
   $discountHint.hidden = true;
 
   try {
+    const paymentToken = await getPaymentToken();
+    if (!paymentToken) {
+      throw new Error('No se pudo autenticar contra la API de pagos. Volvé a intentar.');
+    }
+
     let url = PAYMENTS_API + '/api/currencies/quote' +
       '?basecurrency=' + encodeURIComponent(from) +
       '&amount='       + amount +
@@ -313,7 +328,9 @@ async function onCalculate() {
       url += '&discountCode=' + encodeURIComponent(discountCode);
     }
 
-    const res = await fetch(url, { headers: PAYMENTS_HEADERS });
+    const res = await fetch(url, {
+      headers: { ...PAYMENTS_HEADERS, Authorization: 'Bearer ' + paymentToken },
+    });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -351,7 +368,7 @@ async function onCalculate() {
     }
     $quoteResult.innerHTML = resultHtml;
 
-    await loadProviders(to);
+    await loadProviders(to, paymentToken);
 
   } catch (err) {
     showBuyError('No se pudo obtener la cotización: ' + esc(err.message));
@@ -363,11 +380,11 @@ async function onCalculate() {
 }
 
 // ── Paso 5 — Cargar proveedores de pago ───────────────────────
-async function loadProviders(currency) {
+async function loadProviders(currency, paymentToken) {
   try {
     const res = await fetch(
       PAYMENTS_API + '/api/payments/providers?currency=' + encodeURIComponent(currency),
-      { headers: PAYMENTS_HEADERS }
+      { headers: { ...PAYMENTS_HEADERS, Authorization: 'Bearer ' + paymentToken } }
     );
 
     if (!res.ok) {

@@ -9,15 +9,18 @@
 
 La tienda WCoin conecta el frontend con una API externa de pagos mediante un flujo en dos partes:
 
-- **GETs directos** (currencies, quote, providers): el browser llama a la API externa sin pasar por PHP.
+- **GETs directos** (currencies, quote, providers): el browser llama a la API externa sin pasar por PHP — pero `quote` y `providers` requieren rol `Player` (JWT), así que antes de cada uno el browser pide un JWT de pagos corto al sitio (ver "Paso 2.5" más abajo). El GET de `currencies` (lista base, sin `/quote`) no lo requiere.
 - **POST de orden**: el browser llama a un **proxy PHP** (`/api/donate/order.php`) que inyecta `Account` desde el JWT y reenvía a la API externa. El cliente nunca puede falsificar el campo `Account`.
 
 ```
-Browser → GET /api/currencies          → API Externa
-Browser → GET /api/currencies/quote    → API Externa
-Browser → GET /api/payments/providers  → API Externa
-Browser → POST /api/donate/order.php   → PHP Proxy → POST /api/orders → API Externa
+Browser → GET /api/currencies                          → API Externa (sin auth)
+Browser → GET /api/donate/payment_token.php             → PHP (arma un JWT de pagos)
+Browser → GET /api/currencies/quote    (Bearer JWT)     → API Externa
+Browser → GET /api/payments/providers  (Bearer JWT)     → API Externa
+Browser → POST /api/donate/order.php   → PHP Proxy (arma su propio JWT) → POST /api/orders → API Externa
 ```
+
+**Importante:** el JWT que usa el browser para `quote`/`providers` y el que arma `order.php` para el POST son **dos tokens distintos**, generados por separado (cada uno con su propio `iat`/`exp` de 15 min) — no hay que asumir que es "el mismo token reusado".
 
 ---
 
@@ -29,6 +32,7 @@ Browser → POST /api/donate/order.php   → PHP Proxy → POST /api/orders → 
 | `src/templates/layout.php` | Backend | Inyecta `data-payments-url` en `<html>` |
 | `src/public/assets/js/config.js` | Frontend | `MUPGA_CONFIG.paymentsApi` |
 | `src/public/api/donate/order.php` | Backend | Proxy POST de órdenes |
+| `src/public/api/donate/payment_token.php` | Backend | Emite JWT de pagos para los GETs directos (2026-07-27) |
 | `src/public/donate/index.php` | Frontend | UI exchange rediseñada |
 | `src/public/assets/js/donate.js` | Frontend | Lógica completa del exchange |
 | `src/public/assets/css/main.css` | CSS | Estilos exchange + post-pago |
@@ -78,6 +82,27 @@ Editar esa línea antes de buildear para Pages.
 | 400 | Body inválido |
 | 401 | JWT ausente o inválido (devuelto por `requireAuth()`) |
 | 503 | `PAYMENTS_API_URL` vacío en `.env` o curl falló |
+
+---
+
+## Paso 2.5 — `/api/donate/payment_token.php` (agregado 2026-07-27)
+
+**Por qué existe:** `GET /api/currencies/quote` y `GET /api/payments/providers` requieren rol
+`Player` (JWT) en la API externa. Como son GETs que el browser llama directo (sin pasar por
+PHP), el browser no tiene forma de firmar un JWT él solo — necesita que el sitio le entregue
+uno ya firmado. Sin esto, ambos GETs devuelven 401 (bug real detectado el 27/07: el frontend
+nunca mandaba ningún `Authorization` en esas llamadas).
+
+- Endpoint propio, `requireAuth()` (token de sesión del sitio) + `TokenService::generatePaymentJWT()`
+  — el mismo generador que ya usaba `order.php`, con el mismo TTL de 15 min.
+- Devuelve `{ "token": "<jwt>" }`.
+- `donate.js` (`getPaymentToken()`) lo pide una vez por cada click en "Calcular" y reusa el
+  mismo token para el GET de `quote` y el de `providers` inmediatamente después (no hace
+  falta pedir uno nuevo para cada llamada dentro del mismo cálculo).
+- El JWT que arma `order.php` para el POST final es **otro**, generado por separado en ese
+  mismo momento — no hay que asumir que es el mismo token reusado de punta a punta.
+- `GET /api/currencies` (la lista base, sin `/quote`) no requiere este token — no está
+  documentada como protegida y no mostró el bug.
 
 ---
 
