@@ -2692,6 +2692,23 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 }
 .quote-equals { color: var(--text-dim); }
 
+.quote-discount-original {
+  text-decoration: line-through;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.quote-discount-badge {
+  background: rgba(200, 168, 75, 0.16);
+  border: 1px solid var(--gold-border);
+  color: var(--gold-light);
+  font-family: var(--font-title);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+}
+
 .exchange-providers-section {
   display: flex;
   flex-direction: column;
@@ -2879,6 +2896,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   color: var(--text-dim);
   line-height: 1.4;
 }
+.exchange-email-hint--warn { color: var(--gold); }
 
 /* Aviso de límite de monto */
 .amount-limit-warn {

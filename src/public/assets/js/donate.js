@@ -17,7 +17,7 @@ const PAYMENTS_HEADERS = {
 };
 
 // ── Estado ───────────────────────────────────────────────────
-let _quote     = null;   // { CurrencyCode, ConvertedAmount }
+let _quote     = null;   // { CurrencyCode, BaseAmount, FinalAmount, ApplyDiscount, DiscountPercentage, DiscountCode }
 let _providers = [];
 
 // ── Refs DOM (se resuelven en DOMContentLoaded) ──────────────
@@ -26,7 +26,8 @@ let $status, $exchangeMain,
     $btnCalc, $quoteResult,
     $provSection, $selProvider, $provWarn,
     $btnBuy, $buyError,
-    $inpEmail, $amountLimitWarn;
+    $inpEmail, $amountLimitWarn,
+    $inpDiscount, $discountHint;
 
 // ── Íconos de monedas ─────────────────────────────────────────
 const KNOWN_ICONS = ['wc', 'ars', 'usdt'];
@@ -134,6 +135,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   $buyError        = document.getElementById('buy-error');
   $inpEmail        = document.getElementById('inp-email');
   $amountLimitWarn = document.getElementById('amount-limit-warn');
+  $inpDiscount     = document.getElementById('inp-discount');
+  $discountHint    = document.getElementById('discount-hint');
 
   $selFrom.addEventListener('change', onCurrencyChange);
   $selTo.addEventListener('change', onCurrencyChange);
@@ -142,6 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   $selProvider.addEventListener('change', onProviderChange);
   $btnBuy.addEventListener('click', onBuy);
   $inpEmail.addEventListener('input', onEmailInput);
+  $inpDiscount.addEventListener('input', onDiscountInput);
 
   await loadCurrencies();
 });
@@ -216,6 +220,7 @@ function showStoreUnavailable(msg) {
 }
 
 function invalidateQuote() {
+  $discountHint.hidden = true;
   if (!_quote) return;
   _quote = null;
   _providers = [];
@@ -244,12 +249,24 @@ function canBuy() {
   if (!$selProvider.value || !_quote) return false;
   const provider = _providers.find(p => p.Id === $selProvider.value);
   if (!provider) return false;
-  if (parseFloat(_quote.ConvertedAmount) > parseFloat(provider.MaxAmount)) return false;
+  if (parseFloat(_quote.FinalAmount) > parseFloat(provider.MaxAmount)) return false;
   return isValidEmail(($inpEmail?.value || '').trim());
 }
 
 function isValidEmail(v) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
+// Normaliza el formato de error de la API externa ({title, errors:[...]})
+// y el del proxy PHP propio ({Message, Details:[...]}) a una sola lista de mensajes.
+function extractApiErrors(errData) {
+  if (Array.isArray(errData?.errors) && errData.errors.length) {
+    return errData.errors;
+  }
+  if (errData?.Message) {
+    return [errData.Message, ...(Array.isArray(errData.Details) ? errData.Details : [])];
+  }
+  return [];
 }
 
 // ── Cambios de moneda / monto / email ─────────────────────────
@@ -267,6 +284,11 @@ function onEmailInput() {
   $btnBuy.disabled = !canBuy();
 }
 
+function onDiscountInput() {
+  invalidateQuote();
+  updateCalcBtn();
+}
+
 // ── Paso 3 — Calcular cotización ──────────────────────────────
 async function onCalculate() {
   const from   = $selFrom.value;
@@ -279,32 +301,55 @@ async function onCalculate() {
   $quotedAmt.textContent = '…';
   $buyError.hidden = true;
 
+  const discountCode = ($inpDiscount?.value || '').trim();
+  $discountHint.hidden = true;
+
   try {
-    const url = PAYMENTS_API + '/api/currencies/quote' +
+    let url = PAYMENTS_API + '/api/currencies/quote' +
       '?basecurrency=' + encodeURIComponent(from) +
       '&amount='       + amount +
       '&quotecurrency=' + encodeURIComponent(to);
+    if (discountCode) {
+      url += '&discountCode=' + encodeURIComponent(discountCode);
+    }
 
     const res = await fetch(url, { headers: PAYMENTS_HEADERS });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.Message || 'Error ' + res.status);
+      const msgs = extractApiErrors(err);
+      throw new Error(msgs[0] || ('Error ' + res.status));
     }
 
     const raw = await res.json();
     _quote = {
-      ConvertedAmount: raw.ConvertedAmount ?? raw.convertedAmount,
-      CurrencyCode:    raw.CurrencyCode    ?? raw.currencyCode,
+      FinalAmount:        raw.finalAmount ?? raw.FinalAmount,
+      BaseAmount:         raw.baseAmount  ?? raw.BaseAmount,
+      CurrencyCode:       raw.currencyCode ?? raw.CurrencyCode,
+      ApplyDiscount:      raw.applyDiscount ?? raw.ApplyDiscount ?? false,
+      DiscountPercentage: raw.discountPercentage ?? raw.DiscountPercentage ?? null,
+      DiscountCode:       discountCode || null,
     };
 
-    $quotedAmt.textContent = fmtAmount(_quote.ConvertedAmount, _quote.CurrencyCode);
+    $quotedAmt.textContent = fmtAmount(_quote.FinalAmount, _quote.CurrencyCode);
 
     $quoteResult.hidden = false;
-    $quoteResult.innerHTML =
+    let resultHtml =
       '<span>' + amount.toLocaleString('es-AR') + ' ' + esc(from) + '</span>' +
-      '<span class="quote-equals">=</span>' +
-      '<strong>' + fmtAmount(_quote.ConvertedAmount, _quote.CurrencyCode) + '</strong>';
+      '<span class="quote-equals">=</span>';
+    if (_quote.ApplyDiscount) {
+      resultHtml +=
+        '<span class="quote-discount-original">' + fmtAmount(_quote.BaseAmount, _quote.CurrencyCode) + '</span>' +
+        '<strong>' + fmtAmount(_quote.FinalAmount, _quote.CurrencyCode) + '</strong>' +
+        '<span class="quote-discount-badge">-' + esc(_quote.DiscountPercentage) + '%</span>';
+    } else {
+      resultHtml += '<strong>' + fmtAmount(_quote.FinalAmount, _quote.CurrencyCode) + '</strong>';
+      if (discountCode) {
+        $discountHint.hidden = false;
+        $discountHint.textContent = 'El código ingresado no pudo aplicarse a esta compra.';
+      }
+    }
+    $quoteResult.innerHTML = resultHtml;
 
     await loadProviders(to);
 
@@ -327,7 +372,8 @@ async function loadProviders(currency) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.Message || 'Error ' + res.status);
+      const msgs = extractApiErrors(err);
+      throw new Error(msgs[0] || ('Error ' + res.status));
     }
 
     const rawRes = await res.json();
@@ -370,10 +416,10 @@ function onProviderChange() {
   const provider = _providers.find(p => p.Id === providerId);
   if (!provider) return;
 
-  if (parseFloat(_quote.ConvertedAmount) > parseFloat(provider.MaxAmount)) {
+  if (parseFloat(_quote.FinalAmount) > parseFloat(provider.MaxAmount)) {
     $provWarn.hidden = false;
     $provWarn.textContent =
-      'El monto a abonar (' + fmtAmount(_quote.ConvertedAmount, _quote.CurrencyCode) + ') ' +
+      'El monto a abonar (' + fmtAmount(_quote.FinalAmount, _quote.CurrencyCode) + ') ' +
       'supera el máximo aceptado por este medio de pago ' +
       '(' + fmtAmount(provider.MaxAmount, _quote.CurrencyCode) + '). ' +
       'Reducí el monto o elegí otro medio de pago.';
@@ -400,14 +446,19 @@ async function onBuy() {
   $buyError.hidden    = true;
 
   const body = {
-    BaseCurrency:        $selFrom.value,
-    BaseCurrencyAmount:  parseInt($inpAmount.value, 10),
-    QuoteCurrency:       $selTo.value,
-    QuoteCurrencyAmount: parseFloat(_quote.ConvertedAmount),
-    PaymentProviderId:   providerId,
-    userEmail:           email,
+    BaseCurrency:       $selFrom.value,
+    BaseCurrencyAmount: parseInt($inpAmount.value, 10),
+    QuoteCurrency:      $selTo.value,
+    PaymentProviderId:  providerId,
+    userEmail:          email,
+    // QuoteCurrencyAmount NO se envía: la API recalcula el importe al crear
+    // la orden y no hay que enviar/confiar en un precio calculado localmente.
     // Account es inyectado por el proxy PHP desde el JWT
   };
+
+  if (_quote.ApplyDiscount && _quote.DiscountCode) {
+    body.discountCode = _quote.DiscountCode;
+  }
 
   const res = await authFetch('donate/order.php', {
     method: 'POST',
@@ -434,9 +485,10 @@ async function onBuy() {
   if (res.status >= 500) {
     showBuyError('No se pudo procesar la compra. Intentá nuevamente más tarde.');
   } else {
-    let html = esc(errData.Message || 'La compra no pudo procesarse correctamente.');
-    if (Array.isArray(errData.Details) && errData.Details.length) {
-      html += '<ul>' + errData.Details.map(d => '<li>' + esc(d) + '</li>').join('') + '</ul>';
+    const msgs = extractApiErrors(errData);
+    let html = esc(msgs[0] || 'La compra no pudo procesarse correctamente.');
+    if (msgs.length > 1) {
+      html += '<ul>' + msgs.slice(1).map(d => '<li>' + esc(d) + '</li>').join('') + '</ul>';
     }
     showBuyError(html, true);
   }

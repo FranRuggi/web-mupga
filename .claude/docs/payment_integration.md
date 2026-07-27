@@ -133,6 +133,40 @@ Cualquier cambio en `sel-from`, `sel-to` o `inp-amount` llama a `invalidateQuote
 
 ---
 
+## Paso 3.5 — Código de descuento (`discountCode`)
+
+Campo opcional agregado el 2026-07-27, siguiendo el contrato documentado por el equipo de la
+API externa (`GetPaymentProviders`/`QuoteCurrency`/`CreateOrder`).
+
+- **Input:** `#inp-discount` en `donate/index.php`. Cambiar el valor invalida la cotización
+  vigente (mismo patrón que moneda/monto — `invalidateQuote()`).
+- **Cotización:** si hay código cargado, se agrega `&discountCode=` al `GET
+  /api/currencies/quote`. La respuesta trae `baseAmount`, `finalAmount`, `applyDiscount` y
+  `discountPercentage`. Si `applyDiscount` es `true`, la UI muestra el precio original
+  tachado + el final + un badge `-N%`. Si el usuario cargó un código pero `applyDiscount`
+  vino en `false`, se muestra un aviso (`#discount-hint`) sin bloquear la compra (simplemente
+  no se aplica descuento).
+- **Orden:** `discountCode` sólo se agrega al body de `POST /api/donate/order.php` (y de ahí
+  al proxy hacia la API externa) si la última cotización tuvo `applyDiscount: true`. Si el
+  código no aplicó, se omite el campo por completo — la API espera que se omita cuando no
+  se va a aplicar un descuento.
+- **Importante:** un código de descuento privado se valida contra la cuenta del JWT y no
+  puede reutilizarse en una orden que no haya sido cancelada (409 `Resource Conflict` si ya
+  se usó). El proxy PHP no valida nada de esto — es responsabilidad de la API externa.
+
+### Fix de acompañamiento — mapeo de campos de la cotización
+
+Al implementar el descuento se detectó que `donate.js` leía `ConvertedAmount`/`convertedAmount`
+de la respuesta de `/api/currencies/quote`, campo que **no existe** en el contrato real de la
+API (los campos reales son `baseAmount`/`finalAmount`). Se corrigió el mapeo completo
+(`_quote.FinalAmount` reemplaza a `_quote.ConvertedAmount` en todos los usos: `quoted-amount`,
+`quote-result`, `canBuy()`, `onProviderChange()`). También se sacó `QuoteCurrencyAmount` del
+body de `CreateOrder` — la API recalcula el importe y el contrato pide explícitamente no
+enviar un precio calculado localmente. Y se agregó parseo de errores en formato
+`{title, statusCode, errors: [...]}` (el real de la API externa) además del `{Message,
+Details}` propio del proxy PHP, para que los mensajes de error (incluidos los de descuento
+inválido/ya usado) se muestren correctamente en vez de caer siempre al mensaje genérico.
+
 ## Paso 4 — Manejo de errores
 
 | Escenario | Comportamiento |

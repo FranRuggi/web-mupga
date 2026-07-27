@@ -86,6 +86,16 @@ ob_start();
         </div>
       </div>
 
+      <!-- Código de descuento (opcional) -->
+      <div class="exchange-card">
+        <p class="exchange-label">Código de descuento (opcional)</p>
+        <div class="exchange-email-section">
+          <input id="inp-discount" type="text" class="exchange-email-input"
+                 placeholder="Ej: VERANO10" autocomplete="off" maxlength="40">
+          <p id="discount-hint" class="exchange-email-hint exchange-email-hint--warn" hidden></p>
+        </div>
+      </div>
+
       <!-- Botón Calcular -->
       <div class="exchange-actions">
         <button id="btn-calculate" class="btn btn-secondary" disabled>Calcular</button>
