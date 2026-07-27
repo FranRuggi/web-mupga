@@ -215,8 +215,31 @@ Las URLs deben estar configuradas en la API externa como `successUrl` y `errorUr
 |---|---|---|
 | `/donate/success/` | `donate/success/index.php` | Pago procesado, WCoin en camino, contacto si tarda >30min |
 | `/donate/error/` | `donate/error/index.php` | Pago fallido, contactar admins por Discord/WhatsApp |
+| `/donate/transferencia/` | `donate/transferencia/index.php` | Medio de pago = transferencia bancaria (agregado 2026-07-27, ver detalle abajo) |
 
-Ambas usan el layout estándar del sitio. El CTA "Ver mi cuenta" / "Volver a la tienda" construye el href con `data-base-url` para ser compatible con Cloudflare Pages.
+Ambas (success/error) usan el layout estándar del sitio. El CTA "Ver mi cuenta" / "Volver a la tienda" construye el href con `data-base-url` para ser compatible con Cloudflare Pages.
+
+### `/donate/transferencia/` — pago por transferencia bancaria
+
+No es un resultado de pago (no confirma ni rechaza nada) — es una pantalla intermedia que le
+pide al jugador que mande el comprobante, porque la transferencia se acredita manualmente.
+
+- **Pendiente de configurar en la API externa:** el `paymentUrl` que devuelve `POST
+  /api/orders` cuando el `PaymentProviderId` elegido es el de "Transferencia Bancaria" tiene
+  que apuntar acá (`https://mupga.com.ar/donate/transferencia/`), igual que `successUrl`/
+  `errorUrl` para el resto de los medios de pago. Sin esa configuración del lado de la API,
+  esta página nunca se muestra.
+- Si la API agrega el id de la orden como query param (`?orderId=...`, o variantes
+  `OrderId`/`id`), la página lo toma con JS y lo usa para: (a) mostrarlo en pantalla como
+  referencia, y (b) incluirlo en el mensaje pre-cargado del botón de reclamo. Si no llega
+  ningún id, la página funciona igual, solo que sin esa referencia.
+- Dos botones, ninguno bloquea al otro (el jugador elige el que le resulte más cómodo):
+  - **WhatsApp** — mismo link de comunidad que ya usa `/donate/error/`
+    (`https://chat.whatsapp.com/DqaUqom63aFALaBsK2l7of`).
+  - **Generar reclamo de compra** — arma el link a `/reclamos/?mensaje=...` con un texto
+    pre-cargado ("Hola, hice una compra de WCoins por transferencia bancaria..."). Requiere
+    el fix de `reclamos.js` que agrega soporte al query param `?mensaje=` (pre-carga el
+    textarea del form nuevo; antes solo existía `?ver=id` para abrir un ticket existente).
 
 ---
 

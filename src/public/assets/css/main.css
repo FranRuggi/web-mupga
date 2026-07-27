@@ -2926,6 +2926,10 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   border: 1px solid rgba(220, 80, 80, 0.28);
   box-shadow: 0 0 30px rgba(220, 80, 80, 0.08);
 }
+.payment-result--pending {
+  border: 1px solid var(--purple-border);
+  box-shadow: 0 0 30px var(--purple-glow);
+}
 
 .payment-result-icon {
   width: 72px;
@@ -2947,6 +2951,11 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   border: 2px solid rgba(220, 80, 80, 0.3);
   color: #e87878;
 }
+.payment-result--pending .payment-result-icon {
+  background: var(--purple-glow);
+  border: 2px solid var(--purple-border);
+  color: var(--purple-light);
+}
 
 .payment-result-title {
   font-family: var(--font-display);
@@ -2955,6 +2964,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 }
 .payment-result--success .payment-result-title { color: var(--gold-light); }
 .payment-result--error   .payment-result-title { color: #e87878; }
+.payment-result--pending .payment-result-title { color: var(--purple-light); }
 
 .payment-result-msg {
   color: var(--text);
@@ -2965,6 +2975,13 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 .payment-result-note {
   color: var(--text-dim);
   font-size: 0.85rem;
+}
+
+.payment-result-actions {
+  display: flex;
+  gap: var(--gap-sm);
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 /* ── Módulo Prode ────────────────────────────────────────────── */
