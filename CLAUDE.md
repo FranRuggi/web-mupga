@@ -139,7 +139,8 @@ Nunca tocar tablas del juego desde este módulo.
 `ADMIN_DB_HOST/PORT/NAME/USER/PASSWORD`.
 
 **Tablas** (`mupga_admin.dbo`): `admins`, `site_status` (fila única id=1), `status_presets`,
-`news`, `server_info` (blob JSON en `config_key='secciones'`), `downloads`.
+`news`, `server_info` (blob JSON en `config_key='secciones'`), `downloads`, `wcoin_credits`,
+`vip_grants` (estas dos últimas son auditoría propia, no datos de juego — ver más abajo).
 
 **Endpoints públicos:** `GET /api/site/server-info.php`, `GET /api/site/downloads.php`,
 `GET /api/site/news.php`, `GET /api/site/status.php` (este último con `no-store` — canal de
@@ -155,6 +156,37 @@ guardar contenido roto).
 
 **Regla de etapas:** implementar una etapa, avisar y ESPERAR confirmación de Franco antes
 de la siguiente. Estado por etapa en `ROADMAP.md` (Fase 7).
+
+### Créditos manuales — WCoin y VIP
+
+Dos tabs del ControlPanel (`🪙 WCoins`, `🎖️ VIP`) donde un admin acredita WCoin u otorga días
+de VIP a mano a cualquier cuenta, para casos como compensaciones o soporte. Mismo patrón en
+ambos, calcado uno del otro:
+
+- **Endpoints:** `src/public/api/admin/wcoin.php` y `vip.php`. `GET` → últimos movimientos
+  (auditoría). `POST` con `action: "lookup"` → verifica que la cuenta exista y muestra su
+  estado actual (saldo WCoin / vencimiento VIP) **antes** de habilitar el botón de acción — el
+  frontend vuelve a pedir "lookup" si se toca el campo de cuenta, para no ejecutar sobre una
+  verificación vieja.
+- **La escritura real sobre el juego va por la conexión principal** (`Database::get()`, login
+  `DB_USER`), **no** por `AdminDatabase`/`mupga_web_svc` — mismo criterio que Prode
+  (`CLAUDE.md`, sección Prode): los SPs de premios/beneficios corren por la conexión principal.
+  `sp_AddWCoinWithLog` y `sp_SetAccountGOLDVIP` ya los ejecuta ese mismo login desde
+  `usercp/buyvip.php` y el flujo de donaciones, así que **nunca hace falta un GRANT nuevo**
+  para agregar una acción de este tipo — si el SP ya se llama en algún lado del sitio con la
+  conexión principal, el ControlPanel puede reusarlo tal cual.
+- **Auditoría propia separada del log del juego:** `mupga_admin.dbo.wcoin_credits` y
+  `dbo.vip_grants` (quién, a quién, cuánto/cuántos días, motivo, cuándo) — no reemplazan
+  `CashLog` ni los campos de `MEMB_INFO`, son el registro de "qué admin apretó qué botón".
+  Se escriben con `AdminDatabase::get()` (ya tiene `db_datareader`+`db_datawriter` en
+  `mupga_admin`, sin GRANT extra). Setup: `database/controlpanel_wcoin_credits.sql` /
+  `controlpanel_vip_grants.sql`.
+- **Orden importante:** el SP se ejecuta primero; recién después se intenta el INSERT de
+  auditoría, en su propio `try/catch` que no aborta la respuesta si falla. Motivo: el SP ya
+  no es reversible de forma simple una vez ejecutado — si tratáramos un fallo de auditoría
+  como error general, un admin podría reintentar creyendo que no se acreditó nada y
+  acreditar/otorgar VIP dos veces. La respuesta igual avisa (`audit_log: false`) para que el
+  admin sepa que el movimiento no quedó registrado en el historial del panel.
 
 ## Módulo Tienda de Ítems (WCoin)
 
