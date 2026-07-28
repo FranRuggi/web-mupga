@@ -1989,6 +1989,112 @@ h1, h2, h3, h4 {
   color: var(--text);
 }
 
+/* ── Popup promocional (ControlPanel) ──────────────────────────── */
+
+.promo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.promo-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.promo-modal__inner {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem 2rem 2rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow:
+    0 0 0 1px rgba(200,168,75,0.08),
+    0 0 70px rgba(200,168,75,0.12),
+    0 24px 56px rgba(0,0,0,0.65);
+}
+
+.promo-modal__close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: border-color var(--t), color var(--t);
+}
+.promo-modal__close:hover {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+
+.promo-modal__img {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  display: block;
+  margin: 0 auto 1.25rem;
+}
+
+.promo-modal__eyebrow {
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 0.4rem;
+}
+
+.promo-modal__title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--text-bright);
+  text-shadow: 0 0 24px var(--gold-glow);
+  margin: 0 0 0.5rem;
+}
+
+.promo-modal__highlight {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--gold);
+  text-shadow: 0 0 24px var(--gold-glow);
+  margin: 0 0 0.6rem;
+}
+
+.promo-modal__desc {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin: 0 0 1.5rem;
+}
+
+.promo-modal__cta {
+  width: 100%;
+  justify-content: center;
+}
+
 /* ── Página de donaciones ────────────────────────────────────── */
 .donate-hero {
   text-align: center;

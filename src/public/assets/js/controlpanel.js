@@ -100,6 +100,126 @@ async function saveStatus(isActive) {
   if (ok) loadStatus();
 }
 
+// ── Promo popup ────────────────────────────────────────────────
+
+async function loadPromo() {
+  const { ok, data } = await adminFetch('promo.php');
+  if (!ok || !data) return;
+
+  const p = data.promo;
+  const activo = p && Number(p.is_active);
+  document.getElementById('promo-current').innerHTML = p
+    ? `<span class="cp-chip ${activo ? 'cp-chip--on' : 'cp-chip--off'}">${activo ? '● POPUP ACTIVO' : '○ Sin popup'}</span>
+       <span class="cp-dim">Últ. cambio: ${esc(p.updated_by ?? '—')} · ${esc(p.updated_at ?? '')}</span>`
+    : 'No se pudo leer el estado.';
+
+  if (p) {
+    document.getElementById('promo-eyebrow').value     = p.eyebrow ?? '';
+    document.getElementById('promo-title').value       = p.title ?? '';
+    document.getElementById('promo-highlight').value   = p.highlight ?? '';
+    document.getElementById('promo-description').value = p.description ?? '';
+    document.getElementById('promo-cta-text').value    = p.cta_text ?? '';
+    document.getElementById('promo-cta-link').value    = p.cta_link ?? '';
+    setPromoImage(p.image_url ?? '');
+  }
+}
+
+function setPromoImage(url) {
+  document.getElementById('promo-image-url').value = url || '';
+  document.getElementById('promo-dropzone-idle').hidden    = !!url;
+  document.getElementById('promo-dropzone-preview').hidden = !url;
+  if (url) document.getElementById('promo-image-preview').src = url;
+}
+
+async function uploadPromoImage(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    feedback('promo-feedback', 'El archivo no es una imagen.', true); return;
+  }
+  if (file.size > 3 * 1024 * 1024) {
+    feedback('promo-feedback', 'La imagen supera los 3 MB.', true); return;
+  }
+
+  const idle = document.getElementById('promo-dropzone-idle');
+  idle.textContent = 'Subiendo…';
+
+  // fetch directo (no authFetch): multipart necesita que el browser
+  // arme el Content-Type con boundary — no se puede fijar a mano.
+  const form = new FormData();
+  form.append('image', file);
+
+  try {
+    const res  = await fetch(`${API}/admin/upload.php`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${getToken()}` },
+      body: form,
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) {
+      feedback('promo-feedback', data?.error ?? 'Error al subir la imagen', true);
+      resetPromoDropzoneIdle();
+      return;
+    }
+    setPromoImage(data.url);
+    feedback('promo-feedback', 'Imagen subida ✔');
+  } catch {
+    feedback('promo-feedback', 'Error de red al subir la imagen', true);
+  }
+  resetPromoDropzoneIdle();
+}
+
+function resetPromoDropzoneIdle() {
+  document.getElementById('promo-dropzone-idle').innerHTML =
+    '📷 Arrastrá una imagen acá o <u>hacé click para elegir</u><br><small>JPG · PNG · WebP · GIF — máx 3 MB</small>';
+}
+
+function initPromoDropzone() {
+  const dz    = document.getElementById('promo-dropzone');
+  const input = document.getElementById('promo-image-file');
+
+  dz.addEventListener('click', (e) => {
+    if (e.target.id !== 'promo-image-remove') input.click();
+  });
+  input.addEventListener('change', () => {
+    if (input.files[0]) uploadPromoImage(input.files[0]);
+    input.value = '';
+  });
+
+  ['dragover', 'dragenter'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.classList.add('cp-dropzone--over');
+  }));
+  ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.classList.remove('cp-dropzone--over');
+  }));
+  dz.addEventListener('drop', e => {
+    const file = e.dataTransfer?.files?.[0];
+    if (file) uploadPromoImage(file);
+  });
+
+  document.getElementById('promo-image-remove').addEventListener('click', () => setPromoImage(''));
+}
+
+function initPromo() {
+  initPromoDropzone();
+  document.getElementById('promo-activate').addEventListener('click', () => savePromo(1));
+  document.getElementById('promo-deactivate').addEventListener('click', () => savePromo(0));
+}
+
+async function savePromo(isActive) {
+  const body = {
+    is_active:   isActive,
+    eyebrow:     document.getElementById('promo-eyebrow').value.trim(),
+    title:       document.getElementById('promo-title').value.trim(),
+    highlight:   document.getElementById('promo-highlight').value.trim(),
+    description: document.getElementById('promo-description').value.trim(),
+    image_url:   document.getElementById('promo-image-url').value.trim(),
+    cta_text:    document.getElementById('promo-cta-text').value.trim(),
+    cta_link:    document.getElementById('promo-cta-link').value.trim(),
+  };
+  const { ok, data } = await adminFetch('promo.php', { method: 'POST', body: JSON.stringify(body) });
+  feedback('promo-feedback', ok ? (isActive ? 'Popup activado ✔' : 'Popup desactivado ✔') : (data?.error ?? 'Error'), !ok);
+  if (ok) loadPromo();
+}
+
 // ── Imagen de noticia: drag & drop + upload ──────────────────
 
 function setNewsImage(url) {
@@ -961,6 +1081,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   initTabs();
   initStatus();
+  initPromo();
   initNews();
   initServerInfo();
   initDownloads();
@@ -970,6 +1091,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initVip();
 
   loadStatus();
+  loadPromo();
   loadNewsAdmin();
   loadServerInfoAdmin();
   loadDownloadsAdmin();
