@@ -799,6 +799,97 @@ function initWcoin() {
   });
 }
 
+// ── VIP ───────────────────────────────────────────────────────
+
+let vipVerifiedAccount = ''; // cuenta ya validada por 'lookup' — habilita el botón Otorgar
+
+async function loadVipHistory() {
+  const { ok, data } = await adminFetch('vip.php');
+  const el = document.getElementById('vip-history');
+  if (!ok || !data?.items) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
+
+  el.innerHTML = data.items.map(g => `
+    <div class="cp-row">
+      <div class="cp-row__info">
+        <strong>${esc(g.target_account)}</strong> +${esc(String(g.days))} días VIP
+        <span class="cp-dim">por ${esc(g.admin_id)} · ${fmtFechaCp(g.created_at)}${g.reason ? ' · ' + esc(g.reason) : ''}</span>
+      </div>
+    </div>`).join('') || '<p class="state-message">Sin otorgamientos manuales todavía.</p>';
+}
+
+function resetVipGrantGate() {
+  vipVerifiedAccount = '';
+  document.getElementById('vip-grant').disabled = true;
+}
+
+function initVip() {
+  const accountInput = document.getElementById('vip-account');
+
+  accountInput.addEventListener('input', () => {
+    document.getElementById('vip-lookup-result').hidden = true;
+    resetVipGrantGate();
+  });
+
+  document.getElementById('vip-lookup').addEventListener('click', async () => {
+    const account = accountInput.value.trim();
+    resetVipGrantGate();
+    if (!account) { feedback('vip-feedback', 'Ingresá una cuenta.', true); return; }
+
+    const { ok, data } = await adminFetch('vip.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'lookup', account }),
+    });
+
+    const box = document.getElementById('vip-lookup-result');
+    box.hidden = false;
+    if (!ok) {
+      box.innerHTML = `<span class="cp-chip cp-chip--on">✕ ${esc(data?.error ?? 'Error')}</span>`;
+      return;
+    }
+    const v = data.vip ?? {};
+    const activo = Number(v.AccountLevel) === 3 && v.AccountExpireDate && new Date(v.AccountExpireDate) > new Date();
+    box.innerHTML = `<span class="cp-chip cp-chip--off">✔ Cuenta encontrada</span>
+      <span class="cp-status-detail">${activo
+        ? `VIP activo hasta ${fmtFechaCp(v.AccountExpireDate)}`
+        : 'Sin VIP activo'}</span>`;
+    vipVerifiedAccount = account;
+    document.getElementById('vip-grant').disabled = false;
+  });
+
+  document.getElementById('vip-grant').addEventListener('click', async () => {
+    const account = accountInput.value.trim();
+    const days    = Number(document.getElementById('vip-days').value);
+    const reason  = document.getElementById('vip-reason').value.trim();
+
+    if (account !== vipVerifiedAccount) {
+      feedback('vip-feedback', 'Verificá la cuenta de nuevo antes de otorgar.', true);
+      return;
+    }
+    if (!Number.isInteger(days) || days <= 0) {
+      feedback('vip-feedback', 'Los días tienen que ser un entero positivo.', true);
+      return;
+    }
+    if (!confirm(`¿Otorgar ${days} días de VIP a la cuenta "${account}"? Esta acción no se puede deshacer.`)) return;
+
+    const { ok, data } = await adminFetch('vip.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'grant', account, days, reason }),
+    });
+    const nuevoVencimiento = data?.vip?.AccountExpireDate ? fmtFechaCp(data.vip.AccountExpireDate) : '?';
+    const okMsg = data?.audit_log === false
+      ? `VIP otorgado ✔ — vence ${nuevoVencimiento} (⚠ no se pudo guardar en la auditoría del panel)`
+      : `VIP otorgado ✔ — vence ${nuevoVencimiento}`;
+    feedback('vip-feedback', ok ? okMsg : (data?.error ?? 'Error'), !ok);
+    if (ok) {
+      document.getElementById('vip-days').value = '';
+      document.getElementById('vip-reason').value = '';
+      resetVipGrantGate();
+      document.getElementById('vip-lookup-result').hidden = true;
+      loadVipHistory();
+    }
+  });
+}
+
 // ── Estadísticas de compras (Tienda) ─────────────────────────
 
 async function loadEstadisticas() {
@@ -876,6 +967,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initReclamos();
   initTienda();
   initWcoin();
+  initVip();
 
   loadStatus();
   loadNewsAdmin();
@@ -883,5 +975,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadDownloadsAdmin();
   loadReclamosAdmin();
   loadWcoinHistory();
+  loadVipHistory();
   loadEstadisticas();
 });

@@ -28,6 +28,7 @@ ob_start();
       <button class="cp-tab" data-tab="reclamos">🎫 Reclamos</button>
       <button class="cp-tab" data-tab="tienda">🛒 Tienda</button>
       <button class="cp-tab" data-tab="wcoin">🪙 WCoins</button>
+      <button class="cp-tab" data-tab="vip">🎖️ VIP</button>
       <button class="cp-tab" data-tab="estadisticas">📊 Estadísticas</button>
     </div>
 
@@ -258,6 +259,39 @@ ob_start();
 
       <p class="account-card__title" style="margin-top:var(--gap-md)">Últimos créditos manuales</p>
       <div id="wcoin-history"><p class="state-message">Cargando…</p></div>
+    </section>
+
+    <!-- ── VIP ── -->
+    <section class="cp-section account-card" id="cp-tab-vip" hidden>
+      <p class="account-card__title">Otorgar VIP Oro</p>
+      <p class="cp-hint">Usa el mismo stored procedure que el resto del sitio (sp_SetAccountGOLDVIP). Los días se suman sobre el vencimiento actual si el VIP sigue activo, o desde hoy si no. Verificá la cuenta antes de otorgar.</p>
+
+      <div class="cp-form">
+        <label class="cp-field">
+          <span>Cuenta (memb___id)</span>
+          <input type="text" id="vip-account" maxlength="10" autocomplete="off">
+        </label>
+        <div class="cp-actions">
+          <button class="btn btn-secondary" id="vip-lookup">Verificar cuenta</button>
+        </div>
+        <div class="cp-status-box" id="vip-lookup-result" hidden></div>
+
+        <label class="cp-field">
+          <span>Días de VIP (entero positivo)</span>
+          <input type="number" id="vip-days" min="1" step="1">
+        </label>
+        <label class="cp-field">
+          <span>Motivo (opcional, se guarda en la auditoría)</span>
+          <input type="text" id="vip-reason" maxlength="300">
+        </label>
+        <div class="cp-actions">
+          <button class="btn btn-primary" id="vip-grant" disabled>Otorgar VIP</button>
+        </div>
+        <p class="cp-feedback" id="vip-feedback"></p>
+      </div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-md)">Últimos otorgamientos manuales</p>
+      <div id="vip-history"><p class="state-message">Cargando…</p></div>
     </section>
 
     <!-- ── Estadísticas de compras (Tienda WCoin) ── -->
