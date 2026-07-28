@@ -42,6 +42,9 @@ ob_start();
         <div class="donate2-card-icon"><?= htmlspecialchars($r['icon'] ?? '💰') ?></div>
         <div class="donate2-card-provider"><?= htmlspecialchars($r['provider'] ?? '') ?></div>
         <div class="donate2-card-rate"><?= htmlspecialchars($r['rate'] ?? '') ?></div>
+        <?php if (!empty($r['highlight'])): ?>
+        <div class="donate2-card-highlight"><?= htmlspecialchars($r['highlight']) ?></div>
+        <?php endif; ?>
         <?php if (!empty($r['notes'])): ?>
         <div class="donate2-card-notes"><?= htmlspecialchars($r['notes']) ?></div>
         <?php endif; ?>

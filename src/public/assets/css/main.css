@@ -1779,6 +1779,17 @@ h1, h2, h3, h4 {
   margin-top: 0.25rem;
 }
 
+.donate2-card-highlight {
+  background: var(--gold-glow);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+
 .donate2-how {
   background: var(--bg-surface);
   border: 1px solid var(--border);
