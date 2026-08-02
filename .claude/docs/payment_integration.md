@@ -219,6 +219,9 @@ Las URLs deben estar configuradas en la API externa como `successUrl` y `errorUr
 
 Ambas (success/error) usan el layout estándar del sitio. El CTA "Ver mi cuenta" / "Volver a la tienda" construye el href con `data-base-url` para ser compatible con Cloudflare Pages.
 
+Aplican también al flujo de Promociones (Paso 6) — no hay páginas post-pago separadas para
+promociones, comparten `successUrl`/`errorUrl` con la compra personalizada.
+
 ### `/donate/transferencia/` — pago por transferencia bancaria
 
 No es un resultado de pago (no confirma ni rechaza nada) — es una pantalla intermedia que le
@@ -243,9 +246,89 @@ pide al jugador que mande el comprobante, porque la transferencia se acredita ma
 
 ---
 
+## Paso 6 — Promociones (agregado 2026-08-02)
+
+Segunda modalidad de compra: paquetes con precio fijo (ej. "6.000 WC por 5.000 ARS"), sin
+cotización ni código de descuento. Ver contrato completo en el Anexo más abajo.
+
+### UI (`donate/index.php` + `donate.js`)
+
+`store-shell` agrupa un selector de dos pestañas (`store-tabs`: "Compra personalizada" /
+"Promociones") arriba de los paneles existentes. El campo de email (`#inp-email`) se movió
+fuera de `#exchange-main` para quedar **compartido** entre ambas modalidades — ambos flujos
+mandan `userEmail` y no tenía sentido duplicar el input.
+
+- `#panel-personalizada`: contiene exactamente lo que ya existía (`#store-status` +
+  `#exchange-main`), sin cambios de lógica.
+- `#panel-promociones`: nuevo — `#promo-status` (mensajes de carga/vacío/error, mismo patrón
+  que `#store-status`) + `#promo-grid` (grilla de tarjetas, poblada por JS).
+- `switchTab()` alterna `hidden` entre paneles. Las promociones se cargan **lazy**: recién al
+  entrar por primera vez a la pestaña (`_promotionsLoaded` evita refetch en cada click de tab).
+
+### GET /api/promotions/active
+
+Mismo mecanismo de auth que `quote`/`providers`: pide un JWT corto vía `getPaymentToken()`
+(`payment_token.php`, ya existía — no hizo falta un endpoint nuevo para esto) y lo adjunta como
+Bearer. `normalizePromotion()` acepta camelCase/PascalCase indistintamente (mismo patrón
+defensivo que `loadCurrencies()`/`loadProviders()`), incluyendo el array anidado
+`paymentProviders`.
+
+### Tarjetas (`buildPromoCard()`)
+
+Por cada promoción se decide el estado inicial del botón "Comprar" según la cantidad de
+proveedores permitidos (regla del contrato):
+
+| `Providers.length` | Render | Botón inicial |
+|---|---|---|
+| 0 | texto "no hay medios de pago disponibles" | deshabilitado (permanente, no hay forma de habilitarlo) |
+| 1 | texto estático con el nombre del proveedor | habilitado |
+| 2+ | `<select>` de proveedores | deshabilitado hasta elegir uno (`onPromoProviderChange`) |
+
+El grid usa **delegación de eventos** (`$promoGrid.addEventListener('change'/'click', ...)`)
+en lugar de listeners por tarjeta, porque `promo-grid.innerHTML` se re-genera completo en cada
+`loadPromotions()`.
+
+### POST — proxy `src/public/api/donate/promotion_order.php`
+
+Mismo patrón de seguridad que `order.php`: `requireAuth()` + `account` forzado desde
+`$auth['usr']`, nunca desde el body del cliente. Diferencia con `order.php`: el `promotionId`
+viaja en el **path** de la API externa (`POST /api/promotions/{promotionId}/orders`), no en el
+body — el proxy lo toma del body del cliente, lo usa para armar la URL con
+`rawurlencode()` y lo **remueve** del body antes de reenviar (`unset($body['promotionId'])`),
+porque el contrato de la API no lo espera ahí.
+
+Body que manda `donate.js` al proxy: `{ promotionId, paymentProviderId, userEmail }`. Nada de
+`baseCurrency`, `baseCurrencyAmount`, `quoteCurrency` ni `discountCode` — el contrato de
+promociones no los usa.
+
+### Manejo de errores y 409 (mejora que también alcanza al flujo personalizado)
+
+Al escribir esto se detectó que ni `order.php`/`onBuy()` ni el nuevo flujo manejaban el
+`409 Conflict` documentado en el Anexo ("una cuenta no puede tener más de una orden activa").
+Se agregó `buildOrderErrorHtml(status, errData)` en `donate.js`, compartido entre `onBuy()` y
+`onBuyPromotion()`, con mensaje específico para 409. Es la única modificación que este paso
+hizo sobre el flujo de compra personalizada — el resto de `onBuy()` quedó igual.
+
+Además, ante un error de negocio (4XX que no sea 409) al crear una orden de promoción, se
+resetea `_promotionsLoaded = false` para forzar un refetch la próxima vez que se entre a la
+pestaña — la promoción o el proveedor pudieron cambiar de estado entre que se cargó la grilla y
+que se apretó "Comprar", tal como pide el contrato ("ante error de proveedor o promoción,
+refrescar el listado activo antes de permitir reintento"). No se re-renderiza la grilla en el
+momento para no taparle al usuario el mensaje de error que se acaba de mostrar en la tarjeta.
+
+### Pendiente
+
+- No hay panel Admin para crear/editar/deshabilitar promociones en este repo — el contrato lo
+  reserva explícitamente para un panel Admin separado (ver Anexo). Las promociones se gestionan
+  del lado de la API externa.
+- Sin endpoint Player de estado de orden (ver Anexo, "Estados de orden") — mismo límite que ya
+  tenía la compra personalizada, no es específico de promociones.
+
+---
+
 ## CORS
 
-Los GETs directos (`/api/currencies`, `/api/currencies/quote`, `/api/payments/providers`) van desde el browser a la API externa. **La API externa debe tener CORS habilitado** para el origen del frontend:
+Los GETs directos (`/api/currencies`, `/api/currencies/quote`, `/api/payments/providers`, `/api/promotions/active`) van desde el browser a la API externa. **La API externa debe tener CORS habilitado** para el origen del frontend:
 
 - Desarrollo: `http://localhost`
 - Producción: `https://mupga.com.ar` (o el dominio de Pages)
@@ -262,3 +345,106 @@ El POST a `/api/donate/order.php` va al VPS (mismo origen o con CORS del VPS), n
    - Success: `https://mupga.com.ar/donate/success/`
    - Error:   `https://mupga.com.ar/donate/error/`
 4. Si se usa Cloudflare Pages, actualizar la URL hardcodeada en `config.js` antes de buildear.
+
+---
+
+## Anexo — Contrato oficial de la API externa de pagos (doc recibida 2026-08-02)
+
+> Documento entregado por el equipo de la API de pagos, dirigido originalmente a un agente de
+> frontend genérico ("página principal"). Se incorpora acá porque describe el contrato completo
+> que ya consume `/donate` (Pasos 1 a 3.5) y el que agregó el flujo de **promociones**
+> (Paso 6, implementado el 2026-08-02).
+
+### Convenciones generales de la API
+
+- Serializa en **camelCase**, usa **UUID** como identificadores, JSON en request/response.
+- Valores monetarios son **decimales**: no redondear, no recalcular cotizaciones ni alterar
+  importes recibidos en el frontend.
+- Endpoints marcados **Player** requieren `Authorization: Bearer <JWT>` — en este sitio ese JWT
+  se pide vía `payment_token.php` (ver Paso 2.5), nunca se firma en el browser.
+- El valor de `account` enviado al crear una orden debe pertenecer al JWT; la API vuelve a
+  validarlo del lado del servidor. `order.php` va más estricto: ni siquiera deja que el body del
+  cliente influya — sobrescribe el campo directamente desde `$auth['usr']`.
+- Los mensajes de error de la API son reglas de negocio y se deben mostrar al usuario tal cual
+  (`extractApiErrors()` en `donate.js` ya contempla el formato `{title, statusCode, errors}`).
+- **Una cuenta no puede tener más de una orden activa** (`Pending` o `Approved`). Ante
+  `409 Conflict` hay que bloquear la compra nueva e informar que la orden existente debe
+  terminarse/cancelarse — **no implementado hoy**: ni `donate.js` ni `order.php` manejan un 409
+  de forma especial, cae al mensaje genérico de error de compra vía `extractApiErrors()`.
+
+### Flujo 1 — Compra personalizada (ya implementado)
+
+| Endpoint | Auth | Uso | Implementado en |
+|---|---|---|---|
+| `GET /api/currencies` | ninguna | listar monedas Game/Fiat/Crypto | `donate.js` → `loadCurrencies()` |
+| `GET /api/payments/providers?currency=` | Player | proveedores para la moneda de pago elegida | `donate.js` → `loadProviders()` |
+| `GET /api/currencies/quote` | Player | cotizar monto + validar código de descuento | `donate.js` → `onCalculate()` |
+| `POST /api/orders` | Player | crear orden personalizada | proxy `src/public/api/donate/order.php` |
+
+**Diferencias detectadas contra el código actual — a verificar, no corregidas acá:**
+
+- El contrato documenta los query params de `/api/currencies/quote` como `baseCurrency` /
+  `quoteCurrency` (camelCase); `donate.js:323-326` los manda en minúsculas
+  (`basecurrency`, `quotecurrency`). Probablemente tolerado por binding case-insensitive del
+  lado .NET (viene funcionando en producción), pero no confirmado — si se toca ese código,
+  alinear el casing de una.
+- El contrato documenta el body de `POST /api/orders` en camelCase (`account`, `baseCurrency`,
+  `baseCurrencyAmount`, `quoteCurrency`, `paymentProviderId`, `discountCode`); el código actual
+  (`donate.js:465-474` y `order.php:43`) manda `Account`, `BaseCurrency`, `BaseCurrencyAmount`,
+  `QuoteCurrency`, `PaymentProviderId` en PascalCase, con `userEmail`/`discountCode` sí en
+  camelCase. Mismo caso: probablemente tolerado por deserialización case-insensitive, pero es
+  una inconsistencia real dentro del propio código, no solo contra el doc.
+- El contrato indica `baseCurrencyAmount` entre `1000` y `1000000`; el frontend impone un tope
+  más chico de `100000` (`donate.js:238` y `onCalculate()`). Puede ser una restricción de
+  producto intencional (UI más conservadora) — confirmar con Franco si el límite de 1.000.000
+  debería habilitarse o si el de 100.000 es a propósito antes de tocarlo.
+
+### Flujo 2 — Promociones (implementado 2026-08-02 — ver Paso 6 arriba)
+
+Paquete reutilizable con precio fijo (ej. "6.000 WC por 5.000 ARS"), no depende de la
+cotización vigente ni de códigos de descuento.
+
+| Endpoint | Auth | Uso | Implementado en |
+|---|---|---|---|
+| `GET /api/promotions/active` | Player | listar promociones habilitadas + proveedores que pueden procesarlas ahora mismo | `donate.js` → `loadPromotions()` |
+| `POST /api/promotions/{promotionId}/orders` | Player | crear orden desde una promoción (solo `account` + `paymentProviderId` + `userEmail` en el body) | proxy `src/public/api/donate/promotion_order.php` |
+
+Reglas de negocio respetadas por la implementación:
+
+- Precio y cantidad salen **solo** de la respuesta de la API — nunca calculados ni cacheados en
+  el frontend.
+- Si la promoción tiene un único proveedor habilitado, se preselecciona; si tiene varios, se
+  muestra un `<select>`; si no tiene ninguno, la tarjeta queda sin botón habilitable.
+- El body de creación de orden **no** lleva `baseCurrency`, `baseCurrencyAmount`,
+  `quoteCurrency` ni `discountCode` — solo `userEmail`, `account` (forzado por el proxy desde el
+  JWT, igual que en el flujo personalizado) y `paymentProviderId`.
+- Ante error de proveedor/promoción (4XX que no sea 409), se invalida el caché local
+  (`_promotionsLoaded = false`) para refrescar `GET /api/promotions/active` la próxima vez que
+  se entre a la pestaña, en vez de permitir reintentar sobre datos vencidos.
+- La creación de la orden va por el proxy PHP `src/public/api/donate/promotion_order.php`, que
+  inyecta `account` desde el JWT — calcado del patrón de `order.php`, el cliente nunca puede
+  falsificar ese campo.
+
+### Estados de orden
+
+`Pending`, `Approved`, `Rejected`, `Cancelled`, `Delivered`, `Expired`. La aprobación del pago y
+la acreditación de moneda ocurren de forma asíncrona (webhook del proveedor → workers de la API
+externa) — el frontend nunca debe declarar "moneda acreditada" solo por haber creado la orden o
+abierto `paymentUrl`.
+
+**No existe hoy un endpoint Player para consultar detalle/estado de una orden por `orderId`.**
+Por eso `/donate/success/` y `/donate/error/` son pantallas estáticas que no confirman nada — si
+en algún momento se necesita seguimiento real del estado, hay que pedirle al equipo de la API un
+endpoint Player nuevo validado contra la cuenta del JWT. **Nunca** reusar los endpoints
+administrativos de abajo para eso.
+
+### Endpoints que este sitio NO debe invocar desde el frontend público
+
+Reservados para un futuro panel Admin — no usar desde `/donate` ni desde ningún proxy PHP
+público de este repo:
+
+- `GET /api/orders`, `GET /api/orders/{id}`, `POST /api/orders/{id}/cancel`,
+  `POST /api/orders/{id}/payments/retry`
+- `POST /api/payments/manual`, `GET /api/payments`, `GET /api/payments/status`
+- `POST /api/payments/webhook/mercado-pago` (callback del proveedor, no del navegador)
+- CRUD administrativo de promociones (crear/editar/deshabilitar paquetes)

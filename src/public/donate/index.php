@@ -16,13 +16,17 @@ ob_start();
 
   <section class="section">
 
-    <!-- Mensaje: tienda no disponible o error global -->
-    <div id="store-status" class="donate-pending-notice" hidden></div>
+    <div class="store-shell">
 
-    <!-- Exchange principal -->
-    <div id="exchange-main" class="exchange-wrapper">
+      <!-- Selector de modalidad -->
+      <div class="store-tabs" role="tablist">
+        <button type="button" class="store-tab active" id="tab-personalizada"
+                role="tab" aria-selected="true">Compra personalizada</button>
+        <button type="button" class="store-tab" id="tab-promociones"
+                role="tab" aria-selected="false">Promociones</button>
+      </div>
 
-      <!-- Email -->
+      <!-- Email — compartido entre ambas modalidades -->
       <div class="exchange-card">
         <p class="exchange-label">Tu email</p>
         <div class="exchange-email-section">
@@ -33,6 +37,15 @@ ob_start();
           </p>
         </div>
       </div>
+
+      <!-- Panel: compra personalizada -->
+      <div id="panel-personalizada" class="store-panel">
+
+        <!-- Mensaje: tienda no disponible o error global -->
+        <div id="store-status" class="donate-pending-notice" hidden></div>
+
+        <!-- Exchange principal -->
+        <div id="exchange-main" class="exchange-wrapper">
 
       <!-- Card DE (moneda del juego, ej: WCoin) -->
       <div class="exchange-card">
@@ -121,7 +134,22 @@ ob_start();
       <!-- Error en la creación de la orden -->
       <div id="buy-error" class="exchange-error" hidden></div>
 
-    </div><!-- /#exchange-main -->
+        </div><!-- /#exchange-main -->
+
+      </div><!-- /#panel-personalizada -->
+
+      <!-- Panel: promociones -->
+      <div id="panel-promociones" class="store-panel" hidden>
+
+        <!-- Mensaje: sin promociones / error de carga -->
+        <div id="promo-status" class="donate-pending-notice" hidden></div>
+
+        <!-- Grilla de promociones (poblada por JS) -->
+        <div id="promo-grid" class="promo-grid"></div>
+
+      </div><!-- /#panel-promociones -->
+
+    </div><!-- /.store-shell -->
 
   </section>
 
