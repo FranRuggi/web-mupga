@@ -14,13 +14,22 @@ ob_start();
       <h1 class="payment-result-title">¡Ya casi! Completá tu pago por transferencia</h1>
 
       <p class="payment-result-msg">
-        Elegiste <strong>transferencia bancaria</strong> como medio de pago. Para acreditar
-        tus <strong>WCoin</strong> necesitamos que nos mandes el comprobante de la
-        transferencia — no se acredita solo, un admin lo valida a mano.
+        Elegiste <strong>transferencia bancaria</strong> como medio de pago. Transferí el
+        monto de tu compra al alias de abajo y despues mandanos el comprobante — no se
+        acredita solo, un admin lo valida a mano.
       </p>
 
+      <div class="transfer-alias-box">
+        <p class="transfer-alias-label">Alias para transferir</p>
+        <div class="transfer-alias-value">
+          <span id="alias-text">MUPGA.MP</span>
+          <button type="button" id="btn-copy-alias" class="transfer-alias-copy">Copiar</button>
+        </div>
+        <p class="transfer-alias-hint" id="copy-feedback" hidden>Alias copiado.</p>
+      </div>
+
       <p class="payment-result-msg">
-        Escribinos por WhatsApp o generá un reclamo de compra adjuntando el comprobante,
+        Mandanos el comprobante por WhatsApp, Discord o generando un reclamo de compra —
         lo que te resulte más cómodo.
       </p>
 
@@ -29,6 +38,9 @@ ob_start();
       <div class="payment-result-actions">
         <a href="https://chat.whatsapp.com/DqaUqom63aFALaBsK2l7of" target="_blank" rel="noopener" class="btn btn-primary">
           Escribir por WhatsApp
+        </a>
+        <a href="https://discord.com/invite/xTxFHSmVhf" target="_blank" rel="noopener" class="btn btn-secondary">
+          Escribir por Discord
         </a>
         <a id="cta-reclamo" href="#" class="btn btn-secondary">
           Generar reclamo de compra
@@ -57,6 +69,15 @@ ob_start();
     ref.textContent = 'Número de orden: ' + orderId;
     ref.hidden = false;
   }
+
+  document.getElementById('btn-copy-alias').addEventListener('click', function () {
+    var alias = document.getElementById('alias-text').textContent;
+    var feedback = document.getElementById('copy-feedback');
+    navigator.clipboard.writeText(alias).then(function () {
+      feedback.hidden = false;
+      setTimeout(function () { feedback.hidden = true; }, 2000);
+    });
+  });
 </script>
 
 <?php

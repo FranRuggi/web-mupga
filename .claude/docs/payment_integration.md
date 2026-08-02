@@ -227,18 +227,24 @@ promociones, comparten `successUrl`/`errorUrl` con la compra personalizada.
 No es un resultado de pago (no confirma ni rechaza nada) — es una pantalla intermedia que le
 pide al jugador que mande el comprobante, porque la transferencia se acredita manualmente.
 
-- **Pendiente de configurar en la API externa:** el `paymentUrl` que devuelve `POST
-  /api/orders` cuando el `PaymentProviderId` elegido es el de "Transferencia Bancaria" tiene
-  que apuntar acá (`https://mupga.com.ar/donate/transferencia/`), igual que `successUrl`/
-  `errorUrl` para el resto de los medios de pago. Sin esa configuración del lado de la API,
-  esta página nunca se muestra.
-- Si la API agrega el id de la orden como query param (`?orderId=...`, o variantes
-  `OrderId`/`id`), la página lo toma con JS y lo usa para: (a) mostrarlo en pantalla como
-  referencia, y (b) incluirlo en el mensaje pre-cargado del botón de reclamo. Si no llega
-  ningún id, la página funciona igual, solo que sin esa referencia.
-- Dos botones, ninguno bloquea al otro (el jugador elige el que le resulte más cómodo):
+- **Ya NO depende de que la API externa configure `paymentUrl`** (a diferencia de lo que decía
+  esta sección originalmente): desde el fix de UX del 2026-08-02 (ver Paso 6, "Fixes de UX"),
+  `donate.js` detecta el proveedor "Transferencia Bancaria" por nombre y redirige acá siempre,
+  del lado del cliente, ignorando lo que la API haya puesto en `paymentUrl` para ese proveedor.
+  No hace falta ningún `successUrl`/`paymentUrl` especial configurado en la API externa para
+  este caso.
+- Si la respuesta de `POST /orders` (o `POST /promotions/{id}/orders`) trae `orderId`/`OrderId`/
+  `id`, `goToPaymentDestination()` lo agrega como `?orderId=` al redirigir. La página lo toma con
+  JS y lo usa para: (a) mostrarlo en pantalla como referencia, y (b) incluirlo en el mensaje
+  pre-cargado del botón de reclamo. Si no llega ningún id, la página funciona igual, solo que sin
+  esa referencia.
+- Caja de alias (`MUPGA.MP`, con botón "Copiar") agregada en el fix de UX del 2026-08-02 — antes
+  la página pedía el comprobante sin decir a dónde transferir.
+- Tres botones, ninguno bloquea al otro (el jugador elige el que le resulte más cómodo):
   - **WhatsApp** — mismo link de comunidad que ya usa `/donate/error/`
     (`https://chat.whatsapp.com/DqaUqom63aFALaBsK2l7of`).
+  - **Discord** — agregado 2026-08-02, mismo link que `/donate/success/` y `/donate/error/`
+    (`https://discord.com/invite/xTxFHSmVhf`).
   - **Generar reclamo de compra** — arma el link a `/reclamos/?mensaje=...` con un texto
     pre-cargado ("Hola, hice una compra de WCoins por transferencia bancaria..."). Requiere
     el fix de `reclamos.js` que agrega soporte al query param `?mensaje=` (pre-carga el
@@ -332,6 +338,50 @@ momento para no taparle al usuario el mensaje de error que se acaba de mostrar e
   del lado de la API externa.
 - Sin endpoint Player de estado de orden (ver Anexo, "Estados de orden") — mismo límite que ya
   tenía la compra personalizada, no es específico de promociones.
+
+### Fixes de UX (2026-08-02, tercera iteración del mismo día)
+
+Franco probó la primera versión y reportó dos bugs visuales más el pendiente de transferencia:
+
+**1. Los dos paneles se veían a la vez ("todo el selector de compra personalizada sigue
+apareciendo en todo momento").** Causa: `.store-panel { display: flex; ... }` pisaba el
+`display: none` que el atributo `hidden` aplica por defecto — mismo specificity
+(`0,1,0` los dos), y la regla de autor definida en `main.css` gana sobre la hoja de estilos
+default del browser en el cascade, sin importar el orden real de aparición del atributo en el
+HTML. **Este bug ya había pasado 4 veces antes en este mismo archivo** (`.spinner[hidden]`,
+`.donate2-modal[hidden]`, `.cp-emoji-picker[hidden]`, `.reclamo-tab-badge[hidden]`, todos con el
+mismo comentario "el display:X de arriba pisa al atributo hidden") — se aplicó el mismo patrón
+ya establecido: `.store-panel[hidden] { display: none; }` inmediatamente después de la regla
+`.store-panel`. **Recordar este patrón para cualquier elemento nuevo que combine `hidden` con
+una regla CSS que fije `display` explícitamente** (flex/grid/block) — sin el override, el
+`hidden` queda cosmético y no oculta nada.
+
+**2. Las promociones "aparecen abajo de todo y es rarísimo".** Consecuencia directa del bug
+anterior: como ambos paneles estaban visibles y apilados, `#panel-promociones` quedaba debajo de
+todo el contenido de `#panel-personalizada`. Se resuelve solo al corregir (1).
+
+**3. Comprar con "Transferencia Bancaria" saltaba a donde sea que apuntara el `paymentUrl` de
+la API externa** en vez de mostrar las instrucciones de `/donate/transferencia/` — porque esa
+página depende de que la API externa tenga configurado `successUrl`/`paymentUrl` apuntando ahí
+para ese proveedor específico (ver Paso 5, "Pendiente de configurar en la API externa"), y esa
+configuración nunca se hizo. Fix: `donate.js` ya no confía en el `paymentUrl` de la API para
+este caso puntual — `goToPaymentDestination(data, providerName)` (usada por `onBuy()` y
+`onBuyPromotion()` después de un `201`) detecta el proveedor por nombre
+(`isTransferProvider()`, `/transferencia/i` sobre `provider.Name`) y si matchea, redirige
+siempre a `BASE + '/donate/transferencia/'` con `?orderId=` si la API lo devolvió, ignorando
+por completo lo que haya en `paymentUrl`. Para cualquier otro proveedor el comportamiento no
+cambió (sigue usando `paymentUrl`/`redirectionUrl` de la respuesta). Esto vuelve irrelevante el
+pendiente de Paso 5 sobre configurar `paymentUrl` para transferencia en la API externa — ya no
+hace falta, el frontend nunca lo va a usar para ese proveedor.
+
+De paso se completó `/donate/transferencia/` con lo que faltaba (antes solo decía "mandanos el
+comprobante" sin decir a dónde transferir):
+- Caja `.transfer-alias-box` con el alias `MUPGA.MP` (mismo alias que ya se promocionaba en el
+  sistema manual viejo, `data/donate.json` → `highlight`) y botón "Copiar"
+  (`navigator.clipboard.writeText`).
+- Tercer botón de contacto — antes solo había WhatsApp + reclamo, ahora también Discord
+  (`https://discord.com/invite/xTxFHSmVhf`, mismo link que ya usan `/donate/success/` y
+  `/donate/error/`).
 
 ---
 

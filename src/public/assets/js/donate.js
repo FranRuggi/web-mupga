@@ -521,10 +521,7 @@ async function onBuy() {
 
   if (res.status === 201) {
     const data = await res.json().catch(() => ({}));
-    const url = data.paymentUrl ?? data.redirectionUrl ?? data.PaymentUrl ?? data.RedirectionUrl;
-    if (url) {
-      window.location.href = url;
-    }
+    goToPaymentDestination(data, provider.Name);
     return;
   }
 
@@ -533,6 +530,30 @@ async function onBuy() {
 
   $btnBuy.disabled    = false;
   $btnBuy.textContent = 'Comprar';
+}
+
+// Medio de pago "Transferencia Bancaria" no tiene un paymentUrl real de un proveedor
+// online — la acreditación es manual. En vez de confiar en lo que la API externa mande ahí
+// (configuración pendiente del lado de la API, ver .claude/docs/payment_integration.md, Paso 5),
+// se detecta por nombre de proveedor y siempre se manda a nuestra propia página de instrucciones.
+function isTransferProvider(name) {
+  return /transferencia/i.test(name || '');
+}
+
+function goToPaymentDestination(data, providerName) {
+  const orderId = data.orderId ?? data.OrderId ?? data.id ?? data.Id;
+
+  if (isTransferProvider(providerName)) {
+    let dest = BASE + '/donate/transferencia/';
+    if (orderId) dest += '?orderId=' + encodeURIComponent(orderId);
+    window.location.href = dest;
+    return;
+  }
+
+  const url = data.paymentUrl ?? data.redirectionUrl ?? data.PaymentUrl ?? data.RedirectionUrl;
+  if (url) {
+    window.location.href = url;
+  }
 }
 
 // Mensaje de error para POST /api/orders y POST /api/promotions/{id}/orders.
@@ -684,12 +705,14 @@ async function onBuyPromotion(btn) {
     return;
   }
 
-  let providerId;
+  let provider;
   if (promo.Providers.length === 1) {
-    providerId = promo.Providers[0].Id;
+    provider = promo.Providers[0];
   } else {
-    providerId = card.querySelector('.promo-card__provider-select')?.value;
+    const providerId = card.querySelector('.promo-card__provider-select')?.value;
     if (!providerId) return;
+    provider = promo.Providers.find(p => p.Id === providerId);
+    if (!provider) return;
   }
 
   btn.disabled = true;
@@ -700,7 +723,7 @@ async function onBuyPromotion(btn) {
     method: 'POST',
     body: JSON.stringify({
       promotionId,
-      paymentProviderId: providerId,
+      paymentProviderId: provider.Id,
       userEmail: email,
     }),
   });
@@ -713,10 +736,7 @@ async function onBuyPromotion(btn) {
 
   if (res.status === 201) {
     const data = await res.json().catch(() => ({}));
-    const url = data.paymentUrl ?? data.redirectionUrl ?? data.PaymentUrl ?? data.RedirectionUrl;
-    if (url) {
-      window.location.href = url;
-    }
+    goToPaymentDestination(data, provider.Name);
     return;
   }
 

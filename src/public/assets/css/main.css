@@ -2726,6 +2726,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 }
 
 .store-panel { display: flex; flex-direction: column; gap: var(--gap-sm); }
+.store-panel[hidden] { display: none; }  /* el display:flex de arriba pisa al atributo hidden */
 
 /* ── Tienda WCoin — Exchange ─────────────────────────────────── */
 .exchange-wrapper {
@@ -3235,6 +3236,54 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   gap: var(--gap-sm);
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* Alias de transferencia (donate/transferencia/) */
+.transfer-alias-box {
+  width: 100%;
+  max-width: 340px;
+  background: rgba(200, 168, 75, 0.06);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius);
+  padding: var(--gap-md);
+  text-align: center;
+}
+.transfer-alias-label {
+  font-family: var(--font-title);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 0.5rem;
+}
+.transfer-alias-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.transfer-alias-value span {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--gold-light);
+  letter-spacing: 0.02em;
+}
+.transfer-alias-copy {
+  background: transparent;
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius);
+  color: var(--gold);
+  padding: 0.3rem 0.7rem;
+  font-family: var(--font-title);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: background var(--t), color var(--t);
+}
+.transfer-alias-copy:hover { background: var(--gold-glow); color: var(--gold-light); }
+.transfer-alias-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: var(--gold);
 }
 
 /* ── Módulo Prode ────────────────────────────────────────────── */
