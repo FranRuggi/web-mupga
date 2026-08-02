@@ -254,16 +254,25 @@ cotización ni código de descuento. Ver contrato completo en el Anexo más abaj
 ### UI (`donate/index.php` + `donate.js`)
 
 `store-shell` agrupa un selector de dos pestañas (`store-tabs`: "Compra personalizada" /
-"Promociones") arriba de los paneles existentes. El campo de email (`#inp-email`) se movió
-fuera de `#exchange-main` para quedar **compartido** entre ambas modalidades — ambos flujos
-mandan `userEmail` y no tenía sentido duplicar el input.
+"Promociones") arriba de los paneles existentes. **Cada panel pide solo lo que necesita** — no
+hay campos compartidos entre modalidades ni nada visible fuera del panel activo (ajuste de UX
+2026-08-02, versión inicial del Paso 6 sí compartía el email entre ambas, se revirtió):
 
 - `#panel-personalizada`: contiene exactamente lo que ya existía (`#store-status` +
-  `#exchange-main`), sin cambios de lógica.
-- `#panel-promociones`: nuevo — `#promo-status` (mensajes de carga/vacío/error, mismo patrón
-  que `#store-status`) + `#promo-grid` (grilla de tarjetas, poblada por JS).
-- `switchTab()` alterna `hidden` entre paneles. Las promociones se cargan **lazy**: recién al
-  entrar por primera vez a la pestaña (`_promotionsLoaded` evita refetch en cada click de tab).
+  `#exchange-main`, con su propio input `#inp-email` como primer campo — vuelve a su ubicación
+  original, antes del "Card DE"), sin cambios de lógica.
+- `#panel-promociones`: nuevo — un input de email propio y más simple (`#inp-email-promo`,
+  único campo antes de la grilla, sin selector de moneda/monto/proveedor/descuento) +
+  `#promo-status` (mensajes de carga/vacío/error, mismo patrón que `#store-status`) +
+  `#promo-grid` (grilla de tarjetas, poblada por JS).
+- `switchTab()` alterna `hidden` entre paneles completos (`#panel-personalizada` /
+  `#panel-promociones`), así que solo se ve el formulario de la modalidad activa. Las
+  promociones se cargan **lazy**: recién al entrar por primera vez a la pestaña
+  (`_promotionsLoaded` evita refetch en cada click de tab).
+- El botón `#tab-promociones` tiene su propio estilo (`.store-tab--promo` en `main.css`):
+  borde y texto dorados en reposo, gradiente dorado sólido cuando está activo — a propósito
+  distinto del gradiente violeta de `#tab-personalizada`, para que la pestaña de promociones
+  llame la atención frente a la compra personalizada (pedido explícito de Franco).
 
 ### GET /api/promotions/active
 

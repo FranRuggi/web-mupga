@@ -2692,7 +2692,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 .store-tab {
   flex: 1;
   background: none;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius);
   padding: 0.625rem 0.75rem;
   font-family: var(--font-title);
@@ -2700,12 +2700,29 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   letter-spacing: 0.04em;
   color: var(--text-dim);
   cursor: pointer;
-  transition: background var(--t), color var(--t);
+  transition: background var(--t), color var(--t), border-color var(--t), box-shadow var(--t);
 }
 .store-tab:hover { color: var(--text); }
 .store-tab.active {
   background: linear-gradient(135deg, var(--purple) 0%, #5a2d94 100%);
   color: #fff;
+}
+
+/* Tab "Promociones" — resaltado dorado para que llame la atención frente al de compra personalizada */
+.store-tab--promo {
+  border-color: var(--gold-border);
+  color: var(--gold);
+  box-shadow: 0 0 14px var(--gold-glow);
+}
+.store-tab--promo:hover {
+  color: var(--gold-light);
+  border-color: var(--gold);
+}
+.store-tab--promo.active {
+  background: linear-gradient(135deg, var(--gold) 0%, #a8850a 100%);
+  color: #0d0b14;
+  border-color: transparent;
+  box-shadow: 0 0 20px var(--gold-glow), 0 4px 16px rgba(0,0,0,0.4);
 }
 
 .store-panel { display: flex; flex-direction: column; gap: var(--gap-sm); }

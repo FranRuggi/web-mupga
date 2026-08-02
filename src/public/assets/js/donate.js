@@ -32,7 +32,7 @@ let $status, $exchangeMain,
     $inpDiscount, $discountHint,
     $tabPersonalizada, $tabPromociones,
     $panelPersonalizada, $panelPromociones,
-    $promoStatus, $promoGrid;
+    $promoStatus, $promoGrid, $inpEmailPromo;
 
 // ── Íconos de monedas ─────────────────────────────────────────
 const KNOWN_ICONS = ['wc', 'ars', 'usdt'];
@@ -148,6 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   $panelPromociones   = document.getElementById('panel-promociones');
   $promoStatus        = document.getElementById('promo-status');
   $promoGrid          = document.getElementById('promo-grid');
+  $inpEmailPromo      = document.getElementById('inp-email-promo');
 
   $selFrom.addEventListener('change', onCurrencyChange);
   $selTo.addEventListener('change', onCurrencyChange);
@@ -676,7 +677,7 @@ async function onBuyPromotion(btn) {
   errBox.hidden = true;
   if (!promo) return;
 
-  const email = ($inpEmail?.value || '').trim();
+  const email = ($inpEmailPromo?.value || '').trim();
   if (!isValidEmail(email)) {
     errBox.textContent = 'Ingresá un email válido en el campo de arriba para continuar.';
     errBox.hidden = false;
