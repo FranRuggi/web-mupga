@@ -2117,7 +2117,7 @@ h1, h2, h3, h4 {
 }
 
 .donate-hero-sub {
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 0.9rem;
   max-width: 500px;
   margin: 0 auto;
@@ -2698,11 +2698,11 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   font-family: var(--font-title);
   font-size: 0.75rem;
   letter-spacing: 0.04em;
-  color: var(--text-dim);
+  color: var(--text);
   cursor: pointer;
   transition: background var(--t), color var(--t), border-color var(--t), box-shadow var(--t);
 }
-.store-tab:hover { color: var(--text); }
+.store-tab:hover { color: var(--text-bright); }
 .store-tab.active {
   background: linear-gradient(135deg, var(--purple) 0%, #5a2d94 100%);
   color: #fff;
@@ -2753,7 +2753,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   font-size: 0.65rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--text);
   margin-bottom: 0.75rem;
 }
 
@@ -2850,7 +2850,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   padding: 0.875rem var(--gap-md);
   text-align: center;
   font-size: 0.9rem;
-  color: var(--text-dim);
+  color: var(--text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2862,11 +2862,11 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   font-family: var(--font-title);
   font-size: 1.1rem;
 }
-.quote-equals { color: var(--text-dim); }
+.quote-equals { color: var(--text); }
 
 .quote-discount-original {
   text-decoration: line-through;
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 0.85rem;
 }
 
@@ -2916,7 +2916,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 .promo-loading {
   grid-column: 1 / -1;
   text-align: center;
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 0.875rem;
   padding: var(--gap-md) 0;
 }
@@ -2957,7 +2957,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 }
 
 .promo-card__arrow {
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 0.9rem;
 }
 
@@ -2971,14 +2971,14 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 .promo-card__provider-static {
   margin: 0;
   font-size: 0.82rem;
-  color: var(--text-dim);
+  color: var(--text);
 }
 .promo-card__provider-static strong { color: var(--text-bright); }
 
 .promo-card__unavailable {
   margin: 0;
   font-size: 0.82rem;
-  color: var(--text-dim);
+  color: var(--text);
 }
 
 .promo-card__buy { width: 100%; justify-content: center; }
@@ -3027,7 +3027,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 }
 
 .currency-picker__placeholder {
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 0.82rem;
 }
 
@@ -3093,7 +3093,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 }
 .currency-option__code {
   font-size: 0.7rem;
-  color: var(--text-dim);
+  color: var(--text);
 }
 
 .currency-icon {
@@ -3147,7 +3147,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 
 .exchange-email-hint {
   font-size: 0.72rem;
-  color: var(--text-dim);
+  color: var(--text);
   line-height: 1.4;
 }
 .exchange-email-hint--warn { color: var(--gold); }
@@ -3227,7 +3227,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   line-height: 1.7;
 }
 .payment-result-note {
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 0.85rem;
 }
 
@@ -3253,7 +3253,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   font-size: 0.65rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--text);
   margin: 0 0 0.5rem;
 }
 .transfer-alias-value {
