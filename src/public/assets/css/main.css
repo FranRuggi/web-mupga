@@ -4764,7 +4764,7 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 /* ── Grilla de servidores ──────────────────────────────────── */
 .servidor-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: var(--gap-md);
   max-width: 1100px;
   margin: 0 auto;
@@ -4785,56 +4785,99 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  padding: var(--gap-md);
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: transform var(--t), border-color var(--t), box-shadow var(--t);
+  transition: transform var(--t-slow), border-color var(--t), box-shadow var(--t-slow);
 }
 
 .servidor-card:not(.skeleton):hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
   border-color: var(--gold-border);
-  box-shadow: 0 14px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--gold-glow);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 0 1px var(--gold-glow);
 }
 
-/* Franja superior de color según estado */
+/* Franja superior de color según estado — por encima de la imagen */
 .servidor-card::before {
   content: '';
   position: absolute;
   inset: 0 0 auto 0;
   height: 3px;
+  z-index: 2;
   background: linear-gradient(90deg, transparent, var(--purple), var(--gold), transparent);
-  opacity: 0.7;
+  opacity: 0.8;
 }
 .servidor-card.is-proximo::before { background: linear-gradient(90deg, transparent, var(--cyan), transparent); }
 .servidor-card.is-mantenimiento::before,
 .servidor-card.is-cerrado::before { background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
 
-.servidor-card__banner {
-  height: 120px;
-  margin: calc(var(--gap-md) * -1) calc(var(--gap-md) * -1) 0;
-  background-size: cover;
-  background-position: center;
+/* ── Media: foto (o gradiente si no hay imagen_url) + overlay ─ */
+.servidor-card__media {
+  position: relative;
+  height: 190px;
+  display: flex;
+  align-items: flex-end;
+  padding: 1.1rem;
+  overflow: hidden;
   border-bottom: 1px solid var(--border);
 }
 
-.servidor-card__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--gap-sm);
-  flex-wrap: wrap;
+.servidor-card__media-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform var(--t-slow);
+}
+
+.servidor-card__media--noimg .servidor-card__media-bg {
+  background-image:
+    radial-gradient(circle at 18% 18%, var(--purple-glow), transparent 55%),
+    radial-gradient(circle at 88% 85%, var(--gold-glow), transparent 55%),
+    linear-gradient(160deg, var(--bg-raised) 0%, var(--bg-surface) 100%);
+}
+
+.servidor-card:not(.skeleton):hover .servidor-card__media-bg {
+  transform: scale(1.08);
+}
+
+.servidor-card__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(9,8,15,0.05) 0%, rgba(9,8,15,0.5) 58%, rgba(9,8,15,0.94) 100%);
+}
+
+.servidor-card__media .servidor-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1;
+  backdrop-filter: blur(6px);
 }
 
 .servidor-card__name {
+  position: relative;
+  z-index: 1;
   font-family: var(--font-title);
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-bright);
+  text-shadow: 0 2px 14px rgba(0,0,0,0.7);
   margin: 0;
+}
+
+/* ── Cuerpo ───────────────────────────────────────────────── */
+.servidor-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: var(--gap-md);
+  flex: 1;
 }
 
 .servidor-card__desc {
@@ -4846,6 +4889,8 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 
 /* ── Badge de estado ───────────────────────────────────────── */
 .servidor-badge {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-title);
   font-size: 0.64rem;
   letter-spacing: 0.14em;
@@ -4858,49 +4903,85 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 
 .servidor-badge.is-activo {
   color: #7ef0b0;
-  background: rgba(60, 220, 140, 0.1);
-  border-color: rgba(60, 220, 140, 0.32);
+  background: rgba(60, 220, 140, 0.16);
+  border-color: rgba(60, 220, 140, 0.4);
 }
 .servidor-badge.is-proximo {
   color: var(--cyan);
-  background: var(--cyan-glow);
-  border-color: rgba(0, 196, 234, 0.4);
+  background: rgba(0, 196, 234, 0.16);
+  border-color: rgba(0, 196, 234, 0.45);
 }
 .servidor-badge.is-mantenimiento {
   color: var(--gold-light);
-  background: var(--gold-glow);
+  background: rgba(200, 168, 75, 0.16);
   border-color: var(--gold-border);
 }
 .servidor-badge.is-cerrado {
   color: var(--text-dim);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.08);
   border-color: var(--border);
 }
 
-/* ── Countdown de lanzamiento ──────────────────────────────── */
+.servidor-badge__dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  margin-right: 0.4rem;
+  animation: pulse 2.2s ease-in-out infinite;
+}
+
+/* ── Countdown de lanzamiento (fichas de dígitos) ────────────── */
 .servidor-countdown {
   display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.6rem;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.8rem 0.6rem;
   background: var(--cyan-glow);
   border: 1px solid rgba(0, 196, 234, 0.28);
   border-radius: var(--radius);
 }
 
 .servidor-countdown__label {
+  text-align: center;
   font-size: 0.7rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-dim);
 }
 
-.servidor-countdown__val {
+.servidor-countdown__tiles {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.servidor-countdown__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.servidor-countdown__num {
+  min-width: 2.3rem;
+  text-align: center;
   font-family: var(--font-title);
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--cyan);
+  background: rgba(0,0,0,0.28);
+  border: 1px solid rgba(0,196,234,0.28);
+  border-radius: var(--radius);
+  padding: 0.3rem 0.2rem;
+}
+
+.servidor-countdown__unit {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
 }
 
 /* ── Specs ─────────────────────────────────────────────────── */
@@ -4908,7 +4989,7 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
-  margin-top: auto;   /* empuja el CTA al fondo aunque las cards tengan distinto alto */
+  margin-top: auto;   /* empuja las acciones al fondo aunque las cards tengan distinto alto */
 }
 
 .servidor-spec {
@@ -4936,11 +5017,17 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
   text-align: right;
 }
 
-/* ── CTA ───────────────────────────────────────────────────── */
-.servidor-card__cta {
-  width: 100%;
-  text-align: center;
+/* ── Acciones ─────────────────────────────────────────────── */
+.servidor-card__actions {
+  display: flex;
+  gap: 0.6rem;
   margin-top: 0.3rem;
+}
+
+.servidor-card__cta {
+  flex: 1;
+  justify-content: center;
+  text-align: center;
 }
 
 .servidor-card__cta.is-disabled {
@@ -4950,6 +5037,7 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 }
 
 @media (max-width: 640px) {
-  .servidor-grid { grid-template-columns: 1fr; }
-  .landing-hero  { padding: var(--gap-lg) var(--gap-sm); }
+  .servidor-grid  { grid-template-columns: 1fr; }
+  .servidor-card  { max-width: 100%; }
+  .landing-hero   { padding: var(--gap-lg) var(--gap-sm); }
 }

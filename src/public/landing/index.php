@@ -32,8 +32,8 @@ ob_start();
 
     <div class="servidor-grid" id="servidor-grid">
       <!-- landing.js renderiza acá. Skeletons mientras carga. -->
-      <div class="servidor-card skeleton" style="height:340px"></div>
-      <div class="servidor-card skeleton" style="height:340px"></div>
+      <div class="servidor-card skeleton" style="height:460px"></div>
+      <div class="servidor-card skeleton" style="height:460px"></div>
     </div>
 
     <p class="servidor-empty" id="servidor-error" hidden>
