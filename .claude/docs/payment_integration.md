@@ -219,23 +219,32 @@ Las URLs deben estar configuradas en la API externa como `successUrl` y `errorUr
 
 Ambas (success/error) usan el layout estándar del sitio. El CTA "Ver mi cuenta" / "Volver a la tienda" construye el href con `data-base-url` para ser compatible con Cloudflare Pages.
 
+Aplican también al flujo de Promociones (Paso 6) — no hay páginas post-pago separadas para
+promociones, comparten `successUrl`/`errorUrl` con la compra personalizada.
+
 ### `/donate/transferencia/` — pago por transferencia bancaria
 
 No es un resultado de pago (no confirma ni rechaza nada) — es una pantalla intermedia que le
 pide al jugador que mande el comprobante, porque la transferencia se acredita manualmente.
 
-- **Pendiente de configurar en la API externa:** el `paymentUrl` que devuelve `POST
-  /api/orders` cuando el `PaymentProviderId` elegido es el de "Transferencia Bancaria" tiene
-  que apuntar acá (`https://mupga.com.ar/donate/transferencia/`), igual que `successUrl`/
-  `errorUrl` para el resto de los medios de pago. Sin esa configuración del lado de la API,
-  esta página nunca se muestra.
-- Si la API agrega el id de la orden como query param (`?orderId=...`, o variantes
-  `OrderId`/`id`), la página lo toma con JS y lo usa para: (a) mostrarlo en pantalla como
-  referencia, y (b) incluirlo en el mensaje pre-cargado del botón de reclamo. Si no llega
-  ningún id, la página funciona igual, solo que sin esa referencia.
-- Dos botones, ninguno bloquea al otro (el jugador elige el que le resulte más cómodo):
+- **Ya NO depende de que la API externa configure `paymentUrl`** (a diferencia de lo que decía
+  esta sección originalmente): desde el fix de UX del 2026-08-02 (ver Paso 6, "Fixes de UX"),
+  `donate.js` detecta el proveedor "Transferencia Bancaria" por nombre y redirige acá siempre,
+  del lado del cliente, ignorando lo que la API haya puesto en `paymentUrl` para ese proveedor.
+  No hace falta ningún `successUrl`/`paymentUrl` especial configurado en la API externa para
+  este caso.
+- Si la respuesta de `POST /orders` (o `POST /promotions/{id}/orders`) trae `orderId`/`OrderId`/
+  `id`, `goToPaymentDestination()` lo agrega como `?orderId=` al redirigir. La página lo toma con
+  JS y lo usa para: (a) mostrarlo en pantalla como referencia, y (b) incluirlo en el mensaje
+  pre-cargado del botón de reclamo. Si no llega ningún id, la página funciona igual, solo que sin
+  esa referencia.
+- Caja de alias (`MUPGA.MP`, con botón "Copiar") agregada en el fix de UX del 2026-08-02 — antes
+  la página pedía el comprobante sin decir a dónde transferir.
+- Tres botones, ninguno bloquea al otro (el jugador elige el que le resulte más cómodo):
   - **WhatsApp** — mismo link de comunidad que ya usa `/donate/error/`
     (`https://chat.whatsapp.com/DqaUqom63aFALaBsK2l7of`).
+  - **Discord** — agregado 2026-08-02, mismo link que `/donate/success/` y `/donate/error/`
+    (`https://discord.com/invite/xTxFHSmVhf`).
   - **Generar reclamo de compra** — arma el link a `/reclamos/?mensaje=...` con un texto
     pre-cargado ("Hola, hice una compra de WCoins por transferencia bancaria..."). Requiere
     el fix de `reclamos.js` que agrega soporte al query param `?mensaje=` (pre-carga el
@@ -243,9 +252,142 @@ pide al jugador que mande el comprobante, porque la transferencia se acredita ma
 
 ---
 
+## Paso 6 — Promociones (agregado 2026-08-02)
+
+Segunda modalidad de compra: paquetes con precio fijo (ej. "6.000 WC por 5.000 ARS"), sin
+cotización ni código de descuento. Ver contrato completo en el Anexo más abajo.
+
+### UI (`donate/index.php` + `donate.js`)
+
+`store-shell` agrupa un selector de dos pestañas (`store-tabs`: "Compra personalizada" /
+"Promociones") arriba de los paneles existentes. **Cada panel pide solo lo que necesita** — no
+hay campos compartidos entre modalidades ni nada visible fuera del panel activo (ajuste de UX
+2026-08-02, versión inicial del Paso 6 sí compartía el email entre ambas, se revirtió):
+
+- `#panel-personalizada`: contiene exactamente lo que ya existía (`#store-status` +
+  `#exchange-main`, con su propio input `#inp-email` como primer campo — vuelve a su ubicación
+  original, antes del "Card DE"), sin cambios de lógica.
+- `#panel-promociones`: nuevo — un input de email propio y más simple (`#inp-email-promo`,
+  único campo antes de la grilla, sin selector de moneda/monto/proveedor/descuento) +
+  `#promo-status` (mensajes de carga/vacío/error, mismo patrón que `#store-status`) +
+  `#promo-grid` (grilla de tarjetas, poblada por JS).
+- `switchTab()` alterna `hidden` entre paneles completos (`#panel-personalizada` /
+  `#panel-promociones`), así que solo se ve el formulario de la modalidad activa. Las
+  promociones se cargan **lazy**: recién al entrar por primera vez a la pestaña
+  (`_promotionsLoaded` evita refetch en cada click de tab).
+- El botón `#tab-promociones` tiene su propio estilo (`.store-tab--promo` en `main.css`):
+  borde y texto dorados en reposo, gradiente dorado sólido cuando está activo — a propósito
+  distinto del gradiente violeta de `#tab-personalizada`, para que la pestaña de promociones
+  llame la atención frente a la compra personalizada (pedido explícito de Franco).
+
+### GET /api/promotions/active
+
+Mismo mecanismo de auth que `quote`/`providers`: pide un JWT corto vía `getPaymentToken()`
+(`payment_token.php`, ya existía — no hizo falta un endpoint nuevo para esto) y lo adjunta como
+Bearer. `normalizePromotion()` acepta camelCase/PascalCase indistintamente (mismo patrón
+defensivo que `loadCurrencies()`/`loadProviders()`), incluyendo el array anidado
+`paymentProviders`.
+
+### Tarjetas (`buildPromoCard()`)
+
+Por cada promoción se decide el estado inicial del botón "Comprar" según la cantidad de
+proveedores permitidos (regla del contrato):
+
+| `Providers.length` | Render | Botón inicial |
+|---|---|---|
+| 0 | texto "no hay medios de pago disponibles" | deshabilitado (permanente, no hay forma de habilitarlo) |
+| 1 | texto estático con el nombre del proveedor | habilitado |
+| 2+ | `<select>` de proveedores | deshabilitado hasta elegir uno (`onPromoProviderChange`) |
+
+El grid usa **delegación de eventos** (`$promoGrid.addEventListener('change'/'click', ...)`)
+en lugar de listeners por tarjeta, porque `promo-grid.innerHTML` se re-genera completo en cada
+`loadPromotions()`.
+
+### POST — proxy `src/public/api/donate/promotion_order.php`
+
+Mismo patrón de seguridad que `order.php`: `requireAuth()` + `account` forzado desde
+`$auth['usr']`, nunca desde el body del cliente. Diferencia con `order.php`: el `promotionId`
+viaja en el **path** de la API externa (`POST /api/promotions/{promotionId}/orders`), no en el
+body — el proxy lo toma del body del cliente, lo usa para armar la URL con
+`rawurlencode()` y lo **remueve** del body antes de reenviar (`unset($body['promotionId'])`),
+porque el contrato de la API no lo espera ahí.
+
+Body que manda `donate.js` al proxy: `{ promotionId, paymentProviderId, userEmail }`. Nada de
+`baseCurrency`, `baseCurrencyAmount`, `quoteCurrency` ni `discountCode` — el contrato de
+promociones no los usa.
+
+### Manejo de errores y 409 (mejora que también alcanza al flujo personalizado)
+
+Al escribir esto se detectó que ni `order.php`/`onBuy()` ni el nuevo flujo manejaban el
+`409 Conflict` documentado en el Anexo ("una cuenta no puede tener más de una orden activa").
+Se agregó `buildOrderErrorHtml(status, errData)` en `donate.js`, compartido entre `onBuy()` y
+`onBuyPromotion()`, con mensaje específico para 409. Es la única modificación que este paso
+hizo sobre el flujo de compra personalizada — el resto de `onBuy()` quedó igual.
+
+Además, ante un error de negocio (4XX que no sea 409) al crear una orden de promoción, se
+resetea `_promotionsLoaded = false` para forzar un refetch la próxima vez que se entre a la
+pestaña — la promoción o el proveedor pudieron cambiar de estado entre que se cargó la grilla y
+que se apretó "Comprar", tal como pide el contrato ("ante error de proveedor o promoción,
+refrescar el listado activo antes de permitir reintento"). No se re-renderiza la grilla en el
+momento para no taparle al usuario el mensaje de error que se acaba de mostrar en la tarjeta.
+
+### Pendiente
+
+- No hay panel Admin para crear/editar/deshabilitar promociones en este repo — el contrato lo
+  reserva explícitamente para un panel Admin separado (ver Anexo). Las promociones se gestionan
+  del lado de la API externa.
+- Sin endpoint Player de estado de orden (ver Anexo, "Estados de orden") — mismo límite que ya
+  tenía la compra personalizada, no es específico de promociones.
+
+### Fixes de UX (2026-08-02, tercera iteración del mismo día)
+
+Franco probó la primera versión y reportó dos bugs visuales más el pendiente de transferencia:
+
+**1. Los dos paneles se veían a la vez ("todo el selector de compra personalizada sigue
+apareciendo en todo momento").** Causa: `.store-panel { display: flex; ... }` pisaba el
+`display: none` que el atributo `hidden` aplica por defecto — mismo specificity
+(`0,1,0` los dos), y la regla de autor definida en `main.css` gana sobre la hoja de estilos
+default del browser en el cascade, sin importar el orden real de aparición del atributo en el
+HTML. **Este bug ya había pasado 4 veces antes en este mismo archivo** (`.spinner[hidden]`,
+`.donate2-modal[hidden]`, `.cp-emoji-picker[hidden]`, `.reclamo-tab-badge[hidden]`, todos con el
+mismo comentario "el display:X de arriba pisa al atributo hidden") — se aplicó el mismo patrón
+ya establecido: `.store-panel[hidden] { display: none; }` inmediatamente después de la regla
+`.store-panel`. **Recordar este patrón para cualquier elemento nuevo que combine `hidden` con
+una regla CSS que fije `display` explícitamente** (flex/grid/block) — sin el override, el
+`hidden` queda cosmético y no oculta nada.
+
+**2. Las promociones "aparecen abajo de todo y es rarísimo".** Consecuencia directa del bug
+anterior: como ambos paneles estaban visibles y apilados, `#panel-promociones` quedaba debajo de
+todo el contenido de `#panel-personalizada`. Se resuelve solo al corregir (1).
+
+**3. Comprar con "Transferencia Bancaria" saltaba a donde sea que apuntara el `paymentUrl` de
+la API externa** en vez de mostrar las instrucciones de `/donate/transferencia/` — porque esa
+página depende de que la API externa tenga configurado `successUrl`/`paymentUrl` apuntando ahí
+para ese proveedor específico (ver Paso 5, "Pendiente de configurar en la API externa"), y esa
+configuración nunca se hizo. Fix: `donate.js` ya no confía en el `paymentUrl` de la API para
+este caso puntual — `goToPaymentDestination(data, providerName)` (usada por `onBuy()` y
+`onBuyPromotion()` después de un `201`) detecta el proveedor por nombre
+(`isTransferProvider()`, `/transferencia/i` sobre `provider.Name`) y si matchea, redirige
+siempre a `BASE + '/donate/transferencia/'` con `?orderId=` si la API lo devolvió, ignorando
+por completo lo que haya en `paymentUrl`. Para cualquier otro proveedor el comportamiento no
+cambió (sigue usando `paymentUrl`/`redirectionUrl` de la respuesta). Esto vuelve irrelevante el
+pendiente de Paso 5 sobre configurar `paymentUrl` para transferencia en la API externa — ya no
+hace falta, el frontend nunca lo va a usar para ese proveedor.
+
+De paso se completó `/donate/transferencia/` con lo que faltaba (antes solo decía "mandanos el
+comprobante" sin decir a dónde transferir):
+- Caja `.transfer-alias-box` con el alias `MUPGA.MP` (mismo alias que ya se promocionaba en el
+  sistema manual viejo, `data/donate.json` → `highlight`) y botón "Copiar"
+  (`navigator.clipboard.writeText`).
+- Tercer botón de contacto — antes solo había WhatsApp + reclamo, ahora también Discord
+  (`https://discord.com/invite/xTxFHSmVhf`, mismo link que ya usan `/donate/success/` y
+  `/donate/error/`).
+
+---
+
 ## CORS
 
-Los GETs directos (`/api/currencies`, `/api/currencies/quote`, `/api/payments/providers`) van desde el browser a la API externa. **La API externa debe tener CORS habilitado** para el origen del frontend:
+Los GETs directos (`/api/currencies`, `/api/currencies/quote`, `/api/payments/providers`, `/api/promotions/active`) van desde el browser a la API externa. **La API externa debe tener CORS habilitado** para el origen del frontend:
 
 - Desarrollo: `http://localhost`
 - Producción: `https://mupga.com.ar` (o el dominio de Pages)
@@ -262,3 +404,106 @@ El POST a `/api/donate/order.php` va al VPS (mismo origen o con CORS del VPS), n
    - Success: `https://mupga.com.ar/donate/success/`
    - Error:   `https://mupga.com.ar/donate/error/`
 4. Si se usa Cloudflare Pages, actualizar la URL hardcodeada en `config.js` antes de buildear.
+
+---
+
+## Anexo — Contrato oficial de la API externa de pagos (doc recibida 2026-08-02)
+
+> Documento entregado por el equipo de la API de pagos, dirigido originalmente a un agente de
+> frontend genérico ("página principal"). Se incorpora acá porque describe el contrato completo
+> que ya consume `/donate` (Pasos 1 a 3.5) y el que agregó el flujo de **promociones**
+> (Paso 6, implementado el 2026-08-02).
+
+### Convenciones generales de la API
+
+- Serializa en **camelCase**, usa **UUID** como identificadores, JSON en request/response.
+- Valores monetarios son **decimales**: no redondear, no recalcular cotizaciones ni alterar
+  importes recibidos en el frontend.
+- Endpoints marcados **Player** requieren `Authorization: Bearer <JWT>` — en este sitio ese JWT
+  se pide vía `payment_token.php` (ver Paso 2.5), nunca se firma en el browser.
+- El valor de `account` enviado al crear una orden debe pertenecer al JWT; la API vuelve a
+  validarlo del lado del servidor. `order.php` va más estricto: ni siquiera deja que el body del
+  cliente influya — sobrescribe el campo directamente desde `$auth['usr']`.
+- Los mensajes de error de la API son reglas de negocio y se deben mostrar al usuario tal cual
+  (`extractApiErrors()` en `donate.js` ya contempla el formato `{title, statusCode, errors}`).
+- **Una cuenta no puede tener más de una orden activa** (`Pending` o `Approved`). Ante
+  `409 Conflict` hay que bloquear la compra nueva e informar que la orden existente debe
+  terminarse/cancelarse — **no implementado hoy**: ni `donate.js` ni `order.php` manejan un 409
+  de forma especial, cae al mensaje genérico de error de compra vía `extractApiErrors()`.
+
+### Flujo 1 — Compra personalizada (ya implementado)
+
+| Endpoint | Auth | Uso | Implementado en |
+|---|---|---|---|
+| `GET /api/currencies` | ninguna | listar monedas Game/Fiat/Crypto | `donate.js` → `loadCurrencies()` |
+| `GET /api/payments/providers?currency=` | Player | proveedores para la moneda de pago elegida | `donate.js` → `loadProviders()` |
+| `GET /api/currencies/quote` | Player | cotizar monto + validar código de descuento | `donate.js` → `onCalculate()` |
+| `POST /api/orders` | Player | crear orden personalizada | proxy `src/public/api/donate/order.php` |
+
+**Diferencias detectadas contra el código actual — a verificar, no corregidas acá:**
+
+- El contrato documenta los query params de `/api/currencies/quote` como `baseCurrency` /
+  `quoteCurrency` (camelCase); `donate.js:323-326` los manda en minúsculas
+  (`basecurrency`, `quotecurrency`). Probablemente tolerado por binding case-insensitive del
+  lado .NET (viene funcionando en producción), pero no confirmado — si se toca ese código,
+  alinear el casing de una.
+- El contrato documenta el body de `POST /api/orders` en camelCase (`account`, `baseCurrency`,
+  `baseCurrencyAmount`, `quoteCurrency`, `paymentProviderId`, `discountCode`); el código actual
+  (`donate.js:465-474` y `order.php:43`) manda `Account`, `BaseCurrency`, `BaseCurrencyAmount`,
+  `QuoteCurrency`, `PaymentProviderId` en PascalCase, con `userEmail`/`discountCode` sí en
+  camelCase. Mismo caso: probablemente tolerado por deserialización case-insensitive, pero es
+  una inconsistencia real dentro del propio código, no solo contra el doc.
+- El contrato indica `baseCurrencyAmount` entre `1000` y `1000000`; el frontend impone un tope
+  más chico de `100000` (`donate.js:238` y `onCalculate()`). Puede ser una restricción de
+  producto intencional (UI más conservadora) — confirmar con Franco si el límite de 1.000.000
+  debería habilitarse o si el de 100.000 es a propósito antes de tocarlo.
+
+### Flujo 2 — Promociones (implementado 2026-08-02 — ver Paso 6 arriba)
+
+Paquete reutilizable con precio fijo (ej. "6.000 WC por 5.000 ARS"), no depende de la
+cotización vigente ni de códigos de descuento.
+
+| Endpoint | Auth | Uso | Implementado en |
+|---|---|---|---|
+| `GET /api/promotions/active` | Player | listar promociones habilitadas + proveedores que pueden procesarlas ahora mismo | `donate.js` → `loadPromotions()` |
+| `POST /api/promotions/{promotionId}/orders` | Player | crear orden desde una promoción (solo `account` + `paymentProviderId` + `userEmail` en el body) | proxy `src/public/api/donate/promotion_order.php` |
+
+Reglas de negocio respetadas por la implementación:
+
+- Precio y cantidad salen **solo** de la respuesta de la API — nunca calculados ni cacheados en
+  el frontend.
+- Si la promoción tiene un único proveedor habilitado, se preselecciona; si tiene varios, se
+  muestra un `<select>`; si no tiene ninguno, la tarjeta queda sin botón habilitable.
+- El body de creación de orden **no** lleva `baseCurrency`, `baseCurrencyAmount`,
+  `quoteCurrency` ni `discountCode` — solo `userEmail`, `account` (forzado por el proxy desde el
+  JWT, igual que en el flujo personalizado) y `paymentProviderId`.
+- Ante error de proveedor/promoción (4XX que no sea 409), se invalida el caché local
+  (`_promotionsLoaded = false`) para refrescar `GET /api/promotions/active` la próxima vez que
+  se entre a la pestaña, en vez de permitir reintentar sobre datos vencidos.
+- La creación de la orden va por el proxy PHP `src/public/api/donate/promotion_order.php`, que
+  inyecta `account` desde el JWT — calcado del patrón de `order.php`, el cliente nunca puede
+  falsificar ese campo.
+
+### Estados de orden
+
+`Pending`, `Approved`, `Rejected`, `Cancelled`, `Delivered`, `Expired`. La aprobación del pago y
+la acreditación de moneda ocurren de forma asíncrona (webhook del proveedor → workers de la API
+externa) — el frontend nunca debe declarar "moneda acreditada" solo por haber creado la orden o
+abierto `paymentUrl`.
+
+**No existe hoy un endpoint Player para consultar detalle/estado de una orden por `orderId`.**
+Por eso `/donate/success/` y `/donate/error/` son pantallas estáticas que no confirman nada — si
+en algún momento se necesita seguimiento real del estado, hay que pedirle al equipo de la API un
+endpoint Player nuevo validado contra la cuenta del JWT. **Nunca** reusar los endpoints
+administrativos de abajo para eso.
+
+### Endpoints que este sitio NO debe invocar desde el frontend público
+
+Reservados para un futuro panel Admin — no usar desde `/donate` ni desde ningún proxy PHP
+público de este repo:
+
+- `GET /api/orders`, `GET /api/orders/{id}`, `POST /api/orders/{id}/cancel`,
+  `POST /api/orders/{id}/payments/retry`
+- `POST /api/payments/manual`, `GET /api/payments`, `GET /api/payments/status`
+- `POST /api/payments/webhook/mercado-pago` (callback del proveedor, no del navegador)
+- CRUD administrativo de promociones (crear/editar/deshabilitar paquetes)

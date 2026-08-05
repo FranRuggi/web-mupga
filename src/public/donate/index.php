@@ -16,11 +16,24 @@ ob_start();
 
   <section class="section">
 
-    <!-- Mensaje: tienda no disponible o error global -->
-    <div id="store-status" class="donate-pending-notice" hidden></div>
+    <div class="store-shell">
 
-    <!-- Exchange principal -->
-    <div id="exchange-main" class="exchange-wrapper">
+      <!-- Selector de modalidad -->
+      <div class="store-tabs" role="tablist">
+        <button type="button" class="store-tab active" id="tab-personalizada"
+                role="tab" aria-selected="true">Compra personalizada</button>
+        <button type="button" class="store-tab store-tab--promo" id="tab-promociones"
+                role="tab" aria-selected="false">Promociones</button>
+      </div>
+
+      <!-- Panel: compra personalizada -->
+      <div id="panel-personalizada" class="store-panel">
+
+        <!-- Mensaje: tienda no disponible o error global -->
+        <div id="store-status" class="donate-pending-notice" hidden></div>
+
+        <!-- Exchange principal -->
+        <div id="exchange-main" class="exchange-wrapper">
 
       <!-- Email -->
       <div class="exchange-card">
@@ -121,7 +134,34 @@ ob_start();
       <!-- Error en la creación de la orden -->
       <div id="buy-error" class="exchange-error" hidden></div>
 
-    </div><!-- /#exchange-main -->
+        </div><!-- /#exchange-main -->
+
+      </div><!-- /#panel-personalizada -->
+
+      <!-- Panel: promociones -->
+      <div id="panel-promociones" class="store-panel" hidden>
+
+        <!-- Email -->
+        <div class="exchange-card">
+          <p class="exchange-label">Tu email</p>
+          <div class="exchange-email-section">
+            <input id="inp-email-promo" type="email" class="exchange-email-input"
+                   placeholder="nombre@mail.com" autocomplete="email">
+            <p class="exchange-email-hint">
+              Usamos este email para enviarte la factura y cualquier novedad sobre tu compra.
+            </p>
+          </div>
+        </div>
+
+        <!-- Mensaje: sin promociones / error de carga -->
+        <div id="promo-status" class="donate-pending-notice" hidden></div>
+
+        <!-- Grilla de promociones (poblada por JS) -->
+        <div id="promo-grid" class="promo-grid"></div>
+
+      </div><!-- /#panel-promociones -->
+
+    </div><!-- /.store-shell -->
 
   </section>
 

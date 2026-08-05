@@ -19,6 +19,8 @@ const PAYMENTS_HEADERS = {
 // ── Estado ───────────────────────────────────────────────────
 let _quote     = null;   // { CurrencyCode, BaseAmount, FinalAmount, ApplyDiscount, DiscountPercentage, DiscountCode }
 let _providers = [];
+let _promotions       = [];  // [{ Id, Name, GameCurrencyCode, GameCurrencyAmount, PaymentCurrencyCode, PaymentAmount, Providers:[...] }]
+let _promotionsLoaded = false;
 
 // ── Refs DOM (se resuelven en DOMContentLoaded) ──────────────
 let $status, $exchangeMain,
@@ -27,7 +29,10 @@ let $status, $exchangeMain,
     $provSection, $selProvider, $provWarn,
     $btnBuy, $buyError,
     $inpEmail, $amountLimitWarn,
-    $inpDiscount, $discountHint;
+    $inpDiscount, $discountHint,
+    $tabPersonalizada, $tabPromociones,
+    $panelPersonalizada, $panelPromociones,
+    $promoStatus, $promoGrid, $inpEmailPromo;
 
 // ── Íconos de monedas ─────────────────────────────────────────
 const KNOWN_ICONS = ['wc', 'ars', 'usdt'];
@@ -137,6 +142,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   $amountLimitWarn = document.getElementById('amount-limit-warn');
   $inpDiscount     = document.getElementById('inp-discount');
   $discountHint    = document.getElementById('discount-hint');
+  $tabPersonalizada   = document.getElementById('tab-personalizada');
+  $tabPromociones     = document.getElementById('tab-promociones');
+  $panelPersonalizada = document.getElementById('panel-personalizada');
+  $panelPromociones   = document.getElementById('panel-promociones');
+  $promoStatus        = document.getElementById('promo-status');
+  $promoGrid          = document.getElementById('promo-grid');
+  $inpEmailPromo      = document.getElementById('inp-email-promo');
 
   $selFrom.addEventListener('change', onCurrencyChange);
   $selTo.addEventListener('change', onCurrencyChange);
@@ -146,9 +158,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   $btnBuy.addEventListener('click', onBuy);
   $inpEmail.addEventListener('input', onEmailInput);
   $inpDiscount.addEventListener('input', onDiscountInput);
+  $tabPersonalizada.addEventListener('click', () => switchTab('personalizada'));
+  $tabPromociones.addEventListener('click', () => switchTab('promociones'));
+  $promoGrid.addEventListener('change', onPromoProviderChange);
+  $promoGrid.addEventListener('click', onPromoGridClick);
 
   await loadCurrencies();
 });
+
+// ── Selector de modalidad (tabs) ───────────────────────────────
+function switchTab(tab) {
+  const isPersonal = tab === 'personalizada';
+  $tabPersonalizada.classList.toggle('active', isPersonal);
+  $tabPromociones.classList.toggle('active', !isPersonal);
+  $tabPersonalizada.setAttribute('aria-selected', String(isPersonal));
+  $tabPromociones.setAttribute('aria-selected', String(!isPersonal));
+  $panelPersonalizada.hidden = !isPersonal;
+  $panelPromociones.hidden = isPersonal;
+
+  if (!isPersonal && !_promotionsLoaded) {
+    loadPromotions();
+  }
+}
 
 // ── Paso 1 — Cargar monedas ───────────────────────────────────
 async function loadCurrencies() {
@@ -490,28 +521,237 @@ async function onBuy() {
 
   if (res.status === 201) {
     const data = await res.json().catch(() => ({}));
-    const url = data.paymentUrl ?? data.redirectionUrl ?? data.PaymentUrl ?? data.RedirectionUrl;
-    if (url) {
-      window.location.href = url;
-    }
+    goToPaymentDestination(data, provider.Name);
     return;
   }
 
   const errData = await res.json().catch(() => ({}));
-
-  if (res.status >= 500) {
-    showBuyError('No se pudo procesar la compra. Intentá nuevamente más tarde.');
-  } else {
-    const msgs = extractApiErrors(errData);
-    let html = esc(msgs[0] || 'La compra no pudo procesarse correctamente.');
-    if (msgs.length > 1) {
-      html += '<ul>' + msgs.slice(1).map(d => '<li>' + esc(d) + '</li>').join('') + '</ul>';
-    }
-    showBuyError(html, true);
-  }
+  showBuyError(buildOrderErrorHtml(res.status, errData), true);
 
   $btnBuy.disabled    = false;
   $btnBuy.textContent = 'Comprar';
+}
+
+// Medio de pago "Transferencia Bancaria" no tiene un paymentUrl real de un proveedor
+// online — la acreditación es manual. En vez de confiar en lo que la API externa mande ahí
+// (configuración pendiente del lado de la API, ver .claude/docs/payment_integration.md, Paso 5),
+// se detecta por nombre de proveedor y siempre se manda a nuestra propia página de instrucciones.
+function isTransferProvider(name) {
+  return /transferencia/i.test(name || '');
+}
+
+function goToPaymentDestination(data, providerName) {
+  const orderId = data.orderId ?? data.OrderId ?? data.id ?? data.Id;
+
+  if (isTransferProvider(providerName)) {
+    let dest = BASE + '/donate/transferencia/';
+    if (orderId) dest += '?orderId=' + encodeURIComponent(orderId);
+    window.location.href = dest;
+    return;
+  }
+
+  const url = data.paymentUrl ?? data.redirectionUrl ?? data.PaymentUrl ?? data.RedirectionUrl;
+  if (url) {
+    window.location.href = url;
+  }
+}
+
+// Mensaje de error para POST /api/orders y POST /api/promotions/{id}/orders.
+// 409 = ya existe una orden Pending/Approved en la cuenta (ver CLAUDE.md, contrato API pagos).
+function buildOrderErrorHtml(status, errData) {
+  if (status === 409) {
+    return esc('Ya tenés una orden de compra activa. Terminala o esperá a que se cancele antes de generar una nueva.');
+  }
+  if (status >= 500) {
+    return esc('No se pudo procesar la compra. Intentá nuevamente más tarde.');
+  }
+  const msgs = extractApiErrors(errData);
+  let html = esc(msgs[0] || 'La compra no pudo procesarse correctamente.');
+  if (msgs.length > 1) {
+    html += '<ul>' + msgs.slice(1).map(d => '<li>' + esc(d) + '</li>').join('') + '</ul>';
+  }
+  return html;
+}
+
+// ── Promociones ─────────────────────────────────────────────
+async function loadPromotions() {
+  if (!PAYMENTS_API) {
+    showPromoUnavailable('La tienda no está disponible en este momento. Volvé pronto.');
+    return;
+  }
+
+  $promoStatus.hidden = true;
+  $promoGrid.innerHTML = '<p class="promo-loading">Cargando promociones…</p>';
+
+  try {
+    const paymentToken = await getPaymentToken();
+    if (!paymentToken) {
+      throw new Error('No se pudo autenticar contra la API de pagos.');
+    }
+
+    const res = await fetch(PAYMENTS_API + '/api/promotions/active', {
+      headers: { ...PAYMENTS_HEADERS, Authorization: 'Bearer ' + paymentToken },
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msgs = extractApiErrors(err);
+      throw new Error(msgs[0] || ('Error ' + res.status));
+    }
+
+    const raw = await res.json();
+    const rawPromos = Array.isArray(raw) ? raw : (raw.promotions ?? raw.Promotions ?? []);
+    _promotions = rawPromos.map(normalizePromotion);
+    _promotionsLoaded = true;
+
+    if (!_promotions.length) {
+      showPromoUnavailable('No hay promociones activas en este momento.');
+      return;
+    }
+
+    $promoGrid.innerHTML = _promotions.map(buildPromoCard).join('');
+
+  } catch (err) {
+    showPromoUnavailable('No se pudieron cargar las promociones: ' + err.message);
+  }
+}
+
+function normalizePromotion(p) {
+  const rawProviders = p.paymentProviders ?? p.PaymentProviders ?? [];
+  return {
+    Id:                  p.id ?? p.Id,
+    Name:                p.name ?? p.Name,
+    GameCurrencyCode:    p.gameCurrencyCode ?? p.GameCurrencyCode,
+    GameCurrencyAmount:  p.gameCurrencyAmount ?? p.GameCurrencyAmount,
+    PaymentCurrencyCode: p.paymentCurrencyCode ?? p.PaymentCurrencyCode,
+    PaymentAmount:       p.paymentAmount ?? p.PaymentAmount,
+    Providers: rawProviders.map(pr => ({
+      Id:           pr.id           ?? pr.Id,
+      Name:         pr.name         ?? pr.Name,
+      CurrencyCode: pr.currencyCode ?? pr.CurrencyCode,
+      MaxAmount:    pr.maxAmount    ?? pr.MaxAmount,
+    })),
+  };
+}
+
+function showPromoUnavailable(msg) {
+  $promoStatus.textContent = msg;
+  $promoStatus.hidden = false;
+  $promoGrid.innerHTML = '';
+}
+
+function buildPromoCard(p) {
+  const gameAmt  = fmtPlain(p.GameCurrencyAmount) + ' ' + esc(p.GameCurrencyCode);
+  const priceAmt = fmtAmount(p.PaymentAmount, p.PaymentCurrencyCode);
+
+  let providerHtml;
+  if (p.Providers.length === 0) {
+    providerHtml = '<p class="promo-card__unavailable">No hay medios de pago disponibles para esta promoción.</p>';
+  } else if (p.Providers.length === 1) {
+    providerHtml =
+      '<p class="promo-card__provider-static">Medio de pago: <strong>' + esc(p.Providers[0].Name) + '</strong></p>';
+  } else {
+    providerHtml =
+      '<select class="exchange-select exchange-select--full promo-card__provider-select">' +
+      '<option value="">Seleccioná un medio de pago...</option>' +
+      p.Providers.map(pr => '<option value="' + esc(pr.Id) + '">' + esc(pr.Name) + '</option>').join('') +
+      '</select>';
+  }
+
+  // Habilitado de entrada solo si hay exactamente un proveedor (no requiere elegir nada más);
+  // con 0 queda deshabilitado para siempre, con 2+ se habilita al elegir uno (onPromoProviderChange).
+  const enabledNow = p.Providers.length === 1;
+
+  return (
+    '<div class="promo-card" data-promotion-id="' + esc(p.Id) + '">' +
+      '<h3 class="promo-card__name">' + esc(p.Name) + '</h3>' +
+      '<div class="promo-card__amounts">' +
+        '<span class="promo-card__game">' + gameAmt + '</span>' +
+        '<span class="promo-card__arrow">&#8594;</span>' +
+        '<span class="promo-card__price">' + priceAmt + '</span>' +
+      '</div>' +
+      '<div class="promo-card__provider">' + providerHtml + '</div>' +
+      '<button type="button" class="btn btn-primary promo-card__buy"' + (enabledNow ? '' : ' disabled') + '>Comprar</button>' +
+      '<div class="promo-card__error exchange-error" hidden></div>' +
+    '</div>'
+  );
+}
+
+function onPromoProviderChange(e) {
+  const sel = e.target.closest('.promo-card__provider-select');
+  if (!sel) return;
+  const card = sel.closest('.promo-card');
+  card.querySelector('.promo-card__buy').disabled = !sel.value;
+  card.querySelector('.promo-card__error').hidden = true;
+}
+
+function onPromoGridClick(e) {
+  const btn = e.target.closest('.promo-card__buy');
+  if (btn) onBuyPromotion(btn);
+}
+
+async function onBuyPromotion(btn) {
+  const card = btn.closest('.promo-card');
+  const promotionId = card.dataset.promotionId;
+  const promo = _promotions.find(p => p.Id === promotionId);
+  const errBox = card.querySelector('.promo-card__error');
+  errBox.hidden = true;
+  if (!promo) return;
+
+  const email = ($inpEmailPromo?.value || '').trim();
+  if (!isValidEmail(email)) {
+    errBox.textContent = 'Ingresá un email válido en el campo de arriba para continuar.';
+    errBox.hidden = false;
+    return;
+  }
+
+  let provider;
+  if (promo.Providers.length === 1) {
+    provider = promo.Providers[0];
+  } else {
+    const providerId = card.querySelector('.promo-card__provider-select')?.value;
+    if (!providerId) return;
+    provider = promo.Providers.find(p => p.Id === providerId);
+    if (!provider) return;
+  }
+
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'Procesando…';
+
+  const res = await authFetch('donate/promotion_order.php', {
+    method: 'POST',
+    body: JSON.stringify({
+      promotionId,
+      paymentProviderId: provider.Id,
+      userEmail: email,
+    }),
+  });
+
+  if (!res) {
+    btn.disabled    = false;
+    btn.textContent = originalText;
+    return;
+  }
+
+  if (res.status === 201) {
+    const data = await res.json().catch(() => ({}));
+    goToPaymentDestination(data, provider.Name);
+    return;
+  }
+
+  const errData = await res.json().catch(() => ({}));
+  errBox.innerHTML = buildOrderErrorHtml(res.status, errData);
+  errBox.hidden = false;
+
+  // La promoción/proveedor pudo cambiar entretanto (deshabilitada, precio distinto, etc.) —
+  // forzar un recálculo la próxima vez que se entre a la pestaña, como pide el contrato de la API.
+  if (res.status !== 409 && res.status < 500) {
+    _promotionsLoaded = false;
+  }
+
+  btn.disabled    = false;
+  btn.textContent = originalText;
 }
 
 // ── Utilidades ────────────────────────────────────────────────
@@ -519,6 +759,12 @@ function showBuyError(msg, isHtml) {
   if (isHtml) $buyError.innerHTML = msg;
   else        $buyError.textContent = msg;
   $buyError.hidden = false;
+}
+
+function fmtPlain(amount) {
+  const n = parseFloat(amount);
+  if (isNaN(n)) return String(amount);
+  return n.toLocaleString('es-AR');
 }
 
 function fmtAmount(amount, code) {
