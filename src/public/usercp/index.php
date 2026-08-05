@@ -197,7 +197,7 @@ ob_start();
         </div>
       </div>
       <div style="text-align:center;margin-top:1rem">
-        <a href="../donate/" class="btn btn-secondary">Recargar WCoin</a>
+        <a href="../donate2/" class="btn btn-secondary">Recargar WCoin</a>
       </div>
     </div>
 
