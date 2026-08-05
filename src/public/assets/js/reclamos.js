@@ -17,6 +17,8 @@
 
    Deep link: /reclamos/?ver=123 abre directo el hilo del ticket 123
    (lo usa el banner site-wide de app.js).
+   Deep link: /reclamos/?mensaje=... pre-carga el textarea del form nuevo
+   (lo usa /donate/transferencia/ para el reclamo de comprobante).
 
    Depende de: app.js (BASE, API, esc), auth.js (isAuthenticated, authFetch)
    ============================================================ */
@@ -90,10 +92,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   refreshMiosBadge();
 
+  const params = new URLSearchParams(window.location.search);
+
   // Deep link del banner: /reclamos/?ver=123 abre el hilo directo
-  const ver = Number(new URLSearchParams(window.location.search).get('ver'));
+  const ver = Number(params.get('ver'));
   if (ver > 0) {
     abrirDetalle(ver);
+  }
+
+  // Deep link con mensaje pre-cargado: /reclamos/?mensaje=... (ej. desde
+  // /donate/transferencia/ para no hacer escribir de cero el mismo texto)
+  const mensajePrefill = params.get('mensaje');
+  if (mensajePrefill) {
+    $mensaje.value = mensajePrefill.slice(0, 2000);
   }
 });
 

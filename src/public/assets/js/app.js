@@ -340,6 +340,48 @@ async function loadSiteStatus() {
   }
 }
 
+// ── Popup promocional (desde ControlPanel) ────────────────────
+// Una vez por sesión de navegador (sessionStorage): no molesta de nuevo
+// mientras el visitante navega el sitio en la misma pestaña.
+async function loadPromoPopup() {
+  const SEEN_KEY = 'mupga_promo_seen';
+  if (sessionStorage.getItem(SEEN_KEY)) return;
+
+  const promo = await apiFetch('site/promo.php');
+  if (!promo || !Number(promo.is_active)) return;
+
+  sessionStorage.setItem(SEEN_KEY, '1');
+
+  const cta = promo.cta_link
+    ? `<a class="btn btn-primary promo-modal__cta" href="${esc(promo.cta_link)}">${esc(promo.cta_text || 'Entendido')}</a>`
+    : `<button type="button" class="btn btn-primary promo-modal__cta" data-promo-close>${esc(promo.cta_text || 'Entendido')}</button>`;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'promo-modal';
+  wrap.innerHTML = `
+    <div class="promo-modal__overlay" data-promo-close></div>
+    <div class="promo-modal__inner">
+      <button type="button" class="promo-modal__close" data-promo-close aria-label="Cerrar">✕</button>
+      ${promo.image_url ? `<img class="promo-modal__img" src="${esc(promo.image_url)}" alt="">` : ''}
+      ${promo.eyebrow ? `<p class="promo-modal__eyebrow">${esc(promo.eyebrow)}</p>` : ''}
+      ${promo.title ? `<h2 class="promo-modal__title">${esc(promo.title)}</h2>` : ''}
+      ${promo.highlight ? `<p class="promo-modal__highlight">${esc(promo.highlight)}</p>` : ''}
+      ${promo.description ? `<p class="promo-modal__desc">${esc(promo.description)}</p>` : ''}
+      ${cta}
+    </div>`;
+  document.body.appendChild(wrap);
+  document.body.style.overflow = 'hidden';
+
+  const close = () => {
+    wrap.remove();
+    document.body.style.overflow = '';
+  };
+  wrap.querySelectorAll('[data-promo-close]').forEach(el => el.addEventListener('click', close));
+  document.addEventListener('keydown', function onEsc(e) {
+    if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); }
+  });
+}
+
 // '2026-07-12T23:00:00' → '12/07 23:00 hs' (hora del servidor, sin conversión TZ)
 function formatScheduledEnd(iso) {
   if (!iso) return '';
@@ -381,6 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNav();
   markActiveNav();
   loadSiteStatus();
+  loadPromoPopup();
   loadReclamoNotice();
 
   const cta = document.getElementById('hero-cta');

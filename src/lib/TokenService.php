@@ -83,12 +83,41 @@ class TokenService {
     }
 
     /**
-     * Devuelve el Unix timestamp UTC real consultando pool.ntp.org (UDP 123).
-     * Independiente del reloj del servidor local — funciona desde cualquier VPS.
-     * Fallback a time() si NTP no está disponible (firewall, red, timeout).
+     * Devuelve el Unix timestamp UTC real, con varias fuentes independientes del
+     * reloj local del VPS (que ya demostró ser inestable — ver incidentes de
+     * timezone en CLAUDE.md). Orden: NTP → header Date de la propia API de pagos
+     * (HTTPS, ya sabemos que sale porque es el mismo destino del POST de la orden;
+     * además sincroniza directo contra el sistema que valida el JWT) → time().
      */
     private static function utcNow(): int {
-        return self::ntpTimestamp() ?? time();
+        return self::ntpTimestamp() ?? self::paymentsApiDateTimestamp() ?? time();
+    }
+
+    /**
+     * Consulta el header HTTP `Date` de la propia API de pagos (HEAD request) para
+     * obtener su hora real. Más confiable que NTP en VPS con salida UDP restringida.
+     */
+    private static function paymentsApiDateTimestamp(): ?int {
+        $paymentsUrl = rtrim($_ENV['PAYMENTS_API_URL'] ?? '', '/');
+        if (!$paymentsUrl) return null;
+
+        $ch = curl_init($paymentsUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_NOBODY         => true,
+            CURLOPT_HEADER         => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 3,
+            CURLOPT_FOLLOWLOCATION => true,
+        ]);
+        $headers = curl_exec($ch);
+        curl_close($ch);
+
+        if ($headers === false || !preg_match('/^Date:\s*(.+)$/mi', $headers, $m)) {
+            return null;
+        }
+
+        $ts = strtotime(trim($m[1]));
+        return $ts !== false ? $ts : null;
     }
 
     /**

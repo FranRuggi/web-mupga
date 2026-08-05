@@ -5,6 +5,7 @@
       "provider": "Mercado Pago",
       "icon": "💳",
       "rate": "$1 ARS = 1 WCoin",
+      "highlight": "⭐ Recomendado: transferí al alias MUPGA.MP, mismas bonificaciones",
       "notes": "Elegí un monto con bonificación o doná el monto que quieras",
       "promos": [
         { "label": "Monto libre — $1 ARS = 1 WCoin (sin bonificación)", "url": "https://link.mercadopago.com.ar/mupga" },

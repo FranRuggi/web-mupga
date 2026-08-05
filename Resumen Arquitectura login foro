@@ -1,0 +1,41 @@
+# Resumen v2 — Selector de Servidores + Foro (reemplaza el resumen anterior)
+
+**Nota:** esta versión reemplaza el enfoque de "cuenta web maestra universal" del resumen anterior. Se descarta la vinculación automática y el login unificado para todo el sitio. El Prode ya no está disponible (terminó el Mundial) y sale de cualquier prompt nuevo.
+
+## 1. Tabla `servidores`
+
+Fuente de verdad de qué servidores existen, para que el selector en `mupga.com.ar` se genere dinámicamente en vez de tener las cards hardcodeadas.
+
+Campos aproximados: `id`, `nombre`, `slug` (define el subdominio), `descripcion`, `version`, `experiencia`, `drop`, `sistema_reset`, `limite_resets`, `tienda_items`, `estado` (activo / próximo lanzamiento), `fecha_lanzamiento`, `orden`, `activo`.
+
+Agregar un servidor nuevo = una fila nueva en esta tabla, no un deploy de HTML.
+
+## 2. Selector + subdominios independientes
+
+```
+mupga.com.ar          → landing, lee la tabla `servidores` y arma las cards
+servidor1.mupga.com.ar → sitio del primer servidor: registro, descargas, info
+servidor2.mupga.com.ar → sitio del segundo servidor (a futuro), mismo esquema
+foro.mupga.com.ar      → foro, con su propia cuenta (ver punto 3)
+```
+
+Cada servidor es **totalmente independiente**: su propia base de cuentas de juego, sin ningún vínculo automático con otros servidores ni con una cuenta "maestra". Esto no cambia respecto a cómo funciona hoy.
+
+**Pendiente de definir con Claude Code** (no asumido): si cada servidor vive en su propio repo con su propio `.env`, o si es un mismo repo con distintos ambientes/variables en Cloudflare Pages por subdominio. Ambas dan `.env` independiente — la diferencia es cuánto código se duplica al mantenerlo.
+
+## 3. Foro con cuenta propia
+
+- El foro tiene **su propio sistema de cuentas**, separado de las cuentas de juego — como hace MU Argentina. Registro normal (email + contraseña), sin depender de ningún servidor.
+- **Vinculación opcional**: desde su perfil de foro, el usuario puede vincular una cuenta de un servidor puntual:
+  1. Elige el servidor de una lista (viene de la tabla `servidores`)
+  2. Ingresa usuario/contraseña de su cuenta en ESE servidor
+  3. Se valida contra la base de ese servidor (login de mínimo privilegio, no se guarda la contraseña)
+  4. Si es correcta, se guarda el vínculo y se traen stats básicas del personaje (nivel, resets, lo que exponga cada servidor) para mostrar en su perfil de foro
+- Un usuario puede vincular cuentas de varios servidores si juega en más de uno.
+- No es un requisito para postear — es enriquecimiento de perfil/verificación, no un gate de permisos.
+
+## 4. Orden de implementación
+
+1. Tabla `servidores` + selector dinámico en `mupga.com.ar`
+2. Foro con cuenta propia (registro, login, categorías por servidor)
+3. Vinculación de cuentas de servidor + stats en el perfil del foro

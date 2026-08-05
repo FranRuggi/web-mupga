@@ -1779,6 +1779,17 @@ h1, h2, h3, h4 {
   margin-top: 0.25rem;
 }
 
+.donate2-card-highlight {
+  background: var(--gold-glow);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+
 .donate2-how {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -1978,6 +1989,112 @@ h1, h2, h3, h4 {
   color: var(--text);
 }
 
+/* ── Popup promocional (ControlPanel) ──────────────────────────── */
+
+.promo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.promo-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.promo-modal__inner {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem 2rem 2rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow:
+    0 0 0 1px rgba(200,168,75,0.08),
+    0 0 70px rgba(200,168,75,0.12),
+    0 24px 56px rgba(0,0,0,0.65);
+}
+
+.promo-modal__close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: border-color var(--t), color var(--t);
+}
+.promo-modal__close:hover {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+
+.promo-modal__img {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  display: block;
+  margin: 0 auto 1.25rem;
+}
+
+.promo-modal__eyebrow {
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 0.4rem;
+}
+
+.promo-modal__title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--text-bright);
+  text-shadow: 0 0 24px var(--gold-glow);
+  margin: 0 0 0.5rem;
+}
+
+.promo-modal__highlight {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--gold);
+  text-shadow: 0 0 24px var(--gold-glow);
+  margin: 0 0 0.6rem;
+}
+
+.promo-modal__desc {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin: 0 0 1.5rem;
+}
+
+.promo-modal__cta {
+  width: 100%;
+  justify-content: center;
+}
+
 /* ── Página de donaciones ────────────────────────────────────── */
 .donate-hero {
   text-align: center;
@@ -2000,7 +2117,7 @@ h1, h2, h3, h4 {
 }
 
 .donate-hero-sub {
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 0.9rem;
   max-width: 500px;
   margin: 0 auto;
@@ -2554,10 +2671,65 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 .news-summary{ font-size:.88rem; color:var(--text); margin-bottom:.5rem; }
 .news-content{ font-size:.85rem; color:var(--text-dim); line-height:1.7; border-top:1px solid var(--border); padding-top:.75rem; margin-top:.5rem; }
 
-/* ── Tienda WCoin — Exchange ─────────────────────────────────── */
-.exchange-wrapper {
+/* ── Tienda WCoin — contenedor + tabs de modalidad ────────────── */
+.store-shell {
   max-width: 540px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.store-tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius-lg);
+  padding: 0.3rem;
+}
+
+.store-tab {
+  flex: 1;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 0.625rem 0.75rem;
+  font-family: var(--font-title);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--t), color var(--t), border-color var(--t), box-shadow var(--t);
+}
+.store-tab:hover { color: var(--text-bright); }
+.store-tab.active {
+  background: linear-gradient(135deg, var(--purple) 0%, #5a2d94 100%);
+  color: #fff;
+}
+
+/* Tab "Promociones" — resaltado dorado para que llame la atención frente al de compra personalizada */
+.store-tab--promo {
+  border-color: var(--gold-border);
+  color: var(--gold);
+  box-shadow: 0 0 14px var(--gold-glow);
+}
+.store-tab--promo:hover {
+  color: var(--gold-light);
+  border-color: var(--gold);
+}
+.store-tab--promo.active {
+  background: linear-gradient(135deg, var(--gold) 0%, #a8850a 100%);
+  color: #0d0b14;
+  border-color: transparent;
+  box-shadow: 0 0 20px var(--gold-glow), 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.store-panel { display: flex; flex-direction: column; gap: var(--gap-sm); }
+.store-panel[hidden] { display: none; }  /* el display:flex de arriba pisa al atributo hidden */
+
+/* ── Tienda WCoin — Exchange ─────────────────────────────────── */
+.exchange-wrapper {
   display: flex;
   flex-direction: column;
   gap: var(--gap-sm);
@@ -2581,7 +2753,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   font-size: 0.65rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--text);
   margin-bottom: 0.75rem;
 }
 
@@ -2678,7 +2850,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   padding: 0.875rem var(--gap-md);
   text-align: center;
   font-size: 0.9rem;
-  color: var(--text-dim);
+  color: var(--text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2690,7 +2862,24 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   font-family: var(--font-title);
   font-size: 1.1rem;
 }
-.quote-equals { color: var(--text-dim); }
+.quote-equals { color: var(--text); }
+
+.quote-discount-original {
+  text-decoration: line-through;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.quote-discount-badge {
+  background: rgba(200, 168, 75, 0.16);
+  border: 1px solid var(--gold-border);
+  color: var(--gold-light);
+  font-family: var(--font-title);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+}
 
 .exchange-providers-section {
   display: flex;
@@ -2716,6 +2905,88 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   color: #e87878;
 }
 .exchange-error ul { margin: 0.5rem 0 0 1.25rem; padding: 0; }
+
+/* ── Tienda WCoin — Promociones ──────────────────────────────── */
+.promo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--gap-sm);
+}
+
+.promo-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text);
+  font-size: 0.875rem;
+  padding: var(--gap-md) 0;
+}
+
+.promo-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius-lg);
+  padding: var(--gap-md);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.promo-card:hover {
+  border-color: var(--purple);
+  box-shadow: 0 0 20px var(--purple-glow);
+}
+
+.promo-card__name {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  color: var(--text-bright);
+  margin: 0;
+}
+
+.promo-card__amounts {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-family: var(--font-display);
+}
+
+.promo-card__game {
+  font-size: 1.1rem;
+  color: var(--text-bright);
+}
+
+.promo-card__arrow {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.promo-card__price {
+  font-size: 1.2rem;
+  color: var(--gold);
+}
+
+.promo-card__provider { min-height: 1.5rem; }
+
+.promo-card__provider-static {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+.promo-card__provider-static strong { color: var(--text-bright); }
+
+.promo-card__unavailable {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.promo-card__buy { width: 100%; justify-content: center; }
+
+.promo-card__error {
+  font-size: 0.8rem;
+  padding: 0.6rem 0.75rem;
+}
 
 /* ── Currency Picker (selector con ícono) ───────────────────── */
 .currency-picker {
@@ -2756,7 +3027,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 }
 
 .currency-picker__placeholder {
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 0.82rem;
 }
 
@@ -2822,7 +3093,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 }
 .currency-option__code {
   font-size: 0.7rem;
-  color: var(--text-dim);
+  color: var(--text);
 }
 
 .currency-icon {
@@ -2876,9 +3147,10 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 
 .exchange-email-hint {
   font-size: 0.72rem;
-  color: var(--text-dim);
+  color: var(--text);
   line-height: 1.4;
 }
+.exchange-email-hint--warn { color: var(--gold); }
 
 /* Aviso de límite de monto */
 .amount-limit-warn {
@@ -2908,6 +3180,10 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   border: 1px solid rgba(220, 80, 80, 0.28);
   box-shadow: 0 0 30px rgba(220, 80, 80, 0.08);
 }
+.payment-result--pending {
+  border: 1px solid var(--purple-border);
+  box-shadow: 0 0 30px var(--purple-glow);
+}
 
 .payment-result-icon {
   width: 72px;
@@ -2929,6 +3205,11 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   border: 2px solid rgba(220, 80, 80, 0.3);
   color: #e87878;
 }
+.payment-result--pending .payment-result-icon {
+  background: var(--purple-glow);
+  border: 2px solid var(--purple-border);
+  color: var(--purple-light);
+}
 
 .payment-result-title {
   font-family: var(--font-display);
@@ -2937,6 +3218,7 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
 }
 .payment-result--success .payment-result-title { color: var(--gold-light); }
 .payment-result--error   .payment-result-title { color: #e87878; }
+.payment-result--pending .payment-result-title { color: var(--purple-light); }
 
 .payment-result-msg {
   color: var(--text);
@@ -2945,8 +3227,63 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   line-height: 1.7;
 }
 .payment-result-note {
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 0.85rem;
+}
+
+.payment-result-actions {
+  display: flex;
+  gap: var(--gap-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Alias de transferencia (donate/transferencia/) */
+.transfer-alias-box {
+  width: 100%;
+  max-width: 340px;
+  background: rgba(200, 168, 75, 0.06);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius);
+  padding: var(--gap-md);
+  text-align: center;
+}
+.transfer-alias-label {
+  font-family: var(--font-title);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 0 0 0.5rem;
+}
+.transfer-alias-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.transfer-alias-value span {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--gold-light);
+  letter-spacing: 0.02em;
+}
+.transfer-alias-copy {
+  background: transparent;
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius);
+  color: var(--gold);
+  padding: 0.3rem 0.7rem;
+  font-family: var(--font-title);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: background var(--t), color var(--t);
+}
+.transfer-alias-copy:hover { background: var(--gold-glow); color: var(--gold-light); }
+.transfer-alias-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: var(--gold);
 }
 
 /* ── Módulo Prode ────────────────────────────────────────────── */

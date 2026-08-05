@@ -51,6 +51,7 @@ $targets = [
             'donate/index.html'         => 'src/public/donate/index.php',
             'donate/success/index.html' => 'src/public/donate/success/index.php',
             'donate/error/index.html'   => 'src/public/donate/error/index.php',
+            'donate/transferencia/index.html' => 'src/public/donate/transferencia/index.php',
             'mudial/index.html'         => 'src/public/mudial/index.php',
             'reclamos/index.html'       => 'src/public/reclamos/index.php',
             'donate2/index.html'        => 'src/public/donate2/index.php',

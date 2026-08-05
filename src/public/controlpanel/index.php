@@ -22,12 +22,14 @@ ob_start();
     <!-- Menú de secciones -->
     <div class="cp-tabs" role="tablist">
       <button class="cp-tab active" data-tab="status">🔔 Estado del sitio</button>
+      <button class="cp-tab" data-tab="promo">🎉 Promo</button>
       <button class="cp-tab" data-tab="news">📰 Noticias</button>
       <button class="cp-tab" data-tab="serverinfo">🗂️ Info del servidor</button>
       <button class="cp-tab" data-tab="downloads">📥 Descargas</button>
       <button class="cp-tab" data-tab="reclamos">🎫 Reclamos</button>
       <button class="cp-tab" data-tab="tienda">🛒 Tienda</button>
       <button class="cp-tab" data-tab="wcoin">🪙 WCoins</button>
+      <button class="cp-tab" data-tab="vip">🎖️ VIP</button>
       <button class="cp-tab" data-tab="estadisticas">📊 Estadísticas</button>
     </div>
 
@@ -67,6 +69,62 @@ ob_start();
           <button class="btn btn-secondary" id="status-deactivate">Desactivar</button>
         </div>
         <p class="cp-feedback" id="status-feedback"></p>
+      </div>
+    </section>
+
+    <!-- ── Promo popup ── -->
+    <section class="cp-section account-card" id="cp-tab-promo" hidden>
+      <p class="account-card__title">Popup promocional</p>
+      <p class="cp-hint">Aparece una vez por sesión de navegador al entrar al sitio (banner tipo "de 0 a X resets", promo de EXP, etc.).</p>
+      <div class="cp-status-box" id="promo-current">Cargando…</div>
+
+      <div class="cp-form">
+        <label class="cp-field">
+          <span>Eyebrow (texto chico arriba, opcional)</span>
+          <input type="text" id="promo-eyebrow" maxlength="100" placeholder="DE 0 A 50 RESETS">
+        </label>
+        <label class="cp-field">
+          <span>Título</span>
+          <input type="text" id="promo-title" maxlength="150" placeholder="¡TU MOMENTO LLEGÓ!">
+        </label>
+        <label class="cp-field">
+          <span>Destacado (texto grande)</span>
+          <input type="text" id="promo-highlight" maxlength="50" placeholder="EXP +200%">
+        </label>
+        <label class="cp-field">
+          <span>Descripción</span>
+          <textarea id="promo-description" rows="2" maxlength="300" placeholder="Aprovechá y subí rápido de nivel"></textarea>
+        </label>
+        <div class="cp-field">
+          <span>Imagen (opcional)</span>
+          <div class="cp-dropzone" id="promo-dropzone">
+            <input type="file" id="promo-image-file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+            <div class="cp-dropzone__idle" id="promo-dropzone-idle">
+              📷 Arrastrá una imagen acá o <u>hacé click para elegir</u><br>
+              <small>JPG · PNG · WebP · GIF — máx 3 MB</small>
+            </div>
+            <div class="cp-dropzone__preview" id="promo-dropzone-preview" hidden>
+              <img id="promo-image-preview" alt="">
+              <button type="button" class="btn btn-secondary btn-sm" id="promo-image-remove">✕ Quitar imagen</button>
+            </div>
+          </div>
+          <input type="hidden" id="promo-image-url" value="">
+        </div>
+        <div class="cp-grid-2">
+          <label class="cp-field">
+            <span>Texto del botón</span>
+            <input type="text" id="promo-cta-text" maxlength="50" placeholder="Entrar ahora">
+          </label>
+          <label class="cp-field">
+            <span>Link del botón (opcional — vacío = solo cierra)</span>
+            <input type="text" id="promo-cta-link" maxlength="300" placeholder="/rankings/">
+          </label>
+        </div>
+        <div class="cp-actions">
+          <button class="btn btn-primary" id="promo-activate">Activar popup</button>
+          <button class="btn btn-secondary" id="promo-deactivate">Desactivar</button>
+        </div>
+        <p class="cp-feedback" id="promo-feedback"></p>
       </div>
     </section>
 
@@ -258,6 +316,39 @@ ob_start();
 
       <p class="account-card__title" style="margin-top:var(--gap-md)">Últimos créditos manuales</p>
       <div id="wcoin-history"><p class="state-message">Cargando…</p></div>
+    </section>
+
+    <!-- ── VIP ── -->
+    <section class="cp-section account-card" id="cp-tab-vip" hidden>
+      <p class="account-card__title">Otorgar VIP Oro</p>
+      <p class="cp-hint">Usa el mismo stored procedure que el resto del sitio (sp_SetAccountGOLDVIP). Los días se suman sobre el vencimiento actual si el VIP sigue activo, o desde hoy si no. Verificá la cuenta antes de otorgar.</p>
+
+      <div class="cp-form">
+        <label class="cp-field">
+          <span>Cuenta (memb___id)</span>
+          <input type="text" id="vip-account" maxlength="10" autocomplete="off">
+        </label>
+        <div class="cp-actions">
+          <button class="btn btn-secondary" id="vip-lookup">Verificar cuenta</button>
+        </div>
+        <div class="cp-status-box" id="vip-lookup-result" hidden></div>
+
+        <label class="cp-field">
+          <span>Días de VIP (entero positivo)</span>
+          <input type="number" id="vip-days" min="1" step="1">
+        </label>
+        <label class="cp-field">
+          <span>Motivo (opcional, se guarda en la auditoría)</span>
+          <input type="text" id="vip-reason" maxlength="300">
+        </label>
+        <div class="cp-actions">
+          <button class="btn btn-primary" id="vip-grant" disabled>Otorgar VIP</button>
+        </div>
+        <p class="cp-feedback" id="vip-feedback"></p>
+      </div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-md)">Últimos otorgamientos manuales</p>
+      <div id="vip-history"><p class="state-message">Cargando…</p></div>
     </section>
 
     <!-- ── Estadísticas de compras (Tienda WCoin) ── -->
