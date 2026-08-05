@@ -63,7 +63,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
       <a href="<?= $base ?>/rankings/"  class="nav-link">Rankings</a>
       <a href="<?= $base ?>/info/"      class="nav-link">Info</a>
       <a href="<?= $base ?>/downloads/" class="nav-link">Descargas</a>
-      <a href="<?= $base ?>/donate2/"   class="nav-link">WCoin</a>
+      <a href="<?= $base ?>/donate/"    class="nav-link">WCoin</a>
       <a href="<?= $base ?>/tienda/"    class="nav-link">Tienda</a>
       <a href="https://wiki.mupga.com.ar" class="nav-link" target="_blank" rel="noopener">Wiki</a>
       <a href="<?= $base ?>/reclamos/" class="nav-link">Reclamos</a>
