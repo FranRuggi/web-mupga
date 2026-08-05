@@ -50,6 +50,19 @@ $v = (($_ENV['APP_ENV'] ?? 'production') === 'development')
 </head>
 <body>
 
+<div class="landing-embers" aria-hidden="true">
+<?php for ($i = 0; $i < 28; $i++):
+    $x     = mt_rand(0, 1000) / 10;          // posición horizontal: 0% .. 100%
+    $size  = mt_rand(20, 50) / 10;           // tamaño: 2px .. 5px
+    $dur   = mt_rand(70, 150) / 10;          // duración del ciclo: 7s .. 15s
+    $delay = -1 * (mt_rand(0, 150) / 10);    // negativo: arrancan a mitad de recorrido, no todas juntas
+    $drift = mt_rand(-45, 45);               // deriva horizontal en px
+    $magic = mt_rand(1, 100) <= 25;          // ~1 de cada 4, chispa "mágica" violeta en vez de dorada
+?>
+  <span class="ember<?= $magic ? ' ember--magic' : '' ?>" style="--x:<?= $x ?>%; --size:<?= $size ?>px; --dur:<?= $dur ?>s; --delay:<?= $delay ?>s; --drift:<?= $drift ?>px;"></span>
+<?php endfor; ?>
+</div>
+
 <div class="page-wrapper page-wrapper--landing">
 
   <header class="site-header">
