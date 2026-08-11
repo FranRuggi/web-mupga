@@ -15,11 +15,17 @@ que ya usás para loguearte al sitio.
 4. Ejecutar el script completo (crea el schema `forum` dentro de `mupga_admin` — la
    misma base que ya usa el ControlPanel — con 5 tablas: `categories`, `threads`,
    `posts`, `reactions`, `banned_accounts`).
-5. Verificar que aparecen las 5 tablas (el script ya lo hace al final, o corré):
+5. **Ejecutar también `database/foro_migracion_v2.sql`** (hardening: soft delete,
+   reportes, log de auditoría, ban con vencimiento, categorías ocultas, índices).
+   Es aditivo e idempotente — se puede correr las veces que haga falta, y si ya
+   corriste `foro_setup.sql` antes de que existiera la v2, corré solo la v2 encima.
+6. Verificar que aparecen las 7 tablas (el script ya lo hace al final, o corré):
    ```sql
    SELECT s.name AS [Schema], t.name AS [Tabla]
    FROM sys.tables t JOIN sys.schemas s ON s.schema_id = t.schema_id
    WHERE s.name = 'forum' ORDER BY t.name;
+   -- Debe devolver: banned_accounts, categories, moderation_log, posts,
+   --                reactions, reports, threads
    ```
 
 ---
@@ -35,6 +41,10 @@ FORUM_DB_NAME=mupga_admin
 FORUM_DB_USER=mupga_forum_svc
 FORUM_DB_PASS=<la contraseña del paso 1>
 ```
+
+Opcional (recomendado): configurar también `DISCORD_WEBHOOK_FORO` con un webhook del
+canal de staff en Discord — cada reporte de contenido manda un aviso ahí. Vacío = no avisa
+(el reporte igual queda guardado y visible en el ControlPanel).
 
 Reiniciar Apache (o el servicio, según corresponda — ver `runbooks/deploy.md`).
 

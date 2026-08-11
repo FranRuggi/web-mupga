@@ -42,12 +42,13 @@ try {
             $description = trim((string) ($body['description'] ?? '')) ?: null;
             $sortOrder   = (int) ($body['sort_order'] ?? 0);
             $adminOnly   = !empty($body['admin_only_post']);
+            $isHidden    = !empty($body['is_hidden']);
 
             if ($name === '' || mb_strlen($name) > 100) {
                 http_response_code(400); echo json_encode(['error' => 'El nombre debe tener entre 1 y 100 caracteres.']); exit;
             }
 
-            $id = $repo->createCategory($name, slugify($name) . '-' . bin2hex(random_bytes(2)), $description, $sortOrder, $adminOnly);
+            $id = $repo->createCategory($name, slugify($name) . '-' . bin2hex(random_bytes(2)), $description, $sortOrder, $adminOnly, $isHidden);
             echo json_encode(['success' => true, 'id' => $id], JSON_THROW_ON_ERROR);
             break;
         }
@@ -58,13 +59,14 @@ try {
             $description = trim((string) ($body['description'] ?? '')) ?: null;
             $sortOrder   = (int) ($body['sort_order'] ?? 0);
             $adminOnly   = !empty($body['admin_only_post']);
+            $isHidden    = !empty($body['is_hidden']);
 
             if ($id <= 0) { http_response_code(400); echo json_encode(['error' => 'Falta id.']); exit; }
             if ($name === '' || mb_strlen($name) > 100) {
                 http_response_code(400); echo json_encode(['error' => 'El nombre debe tener entre 1 y 100 caracteres.']); exit;
             }
 
-            $ok = $repo->updateCategory($id, $name, $description, $sortOrder, $adminOnly);
+            $ok = $repo->updateCategory($id, $name, $description, $sortOrder, $adminOnly, $isHidden);
             if (!$ok) { http_response_code(404); echo json_encode(['error' => 'Categoría no encontrada.']); exit; }
             echo json_encode(['success' => true], JSON_THROW_ON_ERROR);
             break;

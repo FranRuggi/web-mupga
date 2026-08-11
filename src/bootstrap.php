@@ -21,3 +21,4 @@ require_once SRC_ROOT . '/db/ForumRepository.php';
 
 require_once SRC_ROOT . '/lib/TokenService.php';
 require_once SRC_ROOT . '/lib/Auth.php';
+require_once SRC_ROOT . '/lib/ForumValidation.php';

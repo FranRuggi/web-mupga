@@ -377,7 +377,11 @@ ob_start();
 
     <!-- ── Foro ── -->
     <section class="cp-section account-card" id="cp-tab-foro" hidden>
-      <p class="account-card__title">Categorías del foro</p>
+      <p class="account-card__title">🚩 Reportes pendientes</p>
+      <p class="cp-hint">Resolver un reporte cierra también todos los demás sobre el mismo mensaje.</p>
+      <div id="foro-reports-list"><p class="state-message">Cargando…</p></div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-lg)">Categorías del foro</p>
       <div id="foro-cat-admin-list"><p class="state-message">Cargando…</p></div>
 
       <p class="account-card__title" style="margin-top:var(--gap-md)" id="foro-cat-form-title">Nueva categoría</p>
@@ -392,12 +396,20 @@ ob_start();
             <span style="margin:0">Solo staff puede publicar acá</span>
           </label>
         </div>
+        <label class="cp-field" style="flex-direction:row;align-items:center;gap:0.5rem">
+          <input type="checkbox" id="foro-cat-hidden" style="width:auto">
+          <span style="margin:0">Oculta (solo la ven los admins)</span>
+        </label>
         <div class="cp-actions">
           <button class="btn btn-primary" id="foro-cat-save">Guardar</button>
           <button class="btn btn-secondary" id="foro-cat-cancel" hidden>Cancelar edición</button>
         </div>
         <p class="cp-feedback" id="foro-cat-feedback"></p>
       </div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-lg)">🗑 Papelera de hilos</p>
+      <p class="cp-hint">Hilos borrados (por el autor o por el staff). Restaurar los devuelve al foro con sus respuestas.</p>
+      <div id="foro-papelera-list"><p class="state-message">Cargando…</p></div>
 
       <p class="account-card__title" style="margin-top:var(--gap-lg)">Banear cuenta del foro</p>
       <p class="cp-hint">Bloquea publicar/responder/reaccionar en el foro únicamente — no afecta la cuenta de juego.</p>
@@ -411,7 +423,10 @@ ob_start();
         </div>
         <div class="cp-status-box" id="foro-ban-lookup-result" hidden></div>
 
-        <label class="cp-field"><span>Motivo (opcional)</span><input type="text" id="foro-ban-reason" maxlength="300"></label>
+        <div class="cp-grid-2">
+          <label class="cp-field"><span>Motivo (opcional)</span><input type="text" id="foro-ban-reason" maxlength="300"></label>
+          <label class="cp-field"><span>Días (vacío = permanente)</span><input type="number" id="foro-ban-days" min="1" step="1" placeholder="permanente"></label>
+        </div>
         <div class="cp-actions">
           <button class="btn btn-primary" id="foro-ban-do" disabled>Banear</button>
           <button class="btn btn-secondary" id="foro-ban-undo" disabled>Sacar ban</button>
@@ -421,6 +436,9 @@ ob_start();
 
       <p class="account-card__title" style="margin-top:var(--gap-md)">Historial de bans</p>
       <div id="foro-ban-history"><p class="state-message">Cargando…</p></div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-lg)">📋 Últimas acciones de moderación</p>
+      <div id="foro-modlog-list"><p class="state-message">Cargando…</p></div>
     </section>
 
   </div>

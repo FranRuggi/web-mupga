@@ -4,6 +4,7 @@
  * Body JSON: { target_type: "thread"|"post", target_id }
  * Toggle: si ya habías reaccionado, la saca; si no, la agrega.
  * Un solo tipo de reacción en v1 ("Agradecer").
+ * No se puede reaccionar al contenido propio (F-05.02).
  */
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/config/forum_db.php';
@@ -33,9 +34,12 @@ try {
         http_response_code(403); echo json_encode(['error' => 'Estás baneado del foro.']); exit;
     }
 
-    $exists = $targetType === 'thread' ? $repo->getThread($targetId) : $repo->getPost($targetId);
-    if (!$exists) {
+    $target = $targetType === 'thread' ? $repo->getThread($targetId) : $repo->getPost($targetId);
+    if (!$target || $target['is_deleted']) {
         http_response_code(404); echo json_encode(['error' => 'No encontrado.']); exit;
+    }
+    if ($target['author_account'] === $auth['usr']) {
+        http_response_code(403); echo json_encode(['error' => 'No podés agradecerte a vos mismo.']); exit;
     }
 
     $result = $repo->toggleReaction($targetType, $targetId, $auth['usr']);

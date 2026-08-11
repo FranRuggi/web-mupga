@@ -59,19 +59,24 @@ try {
 
         case 'ban': {
             $reason = trim((string) ($body['reason'] ?? '')) ?: null;
+            // days opcional (F-08.06): vacío/0 = permanente; N = vence solo a los N días
+            $days   = isset($body['days']) && (int) $body['days'] > 0 ? (int) $body['days'] : null;
 
             $accRepo = new AccountRepository(Database::get());
             if (!$accRepo->usernameExists($account)) {
                 http_response_code(404); echo json_encode(['error' => 'La cuenta no existe.']); exit;
             }
 
-            $repo->banAccount($account, $admin['usr'], $reason);
+            $repo->banAccount($account, $admin['usr'], $reason, $days);
+            $repo->logModeration($admin['usr'], 'ban', 'account', $account,
+                ($reason ?? 'sin motivo') . ($days ? " — {$days} días" : ' — permanente'));
             echo json_encode(['success' => true], JSON_THROW_ON_ERROR);
             break;
         }
 
         case 'unban': {
             $ok = $repo->unbanAccount($account);
+            if ($ok) $repo->logModeration($admin['usr'], 'unban', 'account', $account);
             echo json_encode(['success' => true, 'was_banned' => $ok], JSON_THROW_ON_ERROR);
             break;
         }

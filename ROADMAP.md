@@ -264,6 +264,61 @@ suscripciones, editor WYSIWYG (usa el mismo markdown-lite que Noticias), avatare
 rangos, paginación real de hilos/posts (hoy corta en un TOP fijo, alcanza para la población
 actual).
 
+### Hardening v2 ✅ (2026-08-11) — Etapas 1-3 de `BACKLOG_FORO.md`
+
+Auditoría previa en `GAP_FORO.md` (Etapa 0, refleja el estado ANTES de este batch).
+Implementado sobre la v1, todo server-side-first:
+
+- [x] `database/foro_migracion_v2.sql` — aditiva/idempotente: soft delete (`deleted_at`/
+      `deleted_by` en threads y posts), `edited_by_staff`, `locked_reason`, `expires_at`
+      en bans, `is_hidden` en categorías, tablas `forum.reports` y `forum.moderation_log`,
+      índices (los FK no crean índice solo en SQL Server) — 2026-08-11
+- [x] F-01.01: `src/lib/ForumValidation.php` — validador único (título 120 / hilo 10.000 /
+      respuesta 5.000, status 422), sanitizado de caracteres de control/zero-width,
+      colapso de saltos de línea — 2026-08-11
+- [x] F-01.02: whitelist de esquema de links server-side (`javascript:`/`data:` se
+      neutralizan a texto ANTES de guardar); contrato "API devuelve crudo, cliente escapa"
+      documentado en `ForumValidation.php` — 2026-08-11
+- [x] F-09.01: antiflood por cuenta (cooldown 30s + máx 10/hora), transaccional con
+      UPDLOCK/HOLDLOCK (patrón de Reclamos), admins exentos; el texto rechazado nunca se
+      pierde en el frontend — 2026-08-11
+- [x] F-09.02: cuenta sin personaje no puede publicar (leer sí) — de paso deja de
+      exponerse la cuenta de login como nombre visible — 2026-08-11
+- [x] F-09.03: cuentas con <5 publicaciones: links externos fuera de whitelist
+      (mupga/youtube/imgur/discord) se guardan como texto plano — 2026-08-11
+- [x] F-08.02/03: reportes (`POST /api/forum/report.php`: motivo de allowlist, 1 por
+      cuenta/contenido, 10/hora máx, webhook Discord opcional `DISCORD_WEBHOOK_FORO`) +
+      cola en el ControlPanel (`/api/admin/forum_reports.php`, resolver cierra todos los
+      del mismo contenido) — 2026-08-11
+- [x] F-08.05: log de auditoría `forum.moderation_log` — toda acción de staff (editar/
+      borrar/pin/lock/move/ban/resolver reporte) con actor, motivo y cuerpo previo;
+      visible en el ControlPanel, sin UI de borrado a propósito — 2026-08-11
+- [x] F-02.02/F-03.04: ventana de edición de 30 min para autores (admins siempre);
+      "editado por el staff" cuando edita un admin contenido ajeno, sin exponer cuál — 2026-08-11
+- [x] F-02.03/F-03.04: soft delete en todo el módulo (se eliminó el DELETE físico);
+      autor no puede borrar su hilo si ya respondieron terceros; papelera con restore en
+      el ControlPanel; placeholder "Mensaje eliminado" en el hilo (los borrados al final
+      se omiten) — 2026-08-11
+- [x] F-08.04: fix del lock (bloqueaba también a admins — ahora el staff responde en
+      hilos cerrados), motivo de cierre visible en el hilo, mover hilo de categoría — 2026-08-11
+- [x] F-08.06: ban con vencimiento opcional en días (vacío = permanente), expira solo,
+      el mensaje al baneado muestra motivo y hasta cuándo — 2026-08-11
+- [x] F-05.02: sin autoagradecimiento (403 server-side + botón estático en la UI) — 2026-08-11
+- [x] F-10.01: índice de categorías con conteo de hilos y última actividad — 2026-08-11
+- [x] F-13.01/02 parcial: categorías ocultas (solo admins las ven; sus hilos dan 404 a
+      no-admins, no 403 — no revelar existencia) — 2026-08-11
+- [x] Privacidad (riesgo del GAP): la API ya no expone `author_account` — la propiedad
+      viaja como `is_mine` calculado server-side — 2026-08-11
+- [ ] Correr `database/foro_migracion_v2.sql` en SSMS (mirror local + VPS) — manual, Franco
+- [ ] (Opcional) `DISCORD_WEBHOOK_FORO` en el `.env` del VPS para avisos de reportes — manual, Franco
+
+**Siguientes etapas del backlog (no iniciadas):** Etapa 4 (citar F-03.02, menciones F-03.03,
+seguir hilo + notificaciones F-07.x), Etapa 5 (barra de formato F-04.01, vista previa F-01.04,
+imágenes F-04.05), Etapa 6 (paginación F-03.05/F-10.02, búsqueda F-11.01, URLs legibles F-10.03).
+Nota del GAP que sigue vigente: el timestamp del backlog (`DATEADD(HOUR,3,GETDATE())`) NO se
+usó — contradice la regla dura de CLAUDE.md (incidente timezone 2026-07-19); todo va con
+`GETUTCDATE()`/`SYSUTCDATETIME()` como el resto del proyecto.
+
 ## Radar de Tiendas — lectura de tiendas personales
 
 Analizado a pedido de Franco (2026-08-11) si se podía llevar la tienda personal del juego
@@ -428,4 +483,5 @@ se retoma la idea más adelante (por ejemplo, si algún día se resuelve la iden
 - 2026-08-11 — [Revert] Radar de Tiendas eliminado por decisión de producto de Franco: funcionaba técnicamente (probado en el VPS contra tiendas reales, `CustomStore.Active=1` confirmado), pero la vista de solo slot/precio sin poder identificar el ítem no se entendía y no resultaba útil. Se borraron `src/db/ShopRepository.php`, `src/public/api/shops.php`, `src/public/tiendas/`, `src/public/assets/js/tiendas.js`, el link "Radar" del nav, la entrada en `build.php`, el require en `bootstrap.php`, el banner cruzado en `/tienda/` (código + CSS `.cross-link-banner`/`.shop-card`) y las menciones en `capability-matrix.md`. Se dejó en `data-dictionary.md` el schema real de `CustomStore`/`PShopItemValue` (documentación de tabla válida más allá de esta feature) y quedó registrado en la sección de arriba por qué no se siguió, para no re-evaluarlo desde cero si se retoma.
 - 2026-08-11 — [Feat] Foro (Fase 8, Etapa 1) ejecutado en el VPS por Franco: `forum_setup.sql` corrido, phpBB 3.3.17 instalado sobre `mupga_forum` (driver SQL Server nativo, no ODBC), VirtualHost con bloques `:80` y `:443` (cert de Cloudflare, mismo patrón que `api.mupga.com.ar`), DNS proxied en Cloudflare, SMTP configurado con Gmail (`ssl://smtp.gmail.com:465`, auth LOGIN, contraseña de aplicación), carpeta `install/` borrada post-instalación. Troubleshooting del camino: fix de barras invertidas en el `DocumentRoot`/`Directory` del vhost (inconsistente con el resto del archivo), aclarado que Apache corre como servicio de Windows (no por XAMPP Control Panel) por lo que los reinicios son `Restart-Service`, y que el primer `curl` fallido fue por probarse contra `localhost` de la PC de Franco en vez del VPS. Board accesible en `https://foro.mupga.com.ar`, login de admin confirmado. Quedan pendientes de Etapa 1.5 los ítems de contenido/hardening (borrar demo, CAPTCHA, activación por email, estructura de categorías) antes de anunciarlo a los jugadores.
 - 2026-08-11 — [Incidente] Franco quedó bloqueado del ACP de phpBB tras cambiar su contraseña de admin (ni la nueva clave ni "olvidé mi contraseña" funcionaban). El comando de CLI documentado por phpBB para este caso (`user:reset-password`) no existe en la build 3.3.17 instalada. Resuelto sin depender del mail: hash bcrypt generado con `php.exe -r "echo password_hash(...)"` y `UPDATE phpbb_users SET user_password = '<hash>' WHERE username_clean = 'ruggi'` directo en `mupga_forum` vía SSMS. Sirvió para confirmar en producción que el ACP de phpBB era más fricción de la que valía — fue parte de la decisión de descartarlo (ver Fase 8 arriba).
+- 2026-08-11 — [Feat] Foro hardening v2 (Etapas 1-3 de `BACKLOG_FORO.md`, auditoría previa en `GAP_FORO.md`): migración SQL aditiva (`foro_migracion_v2.sql`), validador único server-side con 422 (`ForumValidation.php`), whitelist de esquema de links en el server, antiflood transaccional 30s/10 por hora (patrón Reclamos), personaje requerido para publicar, links restringidos a cuentas nuevas, sistema de reportes con cola en el ControlPanel + webhook Discord opcional, log de auditoría inmutable (`forum.moderation_log`), soft delete con papelera y restore (se eliminó el DELETE físico del módulo), ventana de edición 30 min con marca "editado por el staff", fix del lock que bloqueaba a admins, motivo de cierre visible, mover hilos, ban con vencimiento en días, sin autoagradecimiento, categorías con conteo/última actividad y categorías ocultas (404 a no-admins), y la API dejó de exponer `author_account` (`is_mine` server-side). Pendiente manual: correr la migración en SSMS y (opcional) `DISCORD_WEBHOOK_FORO`.
 - 2026-08-11 — [Feat] Pivot de Fase 8: en vez de seguir invirtiendo en phpBB, foro reconstruido como módulo nativo de `web-mupga` (mismo patrón que Reclamos — usuarios crean, admin modera — reusando JWT/ControlPanel/diseño ya existentes). Backend: `database/foro_setup.sql` (schema `forum` en `mupga_admin`, login `mupga_forum_svc`, tablas categories/threads/posts/reactions/banned_accounts), `ForumDatabase`, `ForumRepository`, 8 endpoints públicos/usuario (`src/public/api/forum/`) y 3 admin (`forum_categories`, `forum_moderate`, `forum_ban`). El nombre mostrado en los posts es el personaje principal de la cuenta (`CharacterRepository::getMainCharacterName()`), resuelto y denormalizado al postear — igual criterio que `reclamos.reclamos.nick`. Se agregaron `optionalAuth()` a `Auth.php` (para que `/foro/hilo/` marque reacciones propias sin exigir sesión) e `isAdminAccount()` a `AdminAuth.php` (chequeo "dueño o admin" no bloqueante, reusado en editar/borrar). Frontend: `/foro/`, `/foro/categoria/`, `/foro/hilo/` + `foro.js` — moderación (fijar/cerrar/editar/borrar) inline en la página para admin y para el dueño del contenido, sin depender del ControlPanel para el día a día. ControlPanel: pestaña "💬 Foro" para CRUD de categorías y bans (acotados al foro, nunca tocan `MEMB_INFO.bloc_code` — no es lo mismo que banear la cuenta de juego). Reacciones: un solo tipo ("🙏 Agradecer"), toggle on/off, sin publicar. Bugs propios encontrados y corregidos antes de terminar: el id de categoría/hilo no llegaba en el build estático de Cloudflare Pages (faltaba el fallback a `URLSearchParams` client-side, mismo patrón que `guild.js`), y el botón de responder acumulaba listeners duplicados en cada re-render (cambiado de `addEventListener` a asignación `.onclick`). Pendiente: correr `foro_setup.sql` en el VPS y cargar las categorías iniciales (`runbooks/foro-web-setup-manual.md`).

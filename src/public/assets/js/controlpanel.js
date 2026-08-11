@@ -1070,7 +1070,7 @@ async function loadForumCategoriesAdmin() {
     <div class="cp-row">
       <div class="cp-row__info">
         <strong>${esc(c.name)}</strong>
-        <span class="cp-dim">orden ${esc(String(c.sort_order))}${c.admin_only_post ? ' · solo staff publica' : ''}${c.description ? ' · ' + esc(c.description) : ''}</span>
+        <span class="cp-dim">orden ${esc(String(c.sort_order))}${c.admin_only_post ? ' · solo staff publica' : ''}${c.is_hidden ? ' · <em>oculta</em>' : ''}${c.description ? ' · ' + esc(c.description) : ''} · ${esc(String(c.thread_count ?? 0))} hilos</span>
       </div>
       <div class="cp-row__actions">
         <button class="btn btn-secondary btn-sm" data-foro-cat-edit="${c.id}">Editar</button>
@@ -1085,6 +1085,7 @@ async function loadForumCategoriesAdmin() {
     document.getElementById('foro-cat-desc').value = c.description ?? '';
     document.getElementById('foro-cat-order').value = c.sort_order;
     document.getElementById('foro-cat-admin-only').checked = !!c.admin_only_post;
+    document.getElementById('foro-cat-hidden').checked = !!c.is_hidden;
     document.getElementById('foro-cat-form-title').textContent = `Editando categoría #${c.id}`;
     document.getElementById('foro-cat-cancel').hidden = false;
   }));
@@ -1106,6 +1107,7 @@ function resetForoCatForm() {
   document.getElementById('foro-cat-desc').value = '';
   document.getElementById('foro-cat-order').value = 0;
   document.getElementById('foro-cat-admin-only').checked = false;
+  document.getElementById('foro-cat-hidden').checked = false;
   document.getElementById('foro-cat-form-title').textContent = 'Nueva categoría';
   document.getElementById('foro-cat-cancel').hidden = true;
 }
@@ -1120,6 +1122,7 @@ function initForoCategorias() {
       description: document.getElementById('foro-cat-desc').value.trim(),
       sort_order: Number(document.getElementById('foro-cat-order').value) || 0,
       admin_only_post: document.getElementById('foro-cat-admin-only').checked,
+      is_hidden: document.getElementById('foro-cat-hidden').checked,
     };
     if (id) body.id = Number(id);
 
@@ -1127,6 +1130,93 @@ function initForoCategorias() {
     feedback('foro-cat-feedback', ok ? 'Guardado ✔' : (data?.error ?? 'Error'), !ok);
     if (ok) { resetForoCatForm(); loadForumCategoriesAdmin(); }
   });
+}
+
+// ── Foro: cola de reportes + log de moderación ────────────────
+
+const FORO_REASON_LABELS = {
+  spam: 'Spam', insultos: 'Insultos', estafa: 'Estafa',
+  inapropiado: 'Inapropiado', otro: 'Otro',
+};
+
+async function loadForoReports() {
+  const { ok, data } = await adminFetch('forum_reports.php');
+  const el = document.getElementById('foro-reports-list');
+  const logEl = document.getElementById('foro-modlog-list');
+  if (!ok || !data) {
+    el.innerHTML = '<p class="state-message">Error al cargar.</p>';
+    if (logEl) logEl.innerHTML = '<p class="state-message">Error al cargar.</p>';
+    return;
+  }
+
+  el.innerHTML = (data.reports ?? []).map(r => `
+    <div class="cp-row">
+      <div class="cp-row__info">
+        <strong>${esc(FORO_REASON_LABELS[r.reason_code] ?? r.reason_code)}</strong>
+        <span class="cp-dim">
+          ${r.target_type === 'thread' ? 'Hilo' : 'Respuesta'} de ${esc(r.target_author ?? '?')}
+          — "${esc(r.target_excerpt ?? '')}" · reportado por ${esc(r.reporter_account)} · ${fmtFechaCp(r.created_at)}
+          ${r.comment ? ' · 💬 ' + esc(r.comment) : ''}
+          ${r.target_deleted ? ' · <em>(ya borrado)</em>' : ''}
+        </span>
+      </div>
+      <div class="cp-row__actions">
+        ${r.thread_id ? `<a class="btn btn-secondary btn-sm" href="${BASE}/foro/hilo/?id=${r.thread_id}" target="_blank" rel="noopener">Ver</a>` : ''}
+        <button class="btn btn-primary btn-sm" data-foro-rep="${r.id}" data-res="accion">Acción tomada</button>
+        <button class="btn btn-secondary btn-sm" data-foro-rep="${r.id}" data-res="sin_merito">Sin mérito</button>
+      </div>
+    </div>`).join('') || '<p class="state-message">Sin reportes pendientes 🎉</p>';
+
+  el.querySelectorAll('[data-foro-rep]').forEach(b => b.addEventListener('click', async () => {
+    const note = prompt('Nota interna (opcional):', '');
+    if (note === null) return;
+    const { ok: ok2, data: d2 } = await adminFetch('forum_reports.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'resolve', id: Number(b.dataset.foroRep), resolution: b.dataset.res, note: note.trim() }),
+    });
+    if (!ok2) { alert(d2?.error ?? 'Error'); return; }
+    loadForoReports();
+  }));
+
+  if (logEl) {
+    logEl.innerHTML = (data.log ?? []).map(l => `
+      <div class="cp-row">
+        <div class="cp-row__info">
+          <strong>${esc(l.action)}</strong>
+          <span class="cp-dim">${esc(l.target_type)} #${esc(String(l.target_id))} · por ${esc(l.actor_account)} · ${fmtFechaCp(l.created_at)}${l.reason ? ' · ' + esc(l.reason) : ''}</span>
+        </div>
+      </div>`).join('') || '<p class="state-message">Sin acciones registradas todavía.</p>';
+  }
+}
+
+// ── Foro: papelera de hilos ───────────────────────────────────
+
+async function loadForoPapelera() {
+  const { ok, data } = await adminFetch('forum_moderate.php');
+  const el = document.getElementById('foro-papelera-list');
+  if (!ok || !data?.deleted_threads) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
+
+  el.innerHTML = data.deleted_threads.map(t => `
+    <div class="cp-row">
+      <div class="cp-row__info">
+        <strong>${esc(t.title)}</strong>
+        <span class="cp-dim">de ${esc(t.author_display_name)} · borrado por ${esc(t.deleted_by ?? '?')} · ${fmtFechaCp(t.deleted_at)} · ${esc(String(t.reply_count))} respuestas</span>
+      </div>
+      <div class="cp-row__actions">
+        <button class="btn btn-secondary btn-sm" data-foro-restore="${t.id}">Restaurar</button>
+      </div>
+    </div>`).join('') || '<p class="state-message">Papelera vacía.</p>';
+
+  el.querySelectorAll('[data-foro-restore]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('¿Restaurar este hilo al foro?')) return;
+    const { ok: ok2, data: d2 } = await adminFetch('forum_moderate.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'restore_thread', id: Number(b.dataset.foroRestore) }),
+    });
+    if (!ok2) { alert(d2?.error ?? 'Error'); return; }
+    loadForoPapelera();
+    loadForumCategoriesAdmin();
+  }));
 }
 
 let foroBanVerifiedAccount = '';
@@ -1142,13 +1232,19 @@ async function loadForoBanHistory() {
   const el = document.getElementById('foro-ban-history');
   if (!ok || !data?.items) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
 
-  el.innerHTML = data.items.map(b => `
+  el.innerHTML = data.items.map(b => {
+    // expires_at viene como '2026-08-15 10:00:00.0000000' (UTC) — recortar los
+    // fraccionales para que Date() lo parsee en todos los browsers
+    const vencido = b.expires_at && new Date(b.expires_at.slice(0, 19).replace(' ', 'T') + 'Z') < new Date();
+    return `
     <div class="cp-row">
       <div class="cp-row__info">
         <strong>${esc(b.account)}</strong>
-        <span class="cp-dim">baneado por ${esc(b.banned_by)} · ${fmtFechaCp(b.banned_at)}${b.reason ? ' · ' + esc(b.reason) : ''}</span>
+        <span class="cp-dim">baneado por ${esc(b.banned_by)} · ${fmtFechaCp(b.banned_at)}${b.reason ? ' · ' + esc(b.reason) : ''}
+          · ${b.expires_at ? (vencido ? '<em>vencido</em>' : 'vence ' + fmtFechaCp(b.expires_at)) : 'permanente'}</span>
       </div>
-    </div>`).join('') || '<p class="state-message">Sin bans activos.</p>';
+    </div>`;
+  }).join('') || '<p class="state-message">Sin bans registrados.</p>';
 }
 
 function initForoBan() {
@@ -1190,15 +1286,18 @@ function initForoBan() {
       return;
     }
     const reason = document.getElementById('foro-ban-reason').value.trim();
-    if (!confirm(`¿Banear del foro a "${account}"?`)) return;
+    const days   = Number(document.getElementById('foro-ban-days').value) || 0;
+    const plazo  = days > 0 ? `por ${days} día${days === 1 ? '' : 's'}` : 'de forma permanente';
+    if (!confirm(`¿Banear del foro a "${account}" ${plazo}?`)) return;
 
     const { ok, data } = await adminFetch('forum_ban.php', {
       method: 'POST',
-      body: JSON.stringify({ action: 'ban', account, reason }),
+      body: JSON.stringify({ action: 'ban', account, reason, days: days > 0 ? days : null }),
     });
     feedback('foro-ban-feedback', ok ? 'Baneada ✔' : (data?.error ?? 'Error'), !ok);
     if (ok) {
       document.getElementById('foro-ban-reason').value = '';
+      document.getElementById('foro-ban-days').value = '';
       document.getElementById('foro-ban-lookup-result').hidden = true;
       resetForoBanGate();
       loadForoBanHistory();
@@ -1270,4 +1369,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadEstadisticas();
   loadForumCategoriesAdmin();
   loadForoBanHistory();
+  loadForoReports();
+  loadForoPapelera();
 });

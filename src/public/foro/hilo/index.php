@@ -20,6 +20,7 @@ ob_start();
     <div id="foro-admin-controls" class="cp-actions" style="margin-bottom:var(--gap-md)" hidden>
       <button class="btn btn-secondary btn-sm" id="foro-btn-pin">📌 Fijar</button>
       <button class="btn btn-secondary btn-sm" id="foro-btn-lock">🔒 Cerrar</button>
+      <button class="btn btn-secondary btn-sm" id="foro-btn-mover">📂 Mover</button>
       <button class="btn btn-secondary btn-sm" id="foro-btn-editar-hilo">✏️ Editar hilo</button>
       <button class="btn btn-secondary btn-sm" id="foro-btn-borrar-hilo">🗑 Borrar hilo</button>
     </div>
