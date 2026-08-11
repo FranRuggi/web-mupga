@@ -1059,6 +1059,173 @@ async function loadEstadisticas() {
     : '<p class="state-message">Sin compras en los últimos 30 días.</p>';
 }
 
+// ── Foro ──────────────────────────────────────────────────────
+
+async function loadForumCategoriesAdmin() {
+  const data = await apiFetch('forum/categories.php');
+  const el = document.getElementById('foro-cat-admin-list');
+  if (!data?.categories) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
+
+  el.innerHTML = data.categories.map(c => `
+    <div class="cp-row">
+      <div class="cp-row__info">
+        <strong>${esc(c.name)}</strong>
+        <span class="cp-dim">orden ${esc(String(c.sort_order))}${c.admin_only_post ? ' · solo staff publica' : ''}${c.description ? ' · ' + esc(c.description) : ''}</span>
+      </div>
+      <div class="cp-row__actions">
+        <button class="btn btn-secondary btn-sm" data-foro-cat-edit="${c.id}">Editar</button>
+        <button class="btn btn-secondary btn-sm" data-foro-cat-del="${c.id}">Borrar</button>
+      </div>
+    </div>`).join('') || '<p class="state-message">Sin categorías todavía.</p>';
+
+  el.querySelectorAll('[data-foro-cat-edit]').forEach(b => b.addEventListener('click', () => {
+    const c = data.categories.find(x => String(x.id) === b.dataset.foroCatEdit);
+    document.getElementById('foro-cat-id').value = c.id;
+    document.getElementById('foro-cat-name').value = c.name;
+    document.getElementById('foro-cat-desc').value = c.description ?? '';
+    document.getElementById('foro-cat-order').value = c.sort_order;
+    document.getElementById('foro-cat-admin-only').checked = !!c.admin_only_post;
+    document.getElementById('foro-cat-form-title').textContent = `Editando categoría #${c.id}`;
+    document.getElementById('foro-cat-cancel').hidden = false;
+  }));
+
+  el.querySelectorAll('[data-foro-cat-del]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('¿Borrar esta categoría? Solo se puede si no tiene hilos.')) return;
+    const { ok, data: d2 } = await adminFetch('forum_categories.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', id: Number(b.dataset.foroCatDel) }),
+    });
+    feedback('foro-cat-feedback', ok ? 'Borrada ✔' : (d2?.error ?? 'Error'), !ok);
+    if (ok) loadForumCategoriesAdmin();
+  }));
+}
+
+function resetForoCatForm() {
+  document.getElementById('foro-cat-id').value = '';
+  document.getElementById('foro-cat-name').value = '';
+  document.getElementById('foro-cat-desc').value = '';
+  document.getElementById('foro-cat-order').value = 0;
+  document.getElementById('foro-cat-admin-only').checked = false;
+  document.getElementById('foro-cat-form-title').textContent = 'Nueva categoría';
+  document.getElementById('foro-cat-cancel').hidden = true;
+}
+
+function initForoCategorias() {
+  document.getElementById('foro-cat-cancel').addEventListener('click', resetForoCatForm);
+  document.getElementById('foro-cat-save').addEventListener('click', async () => {
+    const id = document.getElementById('foro-cat-id').value;
+    const body = {
+      action: id ? 'update' : 'create',
+      name: document.getElementById('foro-cat-name').value.trim(),
+      description: document.getElementById('foro-cat-desc').value.trim(),
+      sort_order: Number(document.getElementById('foro-cat-order').value) || 0,
+      admin_only_post: document.getElementById('foro-cat-admin-only').checked,
+    };
+    if (id) body.id = Number(id);
+
+    const { ok, data } = await adminFetch('forum_categories.php', { method: 'POST', body: JSON.stringify(body) });
+    feedback('foro-cat-feedback', ok ? 'Guardado ✔' : (data?.error ?? 'Error'), !ok);
+    if (ok) { resetForoCatForm(); loadForumCategoriesAdmin(); }
+  });
+}
+
+let foroBanVerifiedAccount = '';
+
+function resetForoBanGate() {
+  foroBanVerifiedAccount = '';
+  document.getElementById('foro-ban-do').disabled = true;
+  document.getElementById('foro-ban-undo').disabled = true;
+}
+
+async function loadForoBanHistory() {
+  const { ok, data } = await adminFetch('forum_ban.php');
+  const el = document.getElementById('foro-ban-history');
+  if (!ok || !data?.items) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
+
+  el.innerHTML = data.items.map(b => `
+    <div class="cp-row">
+      <div class="cp-row__info">
+        <strong>${esc(b.account)}</strong>
+        <span class="cp-dim">baneado por ${esc(b.banned_by)} · ${fmtFechaCp(b.banned_at)}${b.reason ? ' · ' + esc(b.reason) : ''}</span>
+      </div>
+    </div>`).join('') || '<p class="state-message">Sin bans activos.</p>';
+}
+
+function initForoBan() {
+  const accountInput = document.getElementById('foro-ban-account');
+
+  accountInput.addEventListener('input', () => {
+    document.getElementById('foro-ban-lookup-result').hidden = true;
+    resetForoBanGate();
+  });
+
+  document.getElementById('foro-ban-lookup').addEventListener('click', async () => {
+    const account = accountInput.value.trim();
+    resetForoBanGate();
+    if (!account) { feedback('foro-ban-feedback', 'Ingresá una cuenta.', true); return; }
+
+    const { ok, data } = await adminFetch('forum_ban.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'lookup', account }),
+    });
+
+    const box = document.getElementById('foro-ban-lookup-result');
+    box.hidden = false;
+    if (!ok) {
+      box.innerHTML = `<span class="cp-chip cp-chip--on">✕ ${esc(data?.error ?? 'Error')}</span>`;
+      return;
+    }
+    box.innerHTML = data.banned
+      ? `<span class="cp-chip cp-chip--on">🚫 Ya está baneada${data.ban?.reason ? ' — ' + esc(data.ban.reason) : ''}</span>`
+      : `<span class="cp-chip cp-chip--off">✔ Cuenta encontrada, sin ban</span>`;
+    foroBanVerifiedAccount = account;
+    document.getElementById('foro-ban-do').disabled = data.banned;
+    document.getElementById('foro-ban-undo').disabled = !data.banned;
+  });
+
+  document.getElementById('foro-ban-do').addEventListener('click', async () => {
+    const account = accountInput.value.trim();
+    if (account !== foroBanVerifiedAccount) {
+      feedback('foro-ban-feedback', 'Verificá la cuenta de nuevo antes de banear.', true);
+      return;
+    }
+    const reason = document.getElementById('foro-ban-reason').value.trim();
+    if (!confirm(`¿Banear del foro a "${account}"?`)) return;
+
+    const { ok, data } = await adminFetch('forum_ban.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'ban', account, reason }),
+    });
+    feedback('foro-ban-feedback', ok ? 'Baneada ✔' : (data?.error ?? 'Error'), !ok);
+    if (ok) {
+      document.getElementById('foro-ban-reason').value = '';
+      document.getElementById('foro-ban-lookup-result').hidden = true;
+      resetForoBanGate();
+      loadForoBanHistory();
+    }
+  });
+
+  document.getElementById('foro-ban-undo').addEventListener('click', async () => {
+    const account = accountInput.value.trim();
+    if (account !== foroBanVerifiedAccount) {
+      feedback('foro-ban-feedback', 'Verificá la cuenta de nuevo antes de sacar el ban.', true);
+      return;
+    }
+    if (!confirm(`¿Sacar el ban del foro a "${account}"?`)) return;
+
+    const { ok, data } = await adminFetch('forum_ban.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'unban', account }),
+    });
+    feedback('foro-ban-feedback', ok ? 'Ban sacado ✔' : (data?.error ?? 'Error'), !ok);
+    if (ok) {
+      document.getElementById('foro-ban-lookup-result').hidden = true;
+      resetForoBanGate();
+      loadForoBanHistory();
+    }
+  });
+}
+
 // ── Init + guard ──────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1089,6 +1256,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTienda();
   initWcoin();
   initVip();
+  initForoCategorias();
+  initForoBan();
 
   loadStatus();
   loadPromo();
@@ -1099,4 +1268,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadWcoinHistory();
   loadVipHistory();
   loadEstadisticas();
+  loadForumCategoriesAdmin();
+  loadForoBanHistory();
 });

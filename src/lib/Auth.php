@@ -34,3 +34,22 @@ function requireAuth(): array {
 
     return $payload;
 }
+
+/**
+ * Igual que requireAuth() pero no corta la ejecución si no hay sesión —
+ * devuelve null en vez de 401. Para endpoints públicos que igual quieren
+ * enriquecer la respuesta si el visitante está logueado (ej. "¿ya reaccioné
+ * a este post?" en el foro).
+ */
+function optionalAuth(): ?array {
+    $header = $_SERVER['HTTP_AUTHORIZATION']
+           ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+           ?? (function_exists('getallheaders') ? (getallheaders()['Authorization'] ?? '') : '')
+           ?? '';
+
+    if (!preg_match('/^Bearer\s+(\S+)$/i', $header, $m)) {
+        return null;
+    }
+
+    return TokenService::verify($m[1]);
+}

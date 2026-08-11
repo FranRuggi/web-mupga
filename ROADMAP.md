@@ -5,8 +5,9 @@
 
 **Estado actual:** Fase 4 completa ✅ — Fase 5 en curso + Tienda WCoin integrada (incluye Promociones).
 Radar de Tiendas: implementado, probado contra datos reales y descartado (ver sección abajo).
-Foro (phpBB): Etapa 1 completa ✅, foro en producción en `foro.mupga.com.ar` — falta Etapa 1.5
-(contenido/hardening) antes de anunciarlo a los jugadores.
+Foro: phpBB probado y descartado (quedó parqueado en `foro.mupga.com.ar` sin usar). Pivot a
+módulo nativo construido en el repo — falta correr `foro_setup.sql` en el VPS y cargar
+categorías antes de anunciarlo a los jugadores.
 **Última actualización:** 2026-08-11
 
 ---
@@ -215,54 +216,53 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [ ] Cargar el contenido real (ej. "EXP +200% de 0 a 50 RR") desde el panel y activar — manual, Franco
 - [ ] Probar end-to-end en producción (post-deploy + script SQL corrido)
 
-## Fase 8 — Foro MuPGA (phpBB)
+## Fase 8 — Foro MuPGA
 
-Reactivado a pedido de Franco (2026-08-11). Ya existía un plan de arquitectura
-(`Resumen Arquitectura login foro`, raíz del repo, commit `e918ce5`): foro con cuenta
-propia (separada del juego), subdominio `foro.mupga.com.ar`, vinculación opcional a una
-cuenta de servidor puntual (valida usuario/contraseña sin guardarla, trae stats al perfil).
+### Intento 1: phpBB — probado en producción, descartado (2026-08-11)
 
-**Decisión de motor (2026-08-11):** phpBB sobre SQL Server, en vez de Flarum (requiere sumar
-MySQL/MariaDB al VPS — se evitó a propósito, ver `runbooks/deploy.md`) o construirlo a mano
-(reinventa categorías/hilos/reportes/editor/notificaciones/antispam). phpBB tiene driver
-nativo `sqlsrv` (mismo que ya usa este proyecto), el sistema de permisos/ACL más maduro del
-género, y mucho material ya hecho en la comunidad MU para vincular perfil de foro ↔ stats de
-personaje — justo lo que pide la Etapa 3 de abajo.
+Se instaló phpBB 3.3.17 sobre SQL Server en `foro.mupga.com.ar` (VirtualHost `:80`+`:443`
+con cert de Cloudflare, DNS proxied, SMTP con Gmail, login admin `ruggi` funcionando). Quedó
+operativo de punta a punta, pero **Franco decidió discontinuarlo** tras usarlo: el ACP resultó
+muy poco práctico para el día a día (edición de foros "recontra tosca"), y encima quedó un
+lockout de cuenta que hubo que resolver a mano por SQL (`UPDATE phpbb_users SET user_password
+= <hash bcrypt> ...`, ver Registro de cambios). La instalación **sigue levantada y sin usar**
+en `foro.mupga.com.ar` — no molesta estando quieta, se da de baja el día que el módulo nuevo
+esté validado (ver nota al final de `runbooks/foro-web-setup-manual.md`).
 
-### Etapa 1 — Infraestructura base ✅ (2026-08-11)
-- [x] `database/forum_setup.sql` — base `mupga_forum` dedicada + login `forum_admin`
-      (`db_owner` solo ahí adentro, sin tocar `MuOnline` ni `mupga_admin`) — 2026-08-11
-- [x] `runbooks/foro-setup-manual.md` — paso a paso: SQL, descarga de phpBB, VirtualHost
-      `foro.mupga.com.ar`, DNS, instalador web — 2026-08-11
-- [x] Ejecutado en el VPS: `forum_setup.sql` corrido, phpBB 3.3.17 descargado e instalado
-      (driver SQL Server nativo), VirtualHost `:80`+`:443` con cert de Cloudflare, DNS
-      proxied, SMTP con Gmail (contraseña de aplicación) — 2026-08-11
-- [x] Login y ACP del foro confirmados funcionando (cuenta admin `ruggi`), carpeta
-      `install/` borrada — 2026-08-11
+### Intento 2: módulo nativo de web-mupga ✅ (2026-08-11)
 
-### Etapa 1.5 — Contenido inicial y hardening (en curso)
-- [ ] Borrar/renombrar la categoría y el foro demo que trae phpBB por default
-      ("Your first category" / "Your first forum")
-- [ ] Activar CAPTCHA en el registro (Q&A propio o reCAPTCHA) — sin esto un foro público
-      nuevo empieza a recibir cuentas de spam en cuestión de días
-- [ ] Definir modo de activación de cuenta al registrarse (ahora que el SMTP funciona,
-      "activación por email" es viable y filtra bots mejor que "Ninguna")
-- [ ] Armar la estructura real de categorías/foros (ver propuesta abajo, a confirmar con Franco)
-- [ ] Revisar `Board name`/`Board description` en ACP → General
+En vez de software de terceros, foro construido como un módulo más del sitio — mismo patrón
+que Reclamos (usuarios crean contenido, admin modera), reusa 100% de la infraestructura ya
+existente: login/sesión (JWT), gate de admin (`requireAdmin()`), el ControlPanel, el diseño
+del sitio. Cuenta única: la misma del resto del sitio (no hay cuenta de foro separada — el
+plan de "cuenta propia + vinculación opcional" de `Resumen Arquitectura login foro` dependía
+de la idea de multi-servidor, que quedó descartada; sin eso, separar cuentas no tenía sentido).
 
-### Etapa 2 — Tema visual (no iniciada)
-- [ ] Reskin de phpBB (Twig) con la paleta/tipografía de `main.css` — que no se sienta "otro sitio"
+**Alcance v1:**
+- [x] `database/foro_setup.sql` — schema `forum` en `mupga_admin`, login `mupga_forum_svc`
+      (mismo patrón que `reclamos_setup.sql`), tablas `categories`/`threads`/`posts`/
+      `reactions`/`banned_accounts` — 2026-08-11
+- [x] `src/config/forum_db.php` + `src/db/ForumRepository.php` — 2026-08-11
+- [x] API pública/usuario (`src/public/api/forum/`): `categories`, `threads`, `thread`,
+      `create_thread`, `reply`, `edit_post`, `delete_post`, `react` — 2026-08-11
+- [x] API admin (`src/public/api/admin/`): `forum_categories` (CRUD), `forum_moderate`
+      (pin/lock/delete), `forum_ban` (lookup/ban/unban, acotado al foro — nunca toca
+      `MEMB_INFO.bloc_code`) — 2026-08-11
+- [x] Frontend: `/foro/` (categorías), `/foro/categoria/?id=X` (hilos + nuevo hilo),
+      `/foro/hilo/?id=X` (detalle, responder, reaccionar "🙏 Agradecer", moderación inline
+      para admin/dueño sin pasar por ControlPanel) — 2026-08-11
+- [x] ControlPanel: pestaña "💬 Foro" — CRUD de categorías + bans (mismo patrón
+      lookup-then-act que WCoin/VIP) — 2026-08-11
+- [x] Nav, `build.php`, `main.css`, `.env.example` (`FORUM_DB_*`) — 2026-08-11
+- [ ] Ejecutar `database/foro_setup.sql` en el VPS + cargar categorías iniciales (manual —
+      Franco, ver `runbooks/foro-web-setup-manual.md`)
+- [ ] Activar CAPTCHA en el registro del sitio si no está ya (antispam — el foro hereda la
+      cuenta del sitio, así que el antispam correcto es ahí, no en el foro en sí)
 
-### Etapa 3 — Vinculación de cuenta de juego (no iniciada)
-- [ ] Depende de la tabla `servidores` + selector multi-servidor (punto 1 de
-      `Resumen Arquitectura login foro`) — no existe todavía, es de un plan más amplio
-      (multi-servidor) que no se implementó
-- [ ] Extensión custom de phpBB: elegir servidor → validar user/pass contra esa DB (login de
-      mínimo privilegio, no se guarda la contraseña) → guardar vínculo → mostrar stats
-
-### Etapa 4 — Moderación (no iniciada)
-- [ ] Definir con Franco qué cuentas pasan a moderador/admin del foro (sistema de cuentas
-      separado del `mupga_admin.dbo.admins` del ControlPanel — no hay sync automático)
+**Conscientemente afuera de v1** (sumar si hace falta más adelante): búsqueda, notificaciones/
+suscripciones, editor WYSIWYG (usa el mismo markdown-lite que Noticias), avatares, firmas,
+rangos, paginación real de hilos/posts (hoy corta en un TOP fijo, alcanza para la población
+actual).
 
 ## Radar de Tiendas — lectura de tiendas personales
 
@@ -427,3 +427,5 @@ se retoma la idea más adelante (por ejemplo, si algún día se resuelve la iden
 - 2026-08-11 — [UX] Banner cruzado entre `/tienda/` (WCoin, oficial) y `/tiendas/` (Radar, tiendas de jugadores por Zen) — cada página muestra un banner con acento de color distinto (dorado = Tienda WCoin, cian = Radar) explicando la diferencia y linkeando a la otra, para que no se confundan. `.cross-link-banner` nueva en `main.css`; `renderTiendaCrossLink()`/`renderRadarCrossLink()` en sus respectivos JS.
 - 2026-08-11 — [Revert] Radar de Tiendas eliminado por decisión de producto de Franco: funcionaba técnicamente (probado en el VPS contra tiendas reales, `CustomStore.Active=1` confirmado), pero la vista de solo slot/precio sin poder identificar el ítem no se entendía y no resultaba útil. Se borraron `src/db/ShopRepository.php`, `src/public/api/shops.php`, `src/public/tiendas/`, `src/public/assets/js/tiendas.js`, el link "Radar" del nav, la entrada en `build.php`, el require en `bootstrap.php`, el banner cruzado en `/tienda/` (código + CSS `.cross-link-banner`/`.shop-card`) y las menciones en `capability-matrix.md`. Se dejó en `data-dictionary.md` el schema real de `CustomStore`/`PShopItemValue` (documentación de tabla válida más allá de esta feature) y quedó registrado en la sección de arriba por qué no se siguió, para no re-evaluarlo desde cero si se retoma.
 - 2026-08-11 — [Feat] Foro (Fase 8, Etapa 1) ejecutado en el VPS por Franco: `forum_setup.sql` corrido, phpBB 3.3.17 instalado sobre `mupga_forum` (driver SQL Server nativo, no ODBC), VirtualHost con bloques `:80` y `:443` (cert de Cloudflare, mismo patrón que `api.mupga.com.ar`), DNS proxied en Cloudflare, SMTP configurado con Gmail (`ssl://smtp.gmail.com:465`, auth LOGIN, contraseña de aplicación), carpeta `install/` borrada post-instalación. Troubleshooting del camino: fix de barras invertidas en el `DocumentRoot`/`Directory` del vhost (inconsistente con el resto del archivo), aclarado que Apache corre como servicio de Windows (no por XAMPP Control Panel) por lo que los reinicios son `Restart-Service`, y que el primer `curl` fallido fue por probarse contra `localhost` de la PC de Franco en vez del VPS. Board accesible en `https://foro.mupga.com.ar`, login de admin confirmado. Quedan pendientes de Etapa 1.5 los ítems de contenido/hardening (borrar demo, CAPTCHA, activación por email, estructura de categorías) antes de anunciarlo a los jugadores.
+- 2026-08-11 — [Incidente] Franco quedó bloqueado del ACP de phpBB tras cambiar su contraseña de admin (ni la nueva clave ni "olvidé mi contraseña" funcionaban). El comando de CLI documentado por phpBB para este caso (`user:reset-password`) no existe en la build 3.3.17 instalada. Resuelto sin depender del mail: hash bcrypt generado con `php.exe -r "echo password_hash(...)"` y `UPDATE phpbb_users SET user_password = '<hash>' WHERE username_clean = 'ruggi'` directo en `mupga_forum` vía SSMS. Sirvió para confirmar en producción que el ACP de phpBB era más fricción de la que valía — fue parte de la decisión de descartarlo (ver Fase 8 arriba).
+- 2026-08-11 — [Feat] Pivot de Fase 8: en vez de seguir invirtiendo en phpBB, foro reconstruido como módulo nativo de `web-mupga` (mismo patrón que Reclamos — usuarios crean, admin modera — reusando JWT/ControlPanel/diseño ya existentes). Backend: `database/foro_setup.sql` (schema `forum` en `mupga_admin`, login `mupga_forum_svc`, tablas categories/threads/posts/reactions/banned_accounts), `ForumDatabase`, `ForumRepository`, 8 endpoints públicos/usuario (`src/public/api/forum/`) y 3 admin (`forum_categories`, `forum_moderate`, `forum_ban`). El nombre mostrado en los posts es el personaje principal de la cuenta (`CharacterRepository::getMainCharacterName()`), resuelto y denormalizado al postear — igual criterio que `reclamos.reclamos.nick`. Se agregaron `optionalAuth()` a `Auth.php` (para que `/foro/hilo/` marque reacciones propias sin exigir sesión) e `isAdminAccount()` a `AdminAuth.php` (chequeo "dueño o admin" no bloqueante, reusado en editar/borrar). Frontend: `/foro/`, `/foro/categoria/`, `/foro/hilo/` + `foro.js` — moderación (fijar/cerrar/editar/borrar) inline en la página para admin y para el dueño del contenido, sin depender del ControlPanel para el día a día. ControlPanel: pestaña "💬 Foro" para CRUD de categorías y bans (acotados al foro, nunca tocan `MEMB_INFO.bloc_code` — no es lo mismo que banear la cuenta de juego). Reacciones: un solo tipo ("🙏 Agradecer"), toggle on/off, sin publicar. Bugs propios encontrados y corregidos antes de terminar: el id de categoría/hilo no llegaba en el build estático de Cloudflare Pages (faltaba el fallback a `URLSearchParams` client-side, mismo patrón que `guild.js`), y el botón de responder acumulaba listeners duplicados en cada re-render (cambiado de `addEventListener` a asignación `.onclick`). Pendiente: correr `foro_setup.sql` en el VPS y cargar las categorías iniciales (`runbooks/foro-web-setup-manual.md`).

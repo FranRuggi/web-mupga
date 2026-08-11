@@ -31,6 +31,7 @@ ob_start();
       <button class="cp-tab" data-tab="wcoin">🪙 WCoins</button>
       <button class="cp-tab" data-tab="vip">🎖️ VIP</button>
       <button class="cp-tab" data-tab="estadisticas">📊 Estadísticas</button>
+      <button class="cp-tab" data-tab="foro">💬 Foro</button>
     </div>
 
     <!-- ── Estado del sitio ── -->
@@ -372,6 +373,54 @@ ob_start();
 
       <p class="account-card__title" style="margin-top:var(--gap-md)">Gasto por día (últimos 30 días)</p>
       <div id="stats-por-dia"><p class="state-message">Cargando…</p></div>
+    </section>
+
+    <!-- ── Foro ── -->
+    <section class="cp-section account-card" id="cp-tab-foro" hidden>
+      <p class="account-card__title">Categorías del foro</p>
+      <div id="foro-cat-admin-list"><p class="state-message">Cargando…</p></div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-md)" id="foro-cat-form-title">Nueva categoría</p>
+      <div class="cp-form">
+        <input type="hidden" id="foro-cat-id" value="">
+        <label class="cp-field"><span>Nombre</span><input type="text" id="foro-cat-name" maxlength="100"></label>
+        <label class="cp-field"><span>Descripción</span><input type="text" id="foro-cat-desc" maxlength="300"></label>
+        <div class="cp-grid-2">
+          <label class="cp-field"><span>Orden</span><input type="number" id="foro-cat-order" value="0"></label>
+          <label class="cp-field" style="flex-direction:row;align-items:center;gap:0.5rem;padding-top:1.4rem">
+            <input type="checkbox" id="foro-cat-admin-only" style="width:auto">
+            <span style="margin:0">Solo staff puede publicar acá</span>
+          </label>
+        </div>
+        <div class="cp-actions">
+          <button class="btn btn-primary" id="foro-cat-save">Guardar</button>
+          <button class="btn btn-secondary" id="foro-cat-cancel" hidden>Cancelar edición</button>
+        </div>
+        <p class="cp-feedback" id="foro-cat-feedback"></p>
+      </div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-lg)">Banear cuenta del foro</p>
+      <p class="cp-hint">Bloquea publicar/responder/reaccionar en el foro únicamente — no afecta la cuenta de juego.</p>
+      <div class="cp-form">
+        <label class="cp-field">
+          <span>Cuenta (memb___id)</span>
+          <input type="text" id="foro-ban-account" maxlength="10" autocomplete="off">
+        </label>
+        <div class="cp-actions">
+          <button class="btn btn-secondary" id="foro-ban-lookup">Verificar cuenta</button>
+        </div>
+        <div class="cp-status-box" id="foro-ban-lookup-result" hidden></div>
+
+        <label class="cp-field"><span>Motivo (opcional)</span><input type="text" id="foro-ban-reason" maxlength="300"></label>
+        <div class="cp-actions">
+          <button class="btn btn-primary" id="foro-ban-do" disabled>Banear</button>
+          <button class="btn btn-secondary" id="foro-ban-undo" disabled>Sacar ban</button>
+        </div>
+        <p class="cp-feedback" id="foro-ban-feedback"></p>
+      </div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-md)">Historial de bans</p>
+      <div id="foro-ban-history"><p class="state-message">Cargando…</p></div>
     </section>
 
   </div>

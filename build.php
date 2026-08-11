@@ -37,6 +37,9 @@ $pages = [
     'tienda/index.html'         => 'src/public/tienda/index.php',
     'privacy/index.html'        => 'src/public/privacy/index.php',
     'terms/index.html'          => 'src/public/terms/index.php',
+    'foro/index.html'           => 'src/public/foro/index.php',
+    'foro/categoria/index.html' => 'src/public/foro/categoria/index.php',
+    'foro/hilo/index.html'      => 'src/public/foro/hilo/index.php',
 ];
 
 // ── Helpers ──────────────────────────────────────────────────

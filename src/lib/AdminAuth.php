@@ -32,3 +32,16 @@ function requireAdmin(): array {
     $auth['role'] = $row['role'];
     return $auth;
 }
+
+/**
+ * Chequeo de admin sin cortar la ejecución (a diferencia de requireAdmin()).
+ * Para patrones "dueño del contenido O admin" — ej. editar/borrar posts del
+ * foro, donde el admin puede pero el chequeo principal es la propiedad.
+ */
+function isAdminAccount(string $account): bool {
+    $stmt = AdminDatabase::get()->prepare(
+        'SELECT 1 FROM dbo.admins WHERE memb___id = :id AND active = 1'
+    );
+    $stmt->execute([':id' => $account]);
+    return (bool) $stmt->fetchColumn();
+}
