@@ -2430,6 +2430,67 @@ h1, h2, h3, h4 {
 .tienda-card__footer { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
 .tienda-card__price { font-family: var(--font-title); color: var(--gold); font-size: 0.95rem; }
 
+/* ── Banner cruzado Tienda WCoin ↔ Radar de Tiendas ── */
+.cross-link-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: var(--gap-lg);
+}
+.cross-link-banner__icon { font-size: 1.5rem; line-height: 1; }
+.cross-link-banner__text { flex-grow: 1; }
+.cross-link-banner__title { font-family: var(--font-title); font-size: 0.95rem; color: var(--text-bright); margin: 0; }
+.cross-link-banner__sub { font-size: 0.8rem; color: var(--text-dim); margin: 0.2rem 0 0; line-height: 1.4; }
+.cross-link-banner__btn { flex-shrink: 0; white-space: nowrap; }
+
+.cross-link-banner--cyan { border-color: rgba(0, 196, 234, 0.35); }
+.cross-link-banner--cyan .cross-link-banner__title { color: var(--cyan); }
+.cross-link-banner--cyan .cross-link-banner__btn { border-color: rgba(0, 196, 234, 0.5); }
+.cross-link-banner--cyan .cross-link-banner__btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0, 196, 234, 0.1); }
+
+.cross-link-banner--gold { border-color: var(--gold-border); }
+.cross-link-banner--gold .cross-link-banner__title { color: var(--gold); }
+
+@media (max-width: 640px) {
+  .cross-link-banner { flex-wrap: wrap; }
+  .cross-link-banner__btn { width: 100%; text-align: center; }
+}
+
+/* ── Radar de Tiendas (/tiendas/) ── */
+.shop-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  transition: border-color var(--t), background var(--t);
+}
+.shop-card:hover { border-color: var(--gold-border); background: var(--bg-raised); }
+
+.shop-card__header { display: flex; flex-direction: column; gap: 0.15rem; }
+.shop-card__name { font-family: var(--font-title); font-size: 1rem; }
+.shop-card__meta { font-size: 0.78rem; color: var(--text-dim); }
+.shop-card__title { font-size: 0.85rem; color: var(--text); font-style: italic; margin: 0; }
+
+.shop-card__items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.shop-card__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.35rem;
+}
+.shop-card__slot { color: var(--text-dim); }
+.shop-card__price { font-family: var(--font-title); color: var(--gold); }
+.shop-card__empty { font-size: 0.82rem; color: var(--text-dim); margin: 0; }
+
 /* ── Banner de saldo/compras (arriba del catálogo, /tienda/) ── */
 .tienda-balance-row {
   display: flex;

@@ -4,7 +4,9 @@
 > agregar una línea con fecha en "Registro de cambios" al final.
 
 **Estado actual:** Fase 4 completa ✅ — Fase 5 en curso + Tienda WCoin integrada (incluye Promociones).
-**Última actualización:** 2026-08-02
+Radar de Tiendas (lectura) implementado. Foro (phpBB) en Etapa 1 — infraestructura preparada,
+falta ejecutar en el VPS.
+**Última actualización:** 2026-08-11
 
 ---
 
@@ -212,6 +214,74 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - [ ] Cargar el contenido real (ej. "EXP +200% de 0 a 50 RR") desde el panel y activar — manual, Franco
 - [ ] Probar end-to-end en producción (post-deploy + script SQL corrido)
 
+## Fase 8 — Foro MuPGA (phpBB)
+
+Reactivado a pedido de Franco (2026-08-11). Ya existía un plan de arquitectura
+(`Resumen Arquitectura login foro`, raíz del repo, commit `e918ce5`): foro con cuenta
+propia (separada del juego), subdominio `foro.mupga.com.ar`, vinculación opcional a una
+cuenta de servidor puntual (valida usuario/contraseña sin guardarla, trae stats al perfil).
+
+**Decisión de motor (2026-08-11):** phpBB sobre SQL Server, en vez de Flarum (requiere sumar
+MySQL/MariaDB al VPS — se evitó a propósito, ver `runbooks/deploy.md`) o construirlo a mano
+(reinventa categorías/hilos/reportes/editor/notificaciones/antispam). phpBB tiene driver
+nativo `sqlsrv` (mismo que ya usa este proyecto), el sistema de permisos/ACL más maduro del
+género, y mucho material ya hecho en la comunidad MU para vincular perfil de foro ↔ stats de
+personaje — justo lo que pide la Etapa 3 de abajo.
+
+### Etapa 1 — Infraestructura base (preparado, falta ejecutar en el VPS)
+- [x] `database/forum_setup.sql` — base `mupga_forum` dedicada + login `forum_admin`
+      (`db_owner` solo ahí adentro, sin tocar `MuOnline` ni `mupga_admin`) — 2026-08-11
+- [x] `runbooks/foro-setup-manual.md` — paso a paso: SQL, descarga de phpBB, VirtualHost
+      `foro.mupga.com.ar`, DNS, instalador web — 2026-08-11
+- [ ] Ejecutar `forum_setup.sql` en el VPS (manual — Franco)
+- [ ] Descargar phpBB 3.3.x, configurar VirtualHost + DNS, correr el instalador (manual — Franco)
+- [ ] Confirmar login y panel de administración del foro funcionando
+
+### Etapa 2 — Tema visual (no iniciada)
+- [ ] Reskin de phpBB (Twig) con la paleta/tipografía de `main.css` — que no se sienta "otro sitio"
+
+### Etapa 3 — Vinculación de cuenta de juego (no iniciada)
+- [ ] Depende de la tabla `servidores` + selector multi-servidor (punto 1 de
+      `Resumen Arquitectura login foro`) — no existe todavía, es de un plan más amplio
+      (multi-servidor) que no se implementó
+- [ ] Extensión custom de phpBB: elegir servidor → validar user/pass contra esa DB (login de
+      mínimo privilegio, no se guarda la contraseña) → guardar vínculo → mostrar stats
+
+### Etapa 4 — Moderación (no iniciada)
+- [ ] Definir con Franco qué cuentas pasan a moderador/admin del foro (sistema de cuentas
+      separado del `mupga_admin.dbo.admins` del ControlPanel — no hay sync automático)
+
+## Radar de Tiendas — lectura de tiendas personales
+
+Analizado a pedido de Franco (2026-08-11) si se podía llevar la tienda personal del juego
+("abrir tienda") a la web, tipo marketplace P2P. Conclusión tras revisar el schema real
+(`database/script.sql`) y el repo del GameServer (`mu-s6-server`, solo binarios, sin fuente
+C++): **no es construible de forma segura solo desde la web hoy**. `CustomStore` no guarda
+ítems (solo `Active`/`Type`/`StoreName`), `PShopItemValue` solo guarda slot+precio — el ítem
+real vive en `Character.Inventory` (binario, propietario del GS). Escribir en esas tablas
+está PROHIBIDO (`capability-matrix.md`). El único mecanismo de entrega probado (`GremoryCase`,
+usado por la Tienda WCoin) fabrica ítems nuevos desde parámetros, no puede extraer un ítem
+existente del inventario de un jugador. Haría falta un mecanismo de consignación del lado del
+GameServer (otro repo, fuera de este alcance) — el motor ya demuestra que sabe manejar datos
+de ítem estructurados (`GremoryCase`/`EventAuctionReward` tienen columnas por atributo), así
+que no es descabellado, pero no es tarea de `web-mupga`.
+
+Se implementó en cambio la parte que sí es 100% segura (todo lectura):
+
+- [x] `src/db/ShopRepository.php` — lee `CustomStore` (Active=1) + `PShopItemValue` — 2026-08-11
+- [x] `GET /api/shops.php` — lista de tiendas abiertas con personaje/nombre/slot/precio — 2026-08-11
+- [x] `/tiendas/` + `tiendas.js` — página con auto-refresh cada 30s, cards por tienda — 2026-08-11
+- [x] Nav: link "Radar" agregado a `layout.php`; `build.php` actualizado — 2026-08-11
+- [x] `data-dictionary.md`/`capability-matrix.md` actualizados con el schema real de
+      `CustomStore`/`CustomStoreOffline`/`PShopItemValue` (antes solo decía "tienda custom") — 2026-08-11
+- [ ] Probar contra una tienda real abierta en el VPS/local: confirmar qué significan
+      `Active`/`Type` en `CustomStore` (sin confirmar contra el motor, solo inferido por
+      nombre de columna) — manual, Franco
+- [ ] **Fase futura, no iniciada:** identificar el ítem real de cada slot (nombre, nivel,
+      opciones, excelencias) parseando `Character.Inventory` — requiere verificar el layout
+      binario de ítems Season 6 contra bytes reales antes de mostrarlo a jugadores (no
+      inventar el formato — CLAUDE.md regla 3)
+
 ## Backlog — ideas pendientes
 - [ ] Analytics de clicks/embudo de conversión en la web (frontend → endpoint propio
       de eventos, ej. `/api/analytics/track.php`). Complejo y amplio — evaluar recién
@@ -342,3 +412,7 @@ El frontend es HTML + CSS + JS moderno. PHP sirve JSON desde /api/. Sin Bootstra
 - 2026-08-02 — [UX] Tienda WCoin: ajuste de la implementación de Promociones del mismo día a pedido de Franco. El email dejó de ser un campo compartido siempre visible arriba de las dos pestañas — cada panel ahora pide solo lo que necesita: `#panel-personalizada` recuperó su propio `#inp-email` (vuelve a ser el primer campo del formulario, como antes de Promociones) y `#panel-promociones` tiene un `#inp-email-promo` propio y más simple (único campo antes de la grilla, sin selector de moneda/monto/proveedor/descuento). `switchTab()` ya alternaba paneles completos, así que el cambio fue solo de estructura (mover el email adentro de cada panel) — sin tocar la lógica de tabs. Nuevo estilo `.store-tab--promo` en `main.css`: borde y texto dorados en reposo, gradiente dorado (en vez del violeta de personalizada) cuando está activo, para que la pestaña de promociones resalte y llame la atención.
 - 2026-08-02 — [Fix] Tienda WCoin: la pestaña de Promociones no ocultaba la de compra personalizada — ambas quedaban visibles y apiladas ("las promociones aparecen abajo de todo"), pese a que `switchTab()` seteaba `hidden` correctamente en JS. Causa: `.store-panel { display: flex; }` pisaba el `display:none` del atributo `hidden` (mismo bug que ya había pasado 4 veces antes en `main.css` — `.spinner[hidden]`, `.donate2-modal[hidden]`, `.cp-emoji-picker[hidden]`, `.reclamo-tab-badge[hidden]`); se agregó `.store-panel[hidden] { display: none; }` siguiendo el mismo patrón ya establecido. [Feat] De paso, comprar con "Transferencia Bancaria" ya no depende de que la API externa tenga configurado su `paymentUrl` — `donate.js` detecta ese proveedor por nombre (`isTransferProvider()`) y redirige siempre a `/donate/transferencia/` del lado del cliente (`goToPaymentDestination()`, usada por `onBuy()` y `onBuyPromotion()`), pasando `?orderId=` cuando la API lo devuelve. `/donate/transferencia/` se completó con lo que le faltaba: caja de alias `MUPGA.MP` con botón copiar, y un tercer botón de contacto por Discord (antes solo WhatsApp + reclamo). Detalle completo en `.claude/docs/payment_integration.md`, Paso 6 "Fixes de UX".
 - 2026-08-02 — [Design] Tienda WCoin: contraste de texto secundario subido en todas las páginas de `/donate` (index, transferencia, success, error) a pedido de Franco. Labels, hints y texto de tarjetas que usaban `--text-dim` (#a099be, bajo contraste) pasan a `--text` (#e8e4f4): `.exchange-label`, `.exchange-email-hint`, `.exchange-quote-result`/`.quote-equals`/`.quote-discount-original`, `.promo-loading`/`.promo-card__arrow`/`.promo-card__provider-static`/`.promo-card__unavailable`, `.currency-picker__placeholder`/`.currency-option__code`, `.payment-result-note`, `.transfer-alias-label`, `.donate-hero-sub`, y el tab inactivo (`.store-tab`, con su hover subido a `--text-bright`). Se dejaron sin tocar el placeholder real del input de email (`::placeholder`, convención estándar de baja prominencia) y el ícono del chevron del picker (decorativo, no es texto). Cambio scopeado — las clases tocadas solo se usan en páginas de `/donate` (verificado con grep), no afecta el resto del sitio.
+- 2026-08-11 — [Análisis] A pedido de Franco, se evaluaron dos iniciativas nuevas (foro + trade vía web) antes de tocar código. Foro: se encontró un plan de arquitectura ya commiteado (`Resumen Arquitectura login foro`) que no había avanzado — se decidió el motor (phpBB sobre SQL Server, ver Fase 8) comparando contra Flarum/Discourse/custom. Trade: se revisó el schema real de `CustomStore`/`CustomStoreOffline`/`PShopItemValue` (`database/script.sql`) y el repo del GameServer (`mu-s6-server`, sin fuente C++ disponible) — se confirmó que un marketplace P2P real no es viable solo desde la web (ver sección "Radar de Tiendas" arriba) y se acotó el alcance a una feature de solo lectura.
+- 2026-08-11 — [Feat] Radar de Tiendas (`/tiendas/`): `ShopRepository.php` (lectura `CustomStore`+`PShopItemValue`), `GET /api/shops.php`, página con auto-refresh cada 30s mostrando personaje/nombre de tienda/slot/precio de cada tienda personal abierta. 100% lectura, sin escritura a ninguna tabla de juego. No identifica el ítem en sí (ver limitación en la sección de arriba). Nav: link "Radar" agregado.
+- 2026-08-11 — [Feat] Foro (Fase 8, Etapa 1): `database/forum_setup.sql` (base `mupga_forum` dedicada + login `forum_admin` con `db_owner` acotado a esa base) y `runbooks/foro-setup-manual.md` (instalación de phpBB paso a paso: SQL, VirtualHost `foro.mupga.com.ar`, DNS, wizard de phpBB). Preparado para que Franco lo ejecute en el VPS — no se instaló nada todavía, esta sesión no tiene acceso al VPS.
+- 2026-08-11 — [UX] Banner cruzado entre `/tienda/` (WCoin, oficial) y `/tiendas/` (Radar, tiendas de jugadores por Zen) — cada página muestra un banner con acento de color distinto (dorado = Tienda WCoin, cian = Radar) explicando la diferencia y linkeando a la otra, para que no se confundan. `.cross-link-banner` nueva en `main.css`; `renderTiendaCrossLink()`/`renderRadarCrossLink()` en sus respectivos JS.

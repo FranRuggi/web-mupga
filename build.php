@@ -35,6 +35,7 @@ $pages = [
     'donate2/index.html'        => 'src/public/donate2/index.php',
     'controlpanel/index.html'   => 'src/public/controlpanel/index.php',
     'tienda/index.html'         => 'src/public/tienda/index.php',
+    'tiendas/index.html'        => 'src/public/tiendas/index.php',
     'privacy/index.html'        => 'src/public/privacy/index.php',
     'terms/index.html'          => 'src/public/terms/index.php',
 ];

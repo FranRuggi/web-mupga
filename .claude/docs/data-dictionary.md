@@ -301,7 +301,9 @@ Escrita en: `api/auth/register.php` via ip-api.com al crear la cuenta.
 | `Gens_Rank`              | Rankings de Gens                               |
 | `CustomAttack`           | Ataque custom (online) — solo GS               |
 | `CustomAttackOffline`    | Ataque custom (offline) — solo GS              |
-| `CustomStore` / `CustomStoreOffline` | Tienda custom                    |
+| `CustomStore`            | Tienda personal abierta: `Name` (PK), `Active` (tinyint), `Type` (smallint), `StoreName` (varchar 36). **No tiene datos de ítems** — el ítem real vive en `Character.Inventory` (binario), esta tabla solo dice qué personaje tiene tienda abierta y su nombre. Significado exacto de `Active`/`Type` sin confirmar contra una tienda real — ver `ShopRepository.php`. |
+| `CustomStoreOffline`     | Ruteo de tiendas offline (auto-resume multi-GS): `AccountID` (PK), `Name`, `IP`, `ServerName`. Tampoco tiene datos de ítems. |
+| `PShopItemValue`         | Precio publicado por slot en una tienda personal: `Name`+`Slot` (PK compuesta), `Serial`, `Value` (Zen). Solo precio — no identifica el ítem (eso sigue en `Character.Inventory`). |
 | `CustomGift`             | Regalos custom                                 |
 | `CustomItemBank`         | Banco de ítems custom                          |
 | `CustomJewelBank`        | Banco de joyas custom                          |

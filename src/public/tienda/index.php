@@ -16,6 +16,7 @@ ob_start();
   </div>
 
   <section class="section">
+    <div id="tienda-cross-link"></div>
     <div id="tienda-balance" class="account-card" style="margin-bottom:var(--gap-lg)" hidden></div>
 
     <div id="tienda-container">

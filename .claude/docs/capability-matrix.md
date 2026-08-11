@@ -39,6 +39,7 @@
 | Ver saldo WCoin / GoblinPoint             | `CashShopData`                       | Solo lectura; puede estar desfasado si está online |
 | Ver historial de WCoin                    | `CashLog`                            | Solo lectura                                    |
 | Ver compras pendientes de reclamar (tienda) | `CashShopInventory` (join con `webshop.products`) | Solo lectura, filtrada por AccountID propio |
+| Ver tiendas personales abiertas (Radar de Tiendas) | `CustomStore` (Active=1), `PShopItemValue` | Solo lectura; muestra personaje/nombre de tienda/slot/precio, **no** identifica el ítem (requeriría parsear `Character.Inventory`, binario — ver nota en `ShopRepository.php`) |
 | Conteo de jugadores online                | `MEMB_STAT` (COUNT WHERE ConnectStat=1) | Operación segura y frecuente                 |
 | Info del Castle Siege (propietario, tax)  | `MuCastle_DATA`                      | Solo lectura                                    |
 | Info de noticias del sitio                | `mupga_admin.dbo.news`               | Solo lectura; reemplaza a `WEBENGINE_NEWS`      |
@@ -137,6 +138,8 @@ es demasiado alto o el impacto en el GameServer sería impredecible.
 - **Sistema de votos** (reward en WCoin o créditos) — **pendiente**, requiere tabla propia
   (no hay reemplazo de `WEBENGINE_VOTES` todavía)
 - **Página de información del servidor** (rates, comandos, eventos) — datos estáticos
+- **Radar de Tiendas** (`/tiendas/`) — lectura de `CustomStore`/`PShopItemValue`; muestra
+  quién tiene tienda abierta y a qué precio, sin identificar el ítem (ver tabla de lectura)
 
 ### Features de escritura sobre datos de juego (SEGURAS, online u offline)
 - **Recarga de WCoin** (donaciones) — vía `sp_AddWCoinWithLog`
