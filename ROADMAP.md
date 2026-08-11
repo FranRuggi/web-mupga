@@ -4,8 +4,8 @@
 > agregar una línea con fecha en "Registro de cambios" al final.
 
 **Estado actual:** Fase 4 completa ✅ — Fase 5 en curso + Tienda WCoin integrada (incluye Promociones).
-Radar de Tiendas (lectura) implementado. Foro (phpBB) en Etapa 1 — infraestructura preparada,
-falta ejecutar en el VPS.
+Radar de Tiendas: implementado, probado contra datos reales y descartado (ver sección abajo).
+Foro (phpBB) en Etapa 1 — infraestructura preparada, falta ejecutar en el VPS.
 **Última actualización:** 2026-08-11
 
 ---
@@ -266,21 +266,17 @@ GameServer (otro repo, fuera de este alcance) — el motor ya demuestra que sabe
 de ítem estructurados (`GremoryCase`/`EventAuctionReward` tienen columnas por atributo), así
 que no es descabellado, pero no es tarea de `web-mupga`.
 
-Se implementó en cambio la parte que sí es 100% segura (todo lectura):
-
-- [x] `src/db/ShopRepository.php` — lee `CustomStore` (Active=1) + `PShopItemValue` — 2026-08-11
-- [x] `GET /api/shops.php` — lista de tiendas abiertas con personaje/nombre/slot/precio — 2026-08-11
-- [x] `/tiendas/` + `tiendas.js` — página con auto-refresh cada 30s, cards por tienda — 2026-08-11
-- [x] Nav: link "Radar" agregado a `layout.php`; `build.php` actualizado — 2026-08-11
-- [x] `data-dictionary.md`/`capability-matrix.md` actualizados con el schema real de
-      `CustomStore`/`CustomStoreOffline`/`PShopItemValue` (antes solo decía "tienda custom") — 2026-08-11
-- [ ] Probar contra una tienda real abierta en el VPS/local: confirmar qué significan
-      `Active`/`Type` en `CustomStore` (sin confirmar contra el motor, solo inferido por
-      nombre de columna) — manual, Franco
-- [ ] **Fase futura, no iniciada:** identificar el ítem real de cada slot (nombre, nivel,
-      opciones, excelencias) parseando `Character.Inventory` — requiere verificar el layout
-      binario de ítems Season 6 contra bytes reales antes de mostrarlo a jugadores (no
-      inventar el formato — CLAUDE.md regla 3)
+Se implementó la parte que sí es 100% segura (todo lectura): `ShopRepository.php`,
+`GET /api/shops.php`, página `/tiendas/` con auto-refresh, link en el nav, banner cruzado
+con `/tienda/`. **Funcionó técnicamente** — probado contra el VPS con tiendas reales
+abiertas, `Active=1` filtra correctamente las tiendas activas — pero **se descartó por
+decisión de producto de Franco** (2026-08-11): la vista de solo precio/slot sin poder
+identificar el ítem no se entendía y no resultaba útil en la práctica. Código eliminado
+(`src/db/ShopRepository.php`, `GET /api/shops.php`, `/tiendas/`, `tiendas.js`, link de nav,
+banner cruzado en `/tienda/`) — ver Registro de cambios. Se deja esta sección como
+referencia de qué se probó y por qué no siguió, para no volver a evaluarlo desde cero si
+se retoma la idea más adelante (por ejemplo, si algún día se resuelve la identificación del
+ítem — ver limitación de `Character.Inventory` arriba — capaz cambia el veredicto de UX).
 
 ## Backlog — ideas pendientes
 - [ ] Analytics de clicks/embudo de conversión en la web (frontend → endpoint propio
@@ -416,3 +412,4 @@ Se implementó en cambio la parte que sí es 100% segura (todo lectura):
 - 2026-08-11 — [Feat] Radar de Tiendas (`/tiendas/`): `ShopRepository.php` (lectura `CustomStore`+`PShopItemValue`), `GET /api/shops.php`, página con auto-refresh cada 30s mostrando personaje/nombre de tienda/slot/precio de cada tienda personal abierta. 100% lectura, sin escritura a ninguna tabla de juego. No identifica el ítem en sí (ver limitación en la sección de arriba). Nav: link "Radar" agregado.
 - 2026-08-11 — [Feat] Foro (Fase 8, Etapa 1): `database/forum_setup.sql` (base `mupga_forum` dedicada + login `forum_admin` con `db_owner` acotado a esa base) y `runbooks/foro-setup-manual.md` (instalación de phpBB paso a paso: SQL, VirtualHost `foro.mupga.com.ar`, DNS, wizard de phpBB). Preparado para que Franco lo ejecute en el VPS — no se instaló nada todavía, esta sesión no tiene acceso al VPS.
 - 2026-08-11 — [UX] Banner cruzado entre `/tienda/` (WCoin, oficial) y `/tiendas/` (Radar, tiendas de jugadores por Zen) — cada página muestra un banner con acento de color distinto (dorado = Tienda WCoin, cian = Radar) explicando la diferencia y linkeando a la otra, para que no se confundan. `.cross-link-banner` nueva en `main.css`; `renderTiendaCrossLink()`/`renderRadarCrossLink()` en sus respectivos JS.
+- 2026-08-11 — [Revert] Radar de Tiendas eliminado por decisión de producto de Franco: funcionaba técnicamente (probado en el VPS contra tiendas reales, `CustomStore.Active=1` confirmado), pero la vista de solo slot/precio sin poder identificar el ítem no se entendía y no resultaba útil. Se borraron `src/db/ShopRepository.php`, `src/public/api/shops.php`, `src/public/tiendas/`, `src/public/assets/js/tiendas.js`, el link "Radar" del nav, la entrada en `build.php`, el require en `bootstrap.php`, el banner cruzado en `/tienda/` (código + CSS `.cross-link-banner`/`.shop-card`) y las menciones en `capability-matrix.md`. Se dejó en `data-dictionary.md` el schema real de `CustomStore`/`PShopItemValue` (documentación de tabla válida más allá de esta feature) y quedó registrado en la sección de arriba por qué no se siguió, para no re-evaluarlo desde cero si se retoma.

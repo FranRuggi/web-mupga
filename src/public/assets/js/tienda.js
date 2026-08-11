@@ -212,26 +212,7 @@ async function buyTiendaProduct(productId, price, name, btn) {
   loadTiendaMisCompras();
 }
 
-// Cruce hacia el Radar de Tiendas (/tiendas/) — esto es la Tienda WCoin (canje contra
-// el CashShop oficial); el Radar es un catálogo aparte de lo que venden otros jugadores
-// en sus tiendas personales. Se marcan bien distintas para que no se confundan.
-function renderTiendaCrossLink() {
-  const el = document.getElementById('tienda-cross-link');
-  if (!el) return;
-  el.innerHTML = `
-    <div class="cross-link-banner cross-link-banner--cyan">
-      <span class="cross-link-banner__icon">🔎</span>
-      <div class="cross-link-banner__text">
-        <p class="cross-link-banner__title">Radar de Tiendas</p>
-        <p class="cross-link-banner__sub">Esto es la Tienda WCoin. Si buscás lo que venden
-          otros jugadores en sus tiendas personales (Zen, no WCoin), mirá el Radar.</p>
-      </div>
-      <a class="btn btn-secondary btn-sm cross-link-banner__btn" href="${BASE}/tiendas/">Ver Radar →</a>
-    </div>`;
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-  renderTiendaCrossLink();
   loadTiendaBalance();
   loadTiendaCatalog();
 });
