@@ -18,19 +18,50 @@ class ForumRepository {
     // Categorías
     // -------------------------------------------------------------------------
 
+    /**
+     * SQL Server devuelve BIT vía sqlsrv como string ("0"/"1"), no bool — y "0" es
+     * un string TRUTHY en JS. Sin este cast, cualquier checkbox lee como tildado
+     * siempre en el frontend (bug real: admin_only_post/is_pinned/is_locked
+     * quedaban "prendidos" para todas las categorías/hilos sin importar el valor
+     * real en la base). Cast explícito acá, una sola vez, para que todo lo que
+     * sale de este repositorio hacia el JSON tenga tipos reales.
+     */
+    private function mapCategoryRow(array $row): array {
+        $row['id']              = (int) $row['id'];
+        $row['sort_order']      = (int) $row['sort_order'];
+        $row['admin_only_post'] = (bool) (int) $row['admin_only_post'];
+        return $row;
+    }
+
+    private function mapThreadRow(array $row): array {
+        $row['id']          = (int) $row['id'];
+        $row['category_id'] = (int) $row['category_id'];
+        $row['is_pinned']   = (bool) (int) $row['is_pinned'];
+        $row['is_locked']   = (bool) (int) $row['is_locked'];
+        if (isset($row['reply_count'])) $row['reply_count'] = (int) $row['reply_count'];
+        return $row;
+    }
+
+    private function mapPostRow(array $row): array {
+        $row['id']        = (int) $row['id'];
+        $row['thread_id'] = (int) $row['thread_id'];
+        return $row;
+    }
+
     public function getCategories(): array {
         $stmt = $this->pdo->query(
             'SELECT id, name, slug, description, sort_order, admin_only_post
              FROM forum.categories
              ORDER BY sort_order ASC, name ASC'
         );
-        return $stmt->fetchAll();
+        return array_map([$this, 'mapCategoryRow'], $stmt->fetchAll());
     }
 
     public function getCategory(int $id): ?array {
         $stmt = $this->pdo->prepare('SELECT * FROM forum.categories WHERE id = ?');
         $stmt->execute([$id]);
-        return $stmt->fetch() ?: null;
+        $row = $stmt->fetch();
+        return $row ? $this->mapCategoryRow($row) : null;
     }
 
     public function createCategory(string $name, string $slug, ?string $description, int $sortOrder, bool $adminOnlyPost): int {
@@ -78,13 +109,14 @@ class ForumRepository {
              ORDER BY is_pinned DESC, last_post_at DESC"
         );
         $stmt->execute([$categoryId]);
-        return $stmt->fetchAll();
+        return array_map([$this, 'mapThreadRow'], $stmt->fetchAll());
     }
 
     public function getThread(int $id): ?array {
         $stmt = $this->pdo->prepare('SELECT * FROM forum.threads WHERE id = ?');
         $stmt->execute([$id]);
-        return $stmt->fetch() ?: null;
+        $row = $stmt->fetch();
+        return $row ? $this->mapThreadRow($row) : null;
     }
 
     public function createThread(int $categoryId, string $title, string $body, string $account, string $displayName): int {
@@ -142,13 +174,14 @@ class ForumRepository {
             'SELECT * FROM forum.posts WHERE thread_id = ? ORDER BY created_at ASC'
         );
         $stmt->execute([$threadId]);
-        return $stmt->fetchAll();
+        return array_map([$this, 'mapPostRow'], $stmt->fetchAll());
     }
 
     public function getPost(int $id): ?array {
         $stmt = $this->pdo->prepare('SELECT * FROM forum.posts WHERE id = ?');
         $stmt->execute([$id]);
-        return $stmt->fetch() ?: null;
+        $row = $stmt->fetch();
+        return $row ? $this->mapPostRow($row) : null;
     }
 
     public function createPost(int $threadId, string $body, string $account, string $displayName): int {
