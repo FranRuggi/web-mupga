@@ -5,7 +5,8 @@
 
 **Estado actual:** Fase 4 completa ✅ — Fase 5 en curso + Tienda WCoin integrada (incluye Promociones).
 Radar de Tiendas: implementado, probado contra datos reales y descartado (ver sección abajo).
-Foro (phpBB) en Etapa 1 — infraestructura preparada, falta ejecutar en el VPS.
+Foro (phpBB): Etapa 1 completa ✅, foro en producción en `foro.mupga.com.ar` — falta Etapa 1.5
+(contenido/hardening) antes de anunciarlo a los jugadores.
 **Última actualización:** 2026-08-11
 
 ---
@@ -228,14 +229,26 @@ nativo `sqlsrv` (mismo que ya usa este proyecto), el sistema de permisos/ACL má
 género, y mucho material ya hecho en la comunidad MU para vincular perfil de foro ↔ stats de
 personaje — justo lo que pide la Etapa 3 de abajo.
 
-### Etapa 1 — Infraestructura base (preparado, falta ejecutar en el VPS)
+### Etapa 1 — Infraestructura base ✅ (2026-08-11)
 - [x] `database/forum_setup.sql` — base `mupga_forum` dedicada + login `forum_admin`
       (`db_owner` solo ahí adentro, sin tocar `MuOnline` ni `mupga_admin`) — 2026-08-11
 - [x] `runbooks/foro-setup-manual.md` — paso a paso: SQL, descarga de phpBB, VirtualHost
       `foro.mupga.com.ar`, DNS, instalador web — 2026-08-11
-- [ ] Ejecutar `forum_setup.sql` en el VPS (manual — Franco)
-- [ ] Descargar phpBB 3.3.x, configurar VirtualHost + DNS, correr el instalador (manual — Franco)
-- [ ] Confirmar login y panel de administración del foro funcionando
+- [x] Ejecutado en el VPS: `forum_setup.sql` corrido, phpBB 3.3.17 descargado e instalado
+      (driver SQL Server nativo), VirtualHost `:80`+`:443` con cert de Cloudflare, DNS
+      proxied, SMTP con Gmail (contraseña de aplicación) — 2026-08-11
+- [x] Login y ACP del foro confirmados funcionando (cuenta admin `ruggi`), carpeta
+      `install/` borrada — 2026-08-11
+
+### Etapa 1.5 — Contenido inicial y hardening (en curso)
+- [ ] Borrar/renombrar la categoría y el foro demo que trae phpBB por default
+      ("Your first category" / "Your first forum")
+- [ ] Activar CAPTCHA en el registro (Q&A propio o reCAPTCHA) — sin esto un foro público
+      nuevo empieza a recibir cuentas de spam en cuestión de días
+- [ ] Definir modo de activación de cuenta al registrarse (ahora que el SMTP funciona,
+      "activación por email" es viable y filtra bots mejor que "Ninguna")
+- [ ] Armar la estructura real de categorías/foros (ver propuesta abajo, a confirmar con Franco)
+- [ ] Revisar `Board name`/`Board description` en ACP → General
 
 ### Etapa 2 — Tema visual (no iniciada)
 - [ ] Reskin de phpBB (Twig) con la paleta/tipografía de `main.css` — que no se sienta "otro sitio"
@@ -413,3 +426,4 @@ se retoma la idea más adelante (por ejemplo, si algún día se resuelve la iden
 - 2026-08-11 — [Feat] Foro (Fase 8, Etapa 1): `database/forum_setup.sql` (base `mupga_forum` dedicada + login `forum_admin` con `db_owner` acotado a esa base) y `runbooks/foro-setup-manual.md` (instalación de phpBB paso a paso: SQL, VirtualHost `foro.mupga.com.ar`, DNS, wizard de phpBB). Preparado para que Franco lo ejecute en el VPS — no se instaló nada todavía, esta sesión no tiene acceso al VPS.
 - 2026-08-11 — [UX] Banner cruzado entre `/tienda/` (WCoin, oficial) y `/tiendas/` (Radar, tiendas de jugadores por Zen) — cada página muestra un banner con acento de color distinto (dorado = Tienda WCoin, cian = Radar) explicando la diferencia y linkeando a la otra, para que no se confundan. `.cross-link-banner` nueva en `main.css`; `renderTiendaCrossLink()`/`renderRadarCrossLink()` en sus respectivos JS.
 - 2026-08-11 — [Revert] Radar de Tiendas eliminado por decisión de producto de Franco: funcionaba técnicamente (probado en el VPS contra tiendas reales, `CustomStore.Active=1` confirmado), pero la vista de solo slot/precio sin poder identificar el ítem no se entendía y no resultaba útil. Se borraron `src/db/ShopRepository.php`, `src/public/api/shops.php`, `src/public/tiendas/`, `src/public/assets/js/tiendas.js`, el link "Radar" del nav, la entrada en `build.php`, el require en `bootstrap.php`, el banner cruzado en `/tienda/` (código + CSS `.cross-link-banner`/`.shop-card`) y las menciones en `capability-matrix.md`. Se dejó en `data-dictionary.md` el schema real de `CustomStore`/`PShopItemValue` (documentación de tabla válida más allá de esta feature) y quedó registrado en la sección de arriba por qué no se siguió, para no re-evaluarlo desde cero si se retoma.
+- 2026-08-11 — [Feat] Foro (Fase 8, Etapa 1) ejecutado en el VPS por Franco: `forum_setup.sql` corrido, phpBB 3.3.17 instalado sobre `mupga_forum` (driver SQL Server nativo, no ODBC), VirtualHost con bloques `:80` y `:443` (cert de Cloudflare, mismo patrón que `api.mupga.com.ar`), DNS proxied en Cloudflare, SMTP configurado con Gmail (`ssl://smtp.gmail.com:465`, auth LOGIN, contraseña de aplicación), carpeta `install/` borrada post-instalación. Troubleshooting del camino: fix de barras invertidas en el `DocumentRoot`/`Directory` del vhost (inconsistente con el resto del archivo), aclarado que Apache corre como servicio de Windows (no por XAMPP Control Panel) por lo que los reinicios son `Restart-Service`, y que el primer `curl` fallido fue por probarse contra `localhost` de la PC de Franco en vez del VPS. Board accesible en `https://foro.mupga.com.ar`, login de admin confirmado. Quedan pendientes de Etapa 1.5 los ítems de contenido/hardening (borrar demo, CAPTCHA, activación por email, estructura de categorías) antes de anunciarlo a los jugadores.
