@@ -255,7 +255,9 @@ de la idea de multi-servidor, que quedó descartada; sin eso, separar cuentas no
       lookup-then-act que WCoin/VIP) — 2026-08-11
 - [x] Nav, `build.php`, `main.css`, `.env.example` (`FORUM_DB_*`) — 2026-08-11
 - [ ] Ejecutar `database/foro_setup.sql` en el VPS + cargar categorías iniciales (manual —
-      Franco, ver `runbooks/foro-web-setup-manual.md`)
+      Franco, ver `runbooks/foro-web-setup-manual.md`). Las categorías iniciales están
+      armadas en `database/foro_categorias_seed.sql` (7 categorías + un aviso fijado en
+      cada una; requiere la migración v2 y editar la variable `@autor`)
 - [ ] Activar CAPTCHA en el registro del sitio si no está ya (antispam — el foro hereda la
       cuenta del sitio, así que el antispam correcto es ahí, no en el foro en sí)
 
@@ -375,6 +377,27 @@ tiene cascade, con lo cual ni un DELETE manual pasaba.
 - [x] La FK se deja sin cascade a nivel DB adrede: un DELETE suelto contra `categories`
       tiene que fallar, no vaciar el foro en silencio
 - [x] Toda variante queda registrada en `forum.moderation_log` como `delete_category`
+
+### Fix — emojis, orden del listado y buscador (2026-08-11)
+
+Tres cosas que aparecieron al probar el foro con las categorías reales cargadas:
+
+- [x] **Emojis como silueta dorada**: los títulos usan degradado con
+      `-webkit-text-fill-color: transparent`, que también pinta el emoji. Se agregaron
+      las fuentes de emoji a los stacks (`--font-emoji`, antes del genérico — si no,
+      Windows cae en Segoe UI Symbol monocromático) y el emoji inicial del nombre de
+      categoría se renderiza en su propio `.forum-emoji`, que recupera fill y fuente
+- [x] **`.cp-form[hidden]`**: `display:flex` le ganaba al atributo `hidden`, así que el
+      form de "nuevo hilo" estaba SIEMPRE abierto — y por lo mismo el form de responder
+      se veía también en hilos cerrados. Mismo patrón ya documentado en `.spinner[hidden]`
+      y `.store-panel[hidden]`. Se agregó la misma guarda a `.forum-nuevo-hilo`
+- [x] **Listado antes del editor**: en `/foro/categoria/` los hilos van arriba y el botón
+      de publicar abajo, con un `scrollIntoView` + foco al abrirlo. Las filas ahora traen
+      extracto del cuerpo, última actividad con autor y tiempo relativo ("hace 5 min"):
+      el listado invita a leer antes de escribir
+- [x] **Buscador roto**: `searchThreads()` no seleccionaba `is_pinned`/`is_locked` pero
+      `mapThreadRow()` los castea siempre → warnings de PHP metidos en el body de la
+      respuesta → el JSON no parseaba en el cliente
 
 **Siguientes etapas del backlog (no iniciadas):** Etapa 7 y P2 sueltos (F-10.03 URLs
 legibles/slug, bloque de código F-04.02, spoiler F-04.03, embed YouTube F-04.04, no leídos

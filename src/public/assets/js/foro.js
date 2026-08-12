@@ -32,6 +32,54 @@ function foroMsDesde(sql) {
   return Date.now() - Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
 }
 
+// "hace 5 min" se lee mucho mejor que "12/08 02:14 hs" en un listado; de un mes
+// para atrás la fecha concreta vuelve a ser más útil que el relativo
+function foroHace(sql) {
+  const ms = foroMsDesde(sql);
+  if (!isFinite(ms)) return '';
+  const min = Math.floor(ms / 60000);
+  if (min < 1)  return 'recién';
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24)   return `hace ${h} h`;
+  const d = Math.floor(h / 24);
+  if (d === 1)  return 'ayer';
+  if (d < 30)   return `hace ${d} días`;
+  return foroFmtFecha(sql);
+}
+
+/**
+ * Separa el emoji inicial del nombre de una categoría ("💰 Compra / venta").
+ * Los títulos del sitio se pintan con un degradado dorado
+ * (-webkit-text-fill-color: transparent), que también le come el color al
+ * emoji y lo deja como silueta. Renderizándolo en su propio span (.forum-emoji)
+ * se le devuelve el color y la fuente de emojis.
+ */
+function foroSplitEmoji(nombre) {
+  const s = String(nombre ?? '');
+  // \uFE0F = selector de presentación emoji, \u200D = ZWJ (emojis compuestos):
+  // van escapados a propósito, son invisibles si se escriben literales
+  const m = s.match(/^\s*(\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*)\s*(.*)$/u);
+  return m ? { emoji: m[1], texto: m[2] } : { emoji: '', texto: s };
+}
+
+function foroNombreCategoriaHtml(nombre) {
+  const { emoji, texto } = foroSplitEmoji(nombre);
+  return (emoji ? `<span class="forum-emoji">${esc(emoji)}</span> ` : '') + esc(texto);
+}
+
+// El extracto del listado viene en markdown-lite crudo: se le saca la sintaxis
+// para que la vista previa se lea como texto corrido
+function foroTextoPlano(s) {
+  return String(s ?? '')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '🖼️ imagen')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^[>#\-\s]+/gm, ' ')
+    .replace(/[*_~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function foroIsAdmin() {
   return sessionStorage.getItem('mupga_admin') === '1';
 }
@@ -112,7 +160,7 @@ async function initCategorias() {
 
   container.innerHTML = `<div class="card-grid card-grid--3">${data.categories.map(c => `
     <a class="forum-category-card" href="${BASE}/foro/categoria/?id=${c.id}">
-      <p class="forum-category-card__name">${esc(c.name)}</p>
+      <p class="forum-category-card__name">${foroNombreCategoriaHtml(c.name)}</p>
       ${c.description ? `<p class="forum-category-card__desc">${esc(c.description)}</p>` : ''}
       <p class="forum-category-card__meta">
         ${c.thread_count} hilo${c.thread_count === 1 ? '' : 's'}
@@ -146,7 +194,7 @@ async function initHilos() {
     return;
   }
 
-  document.getElementById('foro-cat-nombre').textContent = data.category.name;
+  document.getElementById('foro-cat-nombre').innerHTML = foroNombreCategoriaHtml(data.category.name);
   document.getElementById('foro-cat-desc').textContent = data.category.description ?? '';
 
   const toggleWrap = document.getElementById('foro-nuevo-hilo-toggle-wrap');
@@ -158,8 +206,13 @@ async function initHilos() {
       window.location.href = `${BASE}/login/?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
       return;
     }
-    document.getElementById('foro-nuevo-hilo-form').hidden = false;
+    // El formulario ahora vive debajo del listado (primero leer, después
+    // escribir), así que hay que llevar al usuario hasta él
+    const form = document.getElementById('foro-nuevo-hilo-form');
+    form.hidden = false;
     toggleWrap.hidden = true;
+    form.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    document.getElementById('foro-nuevo-titulo').focus({ preventScroll: true });
   });
   document.getElementById('foro-nuevo-cancelar').addEventListener('click', () => {
     document.getElementById('foro-nuevo-hilo-form').hidden = true;
@@ -178,7 +231,16 @@ function renderHilos(threads, pagerHtml = '') {
     return;
   }
 
-  container.innerHTML = pagerHtml + threads.map(t => `
+  container.innerHTML = pagerHtml + threads.map(t => {
+    const respuestas = Number(t.reply_count) || 0;
+    const extracto   = foroTextoPlano(t.excerpt ?? '');
+    // Con respuestas, lo que importa es la última actividad y quién la generó;
+    // sin respuestas, cuándo se abrió el hilo
+    const ultimo = respuestas > 0
+      ? `último${t.last_post_author ? ` por ${esc(t.last_post_author)}` : ''} · ${foroHace(t.last_post_at)}`
+      : `abierto ${foroHace(t.created_at)}`;
+
+    return `
     <a class="forum-thread-row" href="${BASE}/foro/hilo/?id=${t.id}">
       <div class="forum-thread-row__main">
         <span class="forum-thread-row__title">
@@ -186,10 +248,16 @@ function renderHilos(threads, pagerHtml = '') {
           ${t.is_locked ? '<span class="forum-badge forum-badge--locked">🔒 Cerrado</span>' : ''}
           ${esc(t.title)}
         </span>
-        <span class="forum-thread-row__meta">por ${esc(t.author_display_name)} · ${foroFmtFecha(t.created_at)}</span>
+        ${extracto ? `<span class="forum-thread-row__excerpt">${esc(extracto)}</span>` : ''}
+        <span class="forum-thread-row__meta">por ${esc(t.author_display_name)} · ${foroHace(t.created_at)}</span>
       </div>
-      <span class="forum-thread-row__replies">${t.reply_count} respuesta${Number(t.reply_count) === 1 ? '' : 's'}</span>
-    </a>`).join('') + pagerHtml;
+      <div class="forum-thread-row__stats">
+        <span class="forum-thread-row__count">${respuestas}</span>
+        <span class="forum-thread-row__count-lbl">respuesta${respuestas === 1 ? '' : 's'}</span>
+        <span class="forum-thread-row__last">${ultimo}</span>
+      </div>
+    </a>`;
+  }).join('') + pagerHtml;
 }
 
 async function onCrearHilo(catId) {

@@ -17,6 +17,13 @@ ob_start();
   </div>
 
   <section class="section">
+    <div id="foro-hilos-container"><p class="state-message">Cargando…</p></div>
+
+    <div class="forum-nuevo-hilo" id="foro-nuevo-hilo-toggle-wrap">
+      <p class="forum-nuevo-hilo__hint">¿No encontraste lo que buscabas? Abrí un hilo nuevo.</p>
+      <button class="btn btn-primary" id="foro-nuevo-hilo-toggle">✏️ Nuevo hilo</button>
+    </div>
+
     <div class="cp-form" id="foro-nuevo-hilo-form" hidden>
       <p class="account-card__title">Nuevo hilo</p>
       <label class="cp-field"><span>Título</span><input type="text" id="foro-nuevo-titulo" maxlength="200"></label>
@@ -27,12 +34,6 @@ ob_start();
       </div>
       <p class="cp-feedback" id="foro-nuevo-feedback"></p>
     </div>
-
-    <div class="cp-actions" id="foro-nuevo-hilo-toggle-wrap" style="margin-bottom:var(--gap-md)">
-      <button class="btn btn-primary" id="foro-nuevo-hilo-toggle">✏️ Nuevo hilo</button>
-    </div>
-
-    <div id="foro-hilos-container"><p class="state-message">Cargando…</p></div>
   </section>
 
 </main>

@@ -217,16 +217,25 @@ class ForumRepository {
     // Hilos
     // -------------------------------------------------------------------------
 
-    /** Paginado (F-10.02): fijados primero, después por actividad. $page arranca en 1. */
+    /**
+     * Paginado (F-10.02): fijados primero, después por actividad. $page arranca en 1.
+     * Trae también un extracto del cuerpo y quién escribió la última respuesta, para
+     * que el listado invite a leer antes de abrir un hilo nuevo. Sigue siendo una
+     * sola query (la subconsulta usa IX_forum_posts_thread_created).
+     */
     public function getThreadsByCategory(int $categoryId, int $page = 1, int $perPage = 25): array {
         $offset = max(0, ($page - 1) * $perPage);
         $stmt = $this->pdo->prepare(
-            "SELECT id, category_id, title, author_account, author_display_name,
-                    is_pinned, is_locked, locked_reason, reply_count, created_at, last_post_at,
-                    edited_by_staff, deleted_at
-             FROM forum.threads
-             WHERE category_id = ? AND deleted_at IS NULL
-             ORDER BY is_pinned DESC, last_post_at DESC
+            "SELECT t.id, t.category_id, t.title, t.author_account, t.author_display_name,
+                    t.is_pinned, t.is_locked, t.locked_reason, t.reply_count,
+                    t.created_at, t.last_post_at, t.edited_by_staff, t.deleted_at,
+                    LEFT(t.body, 220) AS excerpt,
+                    (SELECT TOP 1 p.author_display_name FROM forum.posts p
+                      WHERE p.thread_id = t.id AND p.deleted_at IS NULL
+                      ORDER BY p.created_at DESC, p.id DESC) AS last_post_author
+             FROM forum.threads t
+             WHERE t.category_id = ? AND t.deleted_at IS NULL
+             ORDER BY t.is_pinned DESC, t.last_post_at DESC
              OFFSET {$offset} ROWS FETCH NEXT {$perPage} ROWS ONLY"
         );
         $stmt->execute([$categoryId]);
@@ -860,8 +869,12 @@ class ForumRepository {
     public function searchThreads(string $likeTerm, int $categoryId = 0, bool $includeHidden = false, int $limit = 30): array {
         $hiddenCond = $includeHidden ? '' : 'AND c.is_hidden = 0';
         $catCond    = $categoryId > 0 ? 'AND t.category_id = :cat' : '';
+        // is_pinned/is_locked se seleccionan aunque el buscador no los muestre:
+        // mapThreadRow() los castea siempre y sin ellos tira warnings que
+        // ensucian el JSON de la respuesta.
         $stmt = $this->pdo->prepare(
             "SELECT TOP {$limit} t.id, t.category_id, t.title, t.author_display_name, t.body,
+                    t.is_pinned, t.is_locked,
                     t.reply_count, t.created_at, t.last_post_at, c.name AS category_name
              FROM forum.threads t
              JOIN forum.categories c ON c.id = t.category_id
