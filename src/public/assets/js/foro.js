@@ -527,34 +527,102 @@ function onReportarMensaje(postEl) {
   });
 }
 
-// ── Editar / borrar ──────────────────────────────────────────
-async function onEditarMensaje(postEl) {
-  const targetType = postEl.dataset.targetType;
-  const id = Number(postEl.dataset.id);
+// ── Editar en línea ──────────────────────────────────────────
+// El prompt() del navegador es de una sola línea: aplastaba el markdown de
+// cualquier mensaje con formato y no tenía barra, vista previa ni imágenes.
+// Acá se abre el MISMO editor que para responder, dentro del propio mensaje.
+
+function foroCerrarEdicion(postEl) {
+  if (!postEl) return;
+  const box = postEl.querySelector('.forum-edit');
+  if (box) box.remove(); // primero el box: adentro vive la vista previa, que
+                         // comparte la clase con el cuerpo del mensaje
   const bodyEl = postEl.querySelector('.forum-post__body');
-  const actual = bodyEl.dataset.raw ?? bodyEl.textContent;
+  if (bodyEl) bodyEl.hidden = false;
+}
 
-  const nuevo = prompt('Editar mensaje:', actual);
-  if (nuevo === null || nuevo.trim() === '') return;
+function onEditarMensaje(postEl) {
+  // El mensaje de apertura solo se renderiza en la página 1 del hilo
+  if (!postEl) { window.location.href = `${BASE}/foro/hilo/?id=${_foroHiloActual.id}`; return; }
+  if (postEl.querySelector('.forum-edit')) return; // ya está abierto
 
-  const payload = { target_type: targetType, id, body: nuevo.trim() };
-  if (targetType === 'thread') {
-    const nuevoTitulo = prompt('Título del hilo:', document.getElementById('foro-hilo-titulo').textContent);
-    if (nuevoTitulo === null || nuevoTitulo.trim() === '') return;
-    payload.title = nuevoTitulo.trim();
+  // Un solo editor abierto por vez
+  document.querySelectorAll('.forum-edit').forEach(el => foroCerrarEdicion(el.closest('.forum-post')));
+
+  const targetType = postEl.dataset.targetType;
+  const id         = Number(postEl.dataset.id);
+  const esHilo     = targetType === 'thread';
+  const bodyEl     = postEl.querySelector('.forum-post__body');
+
+  const box = document.createElement('div');
+  box.className = 'forum-edit';
+  box.innerHTML = `
+    ${esHilo ? `<label class="cp-field"><span>Título</span>
+      <input type="text" class="forum-edit__title" maxlength="120"></label>` : ''}
+    <label class="cp-field"><span>Mensaje</span>
+      <textarea class="forum-edit__body" rows="6" maxlength="${esHilo ? 10000 : 5000}"></textarea>
+    </label>
+    <div class="cp-actions">
+      <button type="button" class="btn btn-primary btn-sm forum-edit__save">Guardar cambios</button>
+      <button type="button" class="btn btn-secondary btn-sm forum-edit__cancel">Cancelar</button>
+    </div>
+    <p class="cp-feedback forum-edit__feedback"></p>`;
+
+  bodyEl.hidden = true;
+  bodyEl.after(box);
+
+  // El markdown crudo se asigna por JS, nunca interpolado en el HTML: así no
+  // se escapa dos veces ni se rompe con comillas
+  const ta = box.querySelector('.forum-edit__body');
+  ta.value = bodyEl.dataset.raw ?? '';
+  if (esHilo) box.querySelector('.forum-edit__title').value = _foroHiloActual?.title ?? '';
+
+  foroInitEditor(ta); // barra de formato, vista previa, imágenes y menciones
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+
+  box.querySelector('.forum-edit__cancel').addEventListener('click', () => foroCerrarEdicion(postEl));
+  box.querySelector('.forum-edit__save').addEventListener('click', () => guardarEdicion(box, targetType, id, esHilo));
+}
+
+async function guardarEdicion(box, targetType, id, esHilo) {
+  const feedback = box.querySelector('.forum-edit__feedback');
+  const btn      = box.querySelector('.forum-edit__save');
+  const cuerpo   = box.querySelector('.forum-edit__body').value.trim();
+
+  const error = msg => {
+    feedback.textContent = msg;
+    feedback.style.color = '#e05555';
+  };
+  feedback.textContent = '';
+
+  if (!cuerpo) { error('El mensaje no puede quedar vacío.'); return; }
+
+  const payload = { target_type: targetType, id, body: cuerpo };
+  if (esHilo) {
+    const titulo = box.querySelector('.forum-edit__title').value.trim();
+    if (!titulo) { error('El título no puede quedar vacío.'); return; }
+    payload.title = titulo;
   }
 
+  btn.disabled = true;
   const res = await authFetch('forum/edit_post.php', { method: 'POST', body: JSON.stringify(payload) });
+  btn.disabled = false;
   if (!res) return;
+
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    alert(data.error ?? 'No se pudo editar.');
+    // Lo escrito no se pierde: queda en el textarea (mismo criterio que F-09.01)
+    error(data.error ?? 'No se pudo guardar.');
     return;
   }
   initHiloDetalle();
 }
 
 async function onBorrarMensaje(postEl) {
+  // Igual que al editar: el mensaje de apertura vive en la página 1
+  if (!postEl) { window.location.href = `${BASE}/foro/hilo/?id=${_foroHiloActual.id}`; return; }
+
   const targetType = postEl.dataset.targetType;
   const id = Number(postEl.dataset.id);
   const esHilo = targetType === 'thread';

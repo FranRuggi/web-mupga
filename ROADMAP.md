@@ -426,6 +426,33 @@ Tres cosas que aparecieron al probar el foro con las categorías reales cargadas
 - [ ] Distintivo de guild (parte de F-06.03): pendiente — requiere leer `GuildMember` de
       la base de juego y sumarlo al mismo lote/caché
 
+### Fix — moderación visible para todos, buscador y edición en línea (2026-08-12)
+
+- [x] **`[hidden]` global**: `display:none` de `[hidden]` tiene la especificidad más baja
+      que existe, así que cualquier `.clase { display: flex }` lo pisaba. Los botones de
+      moderación se le mostraban a todo el mundo (sin riesgo real — los endpoints validan
+      `requireAdmin()` — pero se veía pésimo). Se venía parchando clase por clase
+      (`.spinner`, `.store-panel`, `.cp-emoji-picker`, `.cp-form`, `.cp-actions`); ahora
+      hay una regla global. De paso arregla el desplegable de menciones y el panel de
+      notificaciones, que nunca se cerraban
+- [x] **Buscador (500 en toda búsqueda)**: era el `ESCAPE '\'` del LIKE. El driver de SQL
+      Server no soporta parámetros con nombre, así que PDO reescribe los `:nombre` a `?`
+      parseando el SQL él mismo, y ese parser lee `\'` como comilla escapada: cree que el
+      literal sigue abierto y los placeholders siguientes desaparecen. Carácter de escape
+      cambiado a `!`. **Nunca poner un backslash dentro de un literal SQL en este proyecto**
+- [x] **PHP 7.4 en el VPS** (verificado en la cabecera de Apache): `ForumValidation` usaba
+      `str_ends_with()`, de PHP 8 — fatal en cuanto una cuenta nueva pegara un link.
+      Reemplazado por `substr()`. Tenerlo presente para todo el código nuevo
+- [x] Citas: la atribución se renderiza como encabezado del bloque (autor + "ver mensaje")
+      en vez de un renglón suelto con un link; el permalink insertado perdió el `#post-N`
+      redundante. Menciones: chip con fondo en vez de texto de color
+- [x] **Edición en línea**: se eliminó el `prompt()` del navegador (una sola línea, aplastaba
+      el markdown de cualquier mensaje con formato). Ahora se abre el mismo editor que para
+      responder —barra de formato, vista previa, imágenes y menciones— dentro del propio
+      mensaje, con el título aparte cuando es un hilo y los errores del server en línea en
+      vez de un `alert()`. Los botones de editar/borrar hilo ya no rompen si estás en una
+      página distinta de la 1: te llevan a la 1, donde vive el mensaje de apertura
+
 **Siguientes etapas del backlog (no iniciadas):** Etapa 7 y P2 sueltos (F-10.03 URLs
 legibles/slug, bloque de código F-04.02, spoiler F-04.03, embed YouTube F-04.04, no leídos
 F-03.06/F-10.04, perfil F-06.02, métricas F-13.05, etc.) — según pida la comunidad.
