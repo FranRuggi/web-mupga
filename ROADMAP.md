@@ -353,10 +353,11 @@ usó — contradice la regla dura de CLAUDE.md (incidente timezone 2026-07-19); 
       cuerpos + respuestas, TOP 30, 2 queries fijas, sin FTS en Express — límite
       documentado en el endpoint), página `/foro/buscar/` con resaltado y CTA de crear
       hilo si no hay resultados; categorías ocultas excluidas para no-admins — 2026-08-11
-- [ ] Correr `database/foro_migracion_v2.sql` y **después** `foro_migracion_v3.sql` en
-      SSMS del VPS (el espejo local no tiene `mupga_admin` — solo existe en el VPS) —
-      manual, Franco. Es el único paso manual: no hay variables de entorno nuevas, las
-      imágenes salen por el bucket de Reclamos que ya está configurado en el VPS.
+- [ ] Correr en SSMS del VPS, **en orden**: `database/foro_migracion_v2.sql` →
+      `foro_migracion_v3.sql` → `foro_migracion_v4.sql` (el espejo local no tiene
+      `mupga_admin` — solo existe en el VPS) — manual, Franco. Es el único paso manual:
+      no hay variables de entorno nuevas, las imágenes salen por el bucket de Reclamos
+      que ya está configurado en el VPS.
 
 ### Fix — borrado de categorías (2026-08-11)
 
@@ -398,6 +399,32 @@ Tres cosas que aparecieron al probar el foro con las categorías reales cargadas
 - [x] **Buscador roto**: `searchThreads()` no seleccionaba `is_pinned`/`is_locked` pero
       `mapThreadRow()` los castea siempre → warnings de PHP metidos en el body de la
       respuesta → el JSON no parseaba en el cliente
+
+### F-06.03 — Distintivos de autor + tipografía del mensaje (2026-08-11)
+
+- [x] `database/foro_migracion_v4.sql` — `forum.author_badges` (caché de VIP por cuenta
+      con TTL) — 2026-08-11
+- [x] `src/lib/ForumBadges.php` — resuelve staff y VIP **en lote** para todos los autores
+      de la página (nunca N+1). **Staff** sale de `dbo.admins`, que está en la misma base
+      que el foro: lectura en vivo con `AdminDatabase`, sin caché ni GRANT nuevo, siempre
+      al día. **VIP** sale de `MEMB_INFO` (`AccountLevel = 3` + `AccountExpireDate`
+      futuro, mismo criterio que `usercp.js`): se cachea con TTL de 60 min y solo se
+      refresca para los autores en pantalla cuyo dato venció, así el foro no le pega a la
+      base de juego en cada render (F-13.04). `vip_until` se revalida contra "ahora" en
+      cada lectura, así un VIP que vence dentro del TTL deja de mostrarse igual. Si la
+      base de juego no responde, se usa lo cacheado y el mensaje se muestra sin
+      distintivo — nunca rompe el hilo — 2026-08-11
+- [x] Privacidad: los distintivos viajan como banderas (`badges.staff` / `badges.vip`);
+      `author_account` sigue sin salir nunca de la API — 2026-08-11
+- [x] Frontend: etiqueta STAFF (dorada) y ⭐ VIP (cyan) al lado del nombre, en el hilo y
+      en el listado de la categoría. El mensaje de staff además se resalta entero (borde
+      izquierdo dorado + fondo), para que se note de un vistazo en un hilo largo — 2026-08-11
+- [x] Tipografía del mensaje: cuerpo a 1rem con `line-height` 1.75 y `--text-bright`,
+      negritas en blanco puro, `##` subtítulos en dorado con la fuente de títulos, viñetas
+      con marcador dorado, links en cyan subrayados. La vista previa del editor usa las
+      mismas reglas porque comparte la clase — 2026-08-11
+- [ ] Distintivo de guild (parte de F-06.03): pendiente — requiere leer `GuildMember` de
+      la base de juego y sumarlo al mismo lote/caché
 
 **Siguientes etapas del backlog (no iniciadas):** Etapa 7 y P2 sueltos (F-10.03 URLs
 legibles/slug, bloque de código F-04.02, spoiler F-04.03, embed YouTube F-04.04, no leídos

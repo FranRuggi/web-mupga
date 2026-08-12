@@ -2497,11 +2497,71 @@ h1, h2, h3, h4 {
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border);
 }
-.forum-post__header strong { color: var(--gold); font-family: var(--font-title); font-size: 0.9rem; }
+.forum-post__author { display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+.forum-post__header strong { color: var(--gold); font-family: var(--font-title); font-size: 1rem; letter-spacing: 0.02em; }
 .forum-post__header span { font-size: 0.75rem; color: var(--text-dim); }
-.forum-post__body { color: var(--text); line-height: 1.6; }
-.forum-post__body p { margin: 0 0 0.75rem; }
+
+/* Cuerpo del mensaje: es lo que más se lee del foro, así que va un punto más
+   grande y más aireado que el texto suelto del resto del sitio. */
+.forum-post__body {
+  color: var(--text-bright);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.forum-post__body p { margin: 0 0 0.9rem; }
 .forum-post__body p:last-child { margin-bottom: 0; }
+.forum-post__body strong { color: #fff; font-weight: 700; }
+.forum-post__body em { color: var(--text-bright); }
+.forum-post__body a { color: var(--cyan); text-decoration: none; border-bottom: 1px solid rgba(0,196,234,0.35); }
+.forum-post__body a:hover { border-bottom-color: var(--cyan); }
+.forum-post__body h3 {
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  color: var(--gold);
+  margin: 1.4rem 0 0.6rem;
+  letter-spacing: 0.02em;
+}
+.forum-post__body h3:first-child { margin-top: 0; }
+.forum-post__body ul { margin: 0 0 0.9rem; padding-left: 1.25rem; }
+.forum-post__body li { margin-bottom: 0.35rem; }
+.forum-post__body li::marker { color: var(--gold); }
+
+/* ── Distintivos de autor (F-06.03) ─────────────────────────── */
+.forum-tag {
+  display: inline-block;
+  font-family: var(--font-title);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.forum-tag--staff {
+  color: #0e0a14;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+.forum-tag--vip {
+  color: var(--cyan);
+  background: rgba(0, 196, 234, 0.12);
+  border: 1px solid rgba(0, 196, 234, 0.4);
+}
+
+/* El mensaje entero cambia, no solo la etiqueta: en un hilo largo se tiene
+   que notar de un vistazo quién está hablando. */
+.forum-post--staff {
+  border-color: var(--gold-border);
+  background:
+    linear-gradient(90deg, rgba(200,168,75,0.07), transparent 40%),
+    var(--bg-surface);
+  border-left: 3px solid var(--gold);
+}
+.forum-post--vip {
+  border-left: 3px solid rgba(0, 196, 234, 0.55);
+}
 .forum-post__footer {
   display: flex;
   align-items: center;

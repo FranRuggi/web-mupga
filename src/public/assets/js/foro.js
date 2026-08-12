@@ -249,7 +249,7 @@ function renderHilos(threads, pagerHtml = '') {
           ${esc(t.title)}
         </span>
         ${extracto ? `<span class="forum-thread-row__excerpt">${esc(extracto)}</span>` : ''}
-        <span class="forum-thread-row__meta">por ${esc(t.author_display_name)} · ${foroHace(t.created_at)}</span>
+        <span class="forum-thread-row__meta">por ${esc(t.author_display_name)} ${foroBadgesHtml(t.badges)} · ${foroHace(t.created_at)}</span>
       </div>
       <div class="forum-thread-row__stats">
         <span class="forum-thread-row__count">${respuestas}</span>
@@ -371,6 +371,16 @@ function initFollowBtn(thread, following) {
   };
 }
 
+/**
+ * Distintivos del autor (F-06.03). Vienen calculados server-side como banderas
+ * — la API nunca expone la cuenta de login, así que acá no hay nada que deducir.
+ */
+function foroBadgesHtml(badges) {
+  if (!badges) return '';
+  return (badges.staff ? '<span class="forum-tag forum-tag--staff">STAFF</span>' : '')
+       + (badges.vip   ? '<span class="forum-tag forum-tag--vip">⭐ VIP</span>'   : '');
+}
+
 function foroEditLabel(row) {
   if (!row.edited_at) return '';
   return row.edited_by_staff ? ' · editado por el staff' : ' · editado';
@@ -385,11 +395,20 @@ function renderMensaje(row, targetType) {
 
   const puedeCitar = isAuthenticated() && !_foroHiloActual?.is_locked;
 
+  // El mensaje del staff se resalta entero, no solo con la etiqueta: es lo que
+  // hace que se note de un vistazo quién habla en un hilo largo
+  const clases = ['forum-post'];
+  if (row.badges?.staff)    clases.push('forum-post--staff');
+  else if (row.badges?.vip) clases.push('forum-post--vip');
+
   return `
-    <div class="forum-post" id="${targetType === 'post' ? `post-${row.id}` : 'post-op'}"
+    <div class="${clases.join(' ')}" id="${targetType === 'post' ? `post-${row.id}` : 'post-op'}"
          data-target-type="${targetType}" data-id="${row.id}">
       <div class="forum-post__header">
-        <strong>${esc(row.author_display_name)}</strong>
+        <span class="forum-post__author">
+          <strong>${esc(row.author_display_name)}</strong>
+          ${foroBadgesHtml(row.badges)}
+        </span>
         <span>${foroFmtFecha(row.created_at)}${foroEditLabel(row)}
           ${targetType === 'post' ? `<a class="forum-post__anchor" href="?id=${_foroHiloActual?.id}&post=${row.id}#post-${row.id}" title="Link a esta respuesta">#</a>` : ''}
         </span>

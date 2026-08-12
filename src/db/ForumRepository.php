@@ -916,6 +916,52 @@ class ForumRepository {
     }
 
     // -------------------------------------------------------------------------
+    // Caché de distintivos de autor (F-06.03)
+    // -------------------------------------------------------------------------
+    // Solo la parte que vive en el schema forum. Quién es staff y quién tiene
+    // VIP lo resuelve ForumBadges: este repositorio nunca toca la base de juego.
+
+    /**
+     * @param string[] $accounts
+     * @return array<string, array{is_vip:bool, vip_until:?string, checked_at:string}>
+     */
+    public function getCachedBadges(array $accounts): array {
+        if (!$accounts) return [];
+        $placeholders = implode(',', array_fill(0, count($accounts), '?'));
+        $stmt = $this->pdo->prepare(
+            "SELECT account, is_vip, vip_until, checked_at
+             FROM forum.author_badges WHERE account IN ($placeholders)"
+        );
+        $stmt->execute($accounts);
+        $out = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $out[$row['account']] = [
+                'is_vip'     => (bool) (int) $row['is_vip'],
+                'vip_until'  => $row['vip_until'],
+                'checked_at' => $row['checked_at'],
+            ];
+        }
+        return $out;
+    }
+
+    /** Upsert sin MERGE (mismo patrón que banAccount). */
+    public function saveBadgeCache(string $account, bool $isVip, ?string $vipUntil): void {
+        $update = $this->pdo->prepare(
+            'UPDATE forum.author_badges
+             SET is_vip = :vip, vip_until = :until, checked_at = SYSUTCDATETIME()
+             WHERE account = :acc'
+        );
+        $update->execute([':vip' => $isVip ? 1 : 0, ':until' => $vipUntil, ':acc' => $account]);
+
+        if ($update->rowCount() === 0) {
+            $this->pdo->prepare(
+                'INSERT INTO forum.author_badges (account, is_vip, vip_until)
+                 VALUES (:acc, :vip, :until)'
+            )->execute([':acc' => $account, ':vip' => $isVip ? 1 : 0, ':until' => $vipUntil]);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Imágenes (F-04.05) — cuota diaria de subidas a R2
     // -------------------------------------------------------------------------
 

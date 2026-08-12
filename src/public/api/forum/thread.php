@@ -13,6 +13,7 @@
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/config/forum_db.php';
 require_once SRC_ROOT . '/lib/AdminAuth.php';
+require_once SRC_ROOT . '/lib/ForumBadges.php';
 require_once dirname(__DIR__) . '/_cors.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -61,6 +62,14 @@ try {
     $posts   = $repo->getPostsByThread($id, $page, $perPage);
     $postIds = array_map(fn($p) => (int) $p['id'], $posts);
 
+    // Distintivos de autor (F-06.03): una sola resolución en lote para todos
+    // los autores de la página, ANTES de borrar author_account de la respuesta
+    $badges = ForumBadges::resolve($repo, array_merge(
+        [$thread['author_account']],
+        array_column($posts, 'author_account')
+    ));
+    $sinBadge = ['staff' => false, 'vip' => false];
+
     $reactionCounts = $repo->getReactionCounts('post', $postIds);
     $threadCount    = $repo->getReactionCounts('thread', [$id]);
 
@@ -69,15 +78,17 @@ try {
 
     $thread['reactions'] = ['count' => $threadCount[$id] ?? 0, 'reacted' => $myThreadReacted];
     $thread['is_mine']   = $myAcc !== null && $thread['author_account'] === $myAcc;
+    $thread['badges']    = $badges[$thread['author_account']] ?? $sinBadge;
     unset($thread['author_account'], $thread['deleted_by']);
 
-    $posts = array_map(function ($p) use ($reactionCounts, $myPostReactions, $myAcc) {
+    $posts = array_map(function ($p) use ($reactionCounts, $myPostReactions, $myAcc, $badges, $sinBadge) {
         $pid = (int) $p['id'];
         $p['reactions'] = [
             'count'   => $reactionCounts[$pid] ?? 0,
             'reacted' => in_array($pid, $myPostReactions, true),
         ];
         $p['is_mine'] = $myAcc !== null && $p['author_account'] === $myAcc;
+        $p['badges']  = $badges[$p['author_account']] ?? $sinBadge;
         if ($p['is_deleted']) {
             $p['body'] = ''; // nunca filtrar el contenido borrado hacia afuera
         }

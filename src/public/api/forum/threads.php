@@ -8,6 +8,7 @@
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/config/forum_db.php';
 require_once SRC_ROOT . '/lib/AdminAuth.php';
+require_once SRC_ROOT . '/lib/ForumBadges.php';
 require_once dirname(__DIR__) . '/_cors.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -38,10 +39,14 @@ try {
     $totalPages = max(1, (int) ceil($total / $perPage));
     $page       = min(max(1, (int) ($_GET['page'] ?? 1)), $totalPages);
 
-    $threads = array_map(function ($t) {
+    $rows   = $repo->getThreadsByCategory($categoryId, $page, $perPage);
+    $badges = ForumBadges::resolve($repo, array_column($rows, 'author_account'));
+
+    $threads = array_map(function ($t) use ($badges) {
+        $t['badges'] = $badges[$t['author_account']] ?? ['staff' => false, 'vip' => false];
         unset($t['author_account']);
         return $t;
-    }, $repo->getThreadsByCategory($categoryId, $page, $perPage));
+    }, $rows);
 
     echo json_encode([
         'category'    => $category,
