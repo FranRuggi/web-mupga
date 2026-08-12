@@ -46,7 +46,19 @@ try {
         exit;
     }
 
-    $posts   = $repo->getPostsByThread($id);
+    // Paginación de respuestas (F-03.05): 20 por página. ?post=X resuelve
+    // server-side en qué página cae ese post (permalinks #post-{id}).
+    $perPage    = ForumValidation::POSTS_PER_PAGE;
+    $total      = $repo->countPostsByThread($id);
+    $totalPages = max(1, (int) ceil($total / $perPage));
+
+    $page = (int) ($_GET['page'] ?? 0);
+    if ($page <= 0 && ($postId = (int) ($_GET['post'] ?? 0)) > 0) {
+        $page = $repo->getPostPage($id, $postId, $perPage) ?? 1;
+    }
+    $page = min(max(1, $page), $totalPages);
+
+    $posts   = $repo->getPostsByThread($id, $page, $perPage);
     $postIds = array_map(fn($p) => (int) $p['id'], $posts);
 
     $reactionCounts = $repo->getReactionCounts('post', $postIds);
@@ -74,8 +86,12 @@ try {
     }, $posts);
 
     echo json_encode([
-        'thread' => $thread,
-        'posts'  => $posts,
+        'thread'      => $thread,
+        'posts'       => $posts,
+        'page'        => $page,
+        'total_pages' => $totalPages,
+        'total_posts' => $total,
+        'following'   => $myAcc !== null && $repo->isFollowing($myAcc, $id),
     ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     http_response_code(500);

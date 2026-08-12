@@ -40,6 +40,7 @@ $pages = [
     'foro/index.html'           => 'src/public/foro/index.php',
     'foro/categoria/index.html' => 'src/public/foro/categoria/index.php',
     'foro/hilo/index.html'      => 'src/public/foro/hilo/index.php',
+    'foro/buscar/index.html'    => 'src/public/foro/buscar/index.php',
 ];
 
 // ── Helpers ──────────────────────────────────────────────────

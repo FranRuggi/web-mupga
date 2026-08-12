@@ -68,6 +68,7 @@ try {
     }
 
     $content = ForumValidation::neutralizeUnsafeLinks($content);
+    $content = ForumValidation::restrictImages($content);
     if (!$isAdmin && $repo->countPostsByAccount($auth['usr']) < ForumValidation::NEW_ACCOUNT_LINK_THRESHOLD) {
         $content = ForumValidation::restrictExternalLinks($content);
     }
@@ -89,6 +90,16 @@ try {
             $repo->logModeration($auth['usr'], 'edit_post', 'post', (string) $id, null, $row['body']);
         }
         $repo->editPost($id, $content, $byStaff);
+    }
+
+    // Aviso al autor cuando el staff edita su contenido (F-07.02) — sin
+    // exponer qué admin fue (actor_display null)
+    if ($byStaff) {
+        try {
+            $threadId = $targetType === 'thread' ? $id : (int) $row['thread_id'];
+            $repo->addNotification($row['author_account'], 'moderacion', $threadId,
+                $targetType === 'post' ? $id : null, null);
+        } catch (Throwable $e) { /* el aviso nunca rompe la edición */ }
     }
 
     echo json_encode(['success' => true], JSON_THROW_ON_ERROR);

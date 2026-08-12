@@ -2572,6 +2572,143 @@ h1, h2, h3, h4 {
 }
 .forum-report-form__done { color: var(--cyan); font-size: 0.82rem; margin: 0; }
 
+/* ── Foro v3: citas, menciones, imágenes, editor, pager, avisos ── */
+.rich-quote {
+  border-left: 3px solid var(--cyan);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.5rem 0.9rem;
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+.rich-mention { color: var(--cyan); font-weight: 600; }
+.rich-img img {
+  max-width: min(100%, 480px);
+  max-height: 360px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  display: block;
+  margin: 0.4rem 0;
+}
+
+.forum-post--highlight { outline: 2px solid var(--cyan); }
+.forum-post__anchor { color: var(--muted); text-decoration: none; margin-left: 0.35rem; }
+.forum-post__anchor:hover { color: var(--cyan); }
+
+.forum-editor-bar { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.4rem; }
+.forum-editor-bar button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  min-width: 2rem;
+  padding: 0.3rem 0.5rem;
+}
+.forum-editor-bar button:hover { border-color: var(--cyan); }
+.forum-editor-bar__preview { margin-left: auto; }
+.forum-editor-preview {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  min-height: 6rem;
+}
+
+.forum-mention-dd {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel, #14151d);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-top: 0.25rem;
+  max-width: 260px;
+  overflow: hidden;
+}
+.forum-mention-dd button {
+  background: none;
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.8rem;
+  text-align: left;
+}
+.forum-mention-dd button:hover { background: rgba(255, 255, 255, 0.07); }
+
+.forum-pager { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.75rem 0; align-items: center; }
+.forum-pager__link,
+.forum-pager__cur {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.82rem;
+  min-width: 2rem;
+  padding: 0.25rem 0.55rem;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text);
+}
+.forum-pager__cur { border-color: var(--cyan); color: var(--cyan); font-weight: 700; }
+.forum-pager__link:hover { border-color: var(--cyan); }
+
+.forum-tools { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: var(--gap-md); position: relative; }
+.forum-bell--unread { border-color: var(--cyan); }
+.forum-notif-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 30;
+  width: min(92vw, 380px);
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--panel, #14151d);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+.forum-notif-panel__empty { color: var(--muted); font-size: 0.85rem; margin: 0; padding: 1rem; }
+.forum-notif-panel__readall {
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--cyan);
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 0.55rem 0.9rem;
+  text-align: right;
+}
+.forum-notif {
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+}
+.forum-notif:last-child { border-bottom: 0; }
+.forum-notif:hover { background: rgba(255, 255, 255, 0.05); }
+.forum-notif--unread { background: rgba(58, 214, 226, 0.07); }
+.forum-notif__fecha { display: block; color: var(--muted); font-size: 0.72rem; margin-top: 0.15rem; }
+
+.forum-search-input {
+  flex-grow: 1;
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  padding: 0.55rem 0.9rem;
+}
+.forum-thread-row__meta mark { background: rgba(58, 214, 226, 0.25); color: inherit; border-radius: 3px; }
+.forum-thread-row__title mark { background: rgba(58, 214, 226, 0.25); color: inherit; border-radius: 3px; }
+
 /* ── Banner de saldo/compras (arriba del catálogo, /tienda/) ── */
 .tienda-balance-row {
   display: flex;

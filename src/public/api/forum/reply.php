@@ -10,6 +10,7 @@
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/config/forum_db.php';
 require_once SRC_ROOT . '/lib/AdminAuth.php';
+require_once SRC_ROOT . '/lib/ForumNotify.php';
 require_once dirname(__DIR__) . '/_cors.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -63,6 +64,7 @@ try {
     $displayName = $displayName ?? $auth['usr'];
 
     $content = ForumValidation::neutralizeUnsafeLinks($content);
+    $content = ForumValidation::restrictImages($content);
     if (!$isAdmin && $repo->countPostsByAccount($auth['usr']) < ForumValidation::NEW_ACCOUNT_LINK_THRESHOLD) {
         $content = ForumValidation::restrictExternalLinks($content);
     }
@@ -90,7 +92,15 @@ try {
     $id = $repo->createPost($threadId, $content, $auth['usr'], $displayName);
     $db->commit();
 
-    echo json_encode(['id' => $id], JSON_THROW_ON_ERROR);
+    // Avisos después del commit — si fallan, la respuesta ya está publicada
+    try {
+        ForumNotify::afterNewPost($repo, $threadId, $id, $auth['usr'], $displayName, $content);
+    } catch (Throwable $e) { /* nunca revierte la publicación */ }
+
+    // Página donde cayó la respuesta, para que el cliente redirija (F-03.05)
+    $page = (int) ceil($repo->countPostsByThread($threadId) / ForumValidation::POSTS_PER_PAGE);
+
+    echo json_encode(['id' => $id, 'page' => max(1, $page)], JSON_THROW_ON_ERROR);
 } catch (Throwable $e) {
     if ($db && $db->inTransaction()) $db->rollBack();
     http_response_code(500);

@@ -19,6 +19,7 @@
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once SRC_ROOT . '/config/forum_db.php';
 require_once SRC_ROOT . '/lib/AdminAuth.php';
+require_once SRC_ROOT . '/lib/ForumNotify.php';
 require_once dirname(__DIR__) . '/_cors.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -77,8 +78,9 @@ try {
     }
     $displayName = $displayName ?? $auth['usr'];
 
-    // Saneamiento de links, siempre después de validar longitud
+    // Saneamiento de links e imágenes, siempre después de validar longitud
     $content = ForumValidation::neutralizeUnsafeLinks($content);
+    $content = ForumValidation::restrictImages($content);
     if (!$isAdmin && $repo->countPostsByAccount($auth['usr']) < ForumValidation::NEW_ACCOUNT_LINK_THRESHOLD) {
         $content = ForumValidation::restrictExternalLinks($content);
     }
@@ -105,6 +107,11 @@ try {
 
     $id = $repo->createThread($categoryId, $title, $content, $auth['usr'], $displayName);
     $db->commit();
+
+    // Auto-follow + avisos de menciones — si fallan, el hilo ya está publicado
+    try {
+        ForumNotify::afterNewThread($repo, $id, $auth['usr'], $displayName, $content);
+    } catch (Throwable $e) { /* nunca revierte la publicación */ }
 
     echo json_encode(['id' => $id], JSON_THROW_ON_ERROR);
 } catch (Throwable $e) {

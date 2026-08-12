@@ -32,14 +32,23 @@ try {
         exit;
     }
 
+    // Paginación (F-10.02): 25 por página, la URL del cliente refleja la página
+    $perPage    = ForumValidation::THREADS_PER_PAGE;
+    $total      = $repo->countThreadsByCategory($categoryId);
+    $totalPages = max(1, (int) ceil($total / $perPage));
+    $page       = min(max(1, (int) ($_GET['page'] ?? 1)), $totalPages);
+
     $threads = array_map(function ($t) {
         unset($t['author_account']);
         return $t;
-    }, $repo->getThreadsByCategory($categoryId));
+    }, $repo->getThreadsByCategory($categoryId, $page, $perPage));
 
     echo json_encode([
-        'category' => $category,
-        'threads'  => $threads,
+        'category'    => $category,
+        'threads'     => $threads,
+        'page'        => $page,
+        'total_pages' => $totalPages,
+        'total'       => $total,
     ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     http_response_code(500);

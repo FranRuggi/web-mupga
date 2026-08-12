@@ -44,6 +44,17 @@ try {
 
     $result = $repo->toggleReaction($targetType, $targetId, $auth['usr']);
 
+    // Aviso "agradecimiento recibido" (F-07.02) — solo al agradecer, no al sacar
+    if ($result['reacted']) {
+        try {
+            $threadId = $targetType === 'thread' ? $targetId : (int) $target['thread_id'];
+            $charRepo = new CharacterRepository(Database::get());
+            $actor    = $charRepo->getMainCharacterName($auth['usr']) ?? 'Alguien';
+            $repo->addNotification($target['author_account'], 'gracias', $threadId,
+                $targetType === 'post' ? $targetId : null, $actor);
+        } catch (Throwable $e) { /* el aviso nunca rompe la reacción */ }
+    }
+
     echo json_encode($result, JSON_THROW_ON_ERROR);
 } catch (Throwable $e) {
     http_response_code(500);

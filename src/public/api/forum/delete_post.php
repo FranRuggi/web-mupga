@@ -66,6 +66,15 @@ try {
         $repo->softDeletePost($id, $auth['usr']);
     }
 
+    // Aviso al autor cuando el staff borra su contenido (F-07.02)
+    if ($isAdmin && !$esDueno) {
+        try {
+            $threadId = $targetType === 'thread' ? $id : (int) $row['thread_id'];
+            $repo->addNotification($row['author_account'], 'moderacion', $threadId,
+                $targetType === 'post' ? $id : null, null);
+        } catch (Throwable $e) { /* el aviso nunca rompe el borrado */ }
+    }
+
     echo json_encode(['success' => true], JSON_THROW_ON_ERROR);
 } catch (Throwable $e) {
     http_response_code(500);

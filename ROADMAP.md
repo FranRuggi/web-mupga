@@ -312,12 +312,53 @@ Implementado sobre la v1, todo server-side-first:
 - [ ] Correr `database/foro_migracion_v2.sql` en SSMS (mirror local + VPS) — manual, Franco
 - [ ] (Opcional) `DISCORD_WEBHOOK_FORO` en el `.env` del VPS para avisos de reportes — manual, Franco
 
-**Siguientes etapas del backlog (no iniciadas):** Etapa 4 (citar F-03.02, menciones F-03.03,
-seguir hilo + notificaciones F-07.x), Etapa 5 (barra de formato F-04.01, vista previa F-01.04,
-imágenes F-04.05), Etapa 6 (paginación F-03.05/F-10.02, búsqueda F-11.01, URLs legibles F-10.03).
 Nota del GAP que sigue vigente: el timestamp del backlog (`DATEADD(HOUR,3,GETDATE())`) NO se
 usó — contradice la regla dura de CLAUDE.md (incidente timezone 2026-07-19); todo va con
 `GETUTCDATE()`/`SYSUTCDATETIME()` como el resto del proyecto.
+
+### Etapas 4-6 ✅ (2026-08-11) — comunidad, escritura y navegación
+
+- [x] `database/foro_migracion_v3.sql` — aditiva/idempotente: `forum.thread_follows`,
+      `forum.notifications`, `forum.image_uploads` + índices — 2026-08-11
+- [x] F-03.02: citar — botón "💬 Citar" precarga `> **Autor** [dijo](permalink):` en el
+      editor; render de bloques `> ` como `<blockquote>` en `renderRichText()` (cliente);
+      un solo nivel de anidamiento garantizado al generar — 2026-08-11
+- [x] F-03.03: menciones @Personaje — resolución server-side SOLO contra participantes del
+      foro (`findAccountsByDisplayNames`, nunca contra la base de juego), una notificación
+      por cuenta por mensaje; autocompletado client-side acotado a participantes del hilo
+      cargado; render resaltado — 2026-08-11
+- [x] F-07.01: seguir hilo — auto-follow al crear/responder, botón 🔔 Seguir/Dejar de
+      seguir (`POST /api/forum/follow.php`), avisos agrupados (máx 1 sin leer por hilo) — 2026-08-11
+- [x] F-07.02: centro de notificaciones — campanita con contador en todas las páginas del
+      foro, panel con últimos 20, marcar leído / todo leído, purga >60 días oportunista
+      (sin SQL Agent en Express); tipos: respuesta · mención · gracias · moderación
+      (`/api/forum/notifications.php`) — 2026-08-11
+- [x] F-04.01: barra de formato (B/I/U/S, link, cita, imagen) con toggle sobre selección
+      y atajos Ctrl+B/I/K, en responder y nuevo hilo — 2026-08-11
+- [x] F-01.04: vista previa con el mismo `renderRichText()` del render final; el textarea
+      conserva texto y cursor al volver — 2026-08-11
+- [x] F-04.05: imágenes — `POST /api/forum/upload_url.php` (presigned PUT a R2). **Reusa
+      el bucket de Reclamos** (`RECLAMOS_R2_*`, sin bucket ni token nuevos), separado por
+      carpeta: `foro/{id_hilo}/` (`foro/nuevos/` al crear el hilo, que todavía no tiene id).
+      Solo verificados con personaje, cuota 20/día por cuenta (`forum.image_uploads`),
+      5 MB máx (cliente), sintaxis `![alt](url)`; server-side `restrictImages()` degrada a
+      link toda imagen que no cuelgue de `foro/` — así una URL de `reclamos/` (capturas de
+      tickets ajenos) tampoco se puede empotrar en un post — 2026-08-11
+- [x] F-03.05/F-10.02: paginación real — hilos 25/página, respuestas 20/página, la URL
+      refleja la página; permalink `?post=X#post-X` resuelve la página server-side y
+      resalta el post; al responder redirige a la página donde cayó — 2026-08-11
+- [x] F-11.01: búsqueda — `GET /api/forum/search.php` (LIKE escapado sobre títulos +
+      cuerpos + respuestas, TOP 30, 2 queries fijas, sin FTS en Express — límite
+      documentado en el endpoint), página `/foro/buscar/` con resaltado y CTA de crear
+      hilo si no hay resultados; categorías ocultas excluidas para no-admins — 2026-08-11
+- [ ] Correr `database/foro_migracion_v2.sql` y **después** `foro_migracion_v3.sql` en
+      SSMS del VPS (el espejo local no tiene `mupga_admin` — solo existe en el VPS) —
+      manual, Franco. Es el único paso manual: no hay variables de entorno nuevas, las
+      imágenes salen por el bucket de Reclamos que ya está configurado en el VPS.
+
+**Siguientes etapas del backlog (no iniciadas):** Etapa 7 y P2 sueltos (F-10.03 URLs
+legibles/slug, bloque de código F-04.02, spoiler F-04.03, embed YouTube F-04.04, no leídos
+F-03.06/F-10.04, perfil F-06.02, métricas F-13.05, etc.) — según pida la comunidad.
 
 ## Radar de Tiendas — lectura de tiendas personales
 
@@ -485,3 +526,4 @@ se retoma la idea más adelante (por ejemplo, si algún día se resuelve la iden
 - 2026-08-11 — [Incidente] Franco quedó bloqueado del ACP de phpBB tras cambiar su contraseña de admin (ni la nueva clave ni "olvidé mi contraseña" funcionaban). El comando de CLI documentado por phpBB para este caso (`user:reset-password`) no existe en la build 3.3.17 instalada. Resuelto sin depender del mail: hash bcrypt generado con `php.exe -r "echo password_hash(...)"` y `UPDATE phpbb_users SET user_password = '<hash>' WHERE username_clean = 'ruggi'` directo en `mupga_forum` vía SSMS. Sirvió para confirmar en producción que el ACP de phpBB era más fricción de la que valía — fue parte de la decisión de descartarlo (ver Fase 8 arriba).
 - 2026-08-11 — [Feat] Foro hardening v2 (Etapas 1-3 de `BACKLOG_FORO.md`, auditoría previa en `GAP_FORO.md`): migración SQL aditiva (`foro_migracion_v2.sql`), validador único server-side con 422 (`ForumValidation.php`), whitelist de esquema de links en el server, antiflood transaccional 30s/10 por hora (patrón Reclamos), personaje requerido para publicar, links restringidos a cuentas nuevas, sistema de reportes con cola en el ControlPanel + webhook Discord opcional, log de auditoría inmutable (`forum.moderation_log`), soft delete con papelera y restore (se eliminó el DELETE físico del módulo), ventana de edición 30 min con marca "editado por el staff", fix del lock que bloqueaba a admins, motivo de cierre visible, mover hilos, ban con vencimiento en días, sin autoagradecimiento, categorías con conteo/última actividad y categorías ocultas (404 a no-admins), y la API dejó de exponer `author_account` (`is_mine` server-side). Pendiente manual: correr la migración en SSMS y (opcional) `DISCORD_WEBHOOK_FORO`.
 - 2026-08-11 — [Feat] Pivot de Fase 8: en vez de seguir invirtiendo en phpBB, foro reconstruido como módulo nativo de `web-mupga` (mismo patrón que Reclamos — usuarios crean, admin modera — reusando JWT/ControlPanel/diseño ya existentes). Backend: `database/foro_setup.sql` (schema `forum` en `mupga_admin`, login `mupga_forum_svc`, tablas categories/threads/posts/reactions/banned_accounts), `ForumDatabase`, `ForumRepository`, 8 endpoints públicos/usuario (`src/public/api/forum/`) y 3 admin (`forum_categories`, `forum_moderate`, `forum_ban`). El nombre mostrado en los posts es el personaje principal de la cuenta (`CharacterRepository::getMainCharacterName()`), resuelto y denormalizado al postear — igual criterio que `reclamos.reclamos.nick`. Se agregaron `optionalAuth()` a `Auth.php` (para que `/foro/hilo/` marque reacciones propias sin exigir sesión) e `isAdminAccount()` a `AdminAuth.php` (chequeo "dueño o admin" no bloqueante, reusado en editar/borrar). Frontend: `/foro/`, `/foro/categoria/`, `/foro/hilo/` + `foro.js` — moderación (fijar/cerrar/editar/borrar) inline en la página para admin y para el dueño del contenido, sin depender del ControlPanel para el día a día. ControlPanel: pestaña "💬 Foro" para CRUD de categorías y bans (acotados al foro, nunca tocan `MEMB_INFO.bloc_code` — no es lo mismo que banear la cuenta de juego). Reacciones: un solo tipo ("🙏 Agradecer"), toggle on/off, sin publicar. Bugs propios encontrados y corregidos antes de terminar: el id de categoría/hilo no llegaba en el build estático de Cloudflare Pages (faltaba el fallback a `URLSearchParams` client-side, mismo patrón que `guild.js`), y el botón de responder acumulaba listeners duplicados en cada re-render (cambiado de `addEventListener` a asignación `.onclick`). Pendiente: correr `foro_setup.sql` en el VPS y cargar las categorías iniciales (`runbooks/foro-web-setup-manual.md`).
+- 2026-08-11 — [Feat] Foro Etapas 4-6 del backlog: migración `foro_migracion_v3.sql` (thread_follows, notifications, image_uploads), citar con permalink y un nivel de anidamiento, menciones @Personaje resueltas server-side solo contra participantes del foro + autocompletado acotado al hilo, seguir hilo con auto-follow y avisos agrupados, centro de notificaciones con campanita/panel/purga oportunista (respuesta·mención·gracias·moderación), barra de formato con toggle y atajos, vista previa, imágenes vía presigned PUT a bucket R2 separado (`FORO_R2_*`, cuota 20/día, `restrictImages()` degrada hosts ajenos), paginación real de hilos (25) y respuestas (20) con permalink `?post=X` resuelto server-side, y búsqueda `/foro/buscar/` (LIKE escapado, TOP 30, 2 queries fijas). `renderRichText()` ganó blockquote, imagen y mención (compartido con Noticias). Pendiente manual VPS: migraciones v2+v3 en SSMS y bucket `mupga-foro`.

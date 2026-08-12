@@ -123,17 +123,28 @@ class ForumRepository {
     // Hilos
     // -------------------------------------------------------------------------
 
-    public function getThreadsByCategory(int $categoryId, int $limit = 50): array {
+    /** Paginado (F-10.02): fijados primero, después por actividad. $page arranca en 1. */
+    public function getThreadsByCategory(int $categoryId, int $page = 1, int $perPage = 25): array {
+        $offset = max(0, ($page - 1) * $perPage);
         $stmt = $this->pdo->prepare(
-            "SELECT TOP {$limit} id, category_id, title, author_account, author_display_name,
+            "SELECT id, category_id, title, author_account, author_display_name,
                     is_pinned, is_locked, locked_reason, reply_count, created_at, last_post_at,
                     edited_by_staff, deleted_at
              FROM forum.threads
              WHERE category_id = ? AND deleted_at IS NULL
-             ORDER BY is_pinned DESC, last_post_at DESC"
+             ORDER BY is_pinned DESC, last_post_at DESC
+             OFFSET {$offset} ROWS FETCH NEXT {$perPage} ROWS ONLY"
         );
         $stmt->execute([$categoryId]);
         return array_map([$this, 'mapThreadRow'], $stmt->fetchAll());
+    }
+
+    public function countThreadsByCategory(int $categoryId): int {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM forum.threads WHERE category_id = ? AND deleted_at IS NULL'
+        );
+        $stmt->execute([$categoryId]);
+        return (int) $stmt->fetchColumn();
     }
 
     /** Devuelve el hilo incluso si está borrado — el caller decide qué hacer. */
@@ -249,13 +260,45 @@ class ForumRepository {
     // Posts (respuestas)
     // -------------------------------------------------------------------------
 
-    /** Incluye borradas (con is_deleted=true) — el endpoint decide cómo mostrarlas. */
-    public function getPostsByThread(int $threadId): array {
+    /**
+     * Incluye borradas (con is_deleted=true) — el endpoint decide cómo mostrarlas.
+     * Paginado (F-03.05): $page arranca en 1; $perPage 0 = sin paginar (todo).
+     */
+    public function getPostsByThread(int $threadId, int $page = 1, int $perPage = 0): array {
+        $paging = '';
+        if ($perPage > 0) {
+            $offset = max(0, ($page - 1) * $perPage);
+            $paging = "OFFSET {$offset} ROWS FETCH NEXT {$perPage} ROWS ONLY";
+        }
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM forum.posts WHERE thread_id = ? ORDER BY created_at ASC'
+            "SELECT * FROM forum.posts WHERE thread_id = ? ORDER BY created_at ASC, id ASC {$paging}"
         );
         $stmt->execute([$threadId]);
         return array_map([$this, 'mapPostRow'], $stmt->fetchAll());
+    }
+
+    public function countPostsByThread(int $threadId): int {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM forum.posts WHERE thread_id = ?');
+        $stmt->execute([$threadId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * En qué página (de $perPage) cae un post dentro de su hilo — para que los
+     * permalinks #post-{id} resuelvan la página server-side (F-03.05).
+     * Devuelve null si el post no es de ese hilo.
+     */
+    public function getPostPage(int $threadId, int $postId, int $perPage): ?int {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM forum.posts p
+             WHERE p.thread_id = :t AND EXISTS (
+                 SELECT 1 FROM forum.posts x
+                 WHERE x.id = :p AND x.thread_id = :t2
+                   AND (p.created_at < x.created_at OR (p.created_at = x.created_at AND p.id <= x.id)))'
+        );
+        $stmt->execute([':t' => $threadId, ':p' => $postId, ':t2' => $threadId]);
+        $pos = (int) $stmt->fetchColumn();
+        return $pos > 0 ? (int) ceil($pos / $perPage) : null;
     }
 
     public function getPost(int $id): ?array {
@@ -571,5 +614,216 @@ class ForumRepository {
         );
         $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    // -------------------------------------------------------------------------
+    // Seguir hilo (F-07.01)
+    // -------------------------------------------------------------------------
+
+    public function followThread(string $account, int $threadId): void {
+        $this->pdo->prepare(
+            'IF NOT EXISTS (SELECT 1 FROM forum.thread_follows WHERE account = :a AND thread_id = :t)
+                 INSERT INTO forum.thread_follows (account, thread_id) VALUES (:a2, :t2)'
+        )->execute([':a' => $account, ':t' => $threadId, ':a2' => $account, ':t2' => $threadId]);
+    }
+
+    public function unfollowThread(string $account, int $threadId): void {
+        $this->pdo->prepare(
+            'DELETE FROM forum.thread_follows WHERE account = ? AND thread_id = ?'
+        )->execute([$account, $threadId]);
+    }
+
+    public function isFollowing(string $account, int $threadId): bool {
+        $stmt = $this->pdo->prepare(
+            'SELECT TOP 1 1 FROM forum.thread_follows WHERE account = ? AND thread_id = ?'
+        );
+        $stmt->execute([$account, $threadId]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /** @return string[] cuentas que siguen el hilo, sin $exclude (el que publicó) */
+    public function getFollowerAccounts(int $threadId, string $exclude): array {
+        $stmt = $this->pdo->prepare(
+            'SELECT account FROM forum.thread_follows WHERE thread_id = ? AND account <> ?'
+        );
+        $stmt->execute([$threadId, $exclude]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    // -------------------------------------------------------------------------
+    // Notificaciones (F-07.02) — tipos: respuesta | mencion | gracias | moderacion
+    // -------------------------------------------------------------------------
+
+    /**
+     * Crea un aviso. Con $groupByThread=true (tipo 'respuesta') NO inserta si el
+     * destinatario ya tiene un aviso sin leer del mismo tipo para ese hilo —
+     * así N respuestas nuevas generan UNA notificación agrupada (F-07.01).
+     */
+    public function addNotification(string $account, string $type, ?int $threadId, ?int $postId, ?string $actorDisplay, bool $groupByThread = false): void {
+        if ($groupByThread && $threadId !== null) {
+            $dup = $this->pdo->prepare(
+                'SELECT TOP 1 1 FROM forum.notifications
+                 WHERE account = ? AND type = ? AND thread_id = ? AND read_at IS NULL'
+            );
+            $dup->execute([$account, $type, $threadId]);
+            if ($dup->fetchColumn()) return;
+        }
+        $this->pdo->prepare(
+            'INSERT INTO forum.notifications (account, type, thread_id, post_id, actor_display)
+             VALUES (?, ?, ?, ?, ?)'
+        )->execute([$account, $type, $threadId, $postId, $actorDisplay]);
+    }
+
+    /** Últimos avisos con título del hilo (para armar el link en el panel). */
+    public function getNotifications(string $account, int $limit = 20): array {
+        $stmt = $this->pdo->prepare(
+            "SELECT TOP {$limit} n.id, n.type, n.thread_id, n.post_id, n.actor_display,
+                    n.created_at, n.read_at, t.title AS thread_title
+             FROM forum.notifications n
+             LEFT JOIN forum.threads t ON t.id = n.thread_id
+             WHERE n.account = ?
+             ORDER BY n.created_at DESC, n.id DESC"
+        );
+        $stmt->execute([$account]);
+        return array_map(function ($row) {
+            $row['id']        = (int) $row['id'];
+            $row['thread_id'] = $row['thread_id'] !== null ? (int) $row['thread_id'] : null;
+            $row['post_id']   = $row['post_id'] !== null ? (int) $row['post_id'] : null;
+            $row['is_read']   = $row['read_at'] !== null;
+            unset($row['read_at']);
+            return $row;
+        }, $stmt->fetchAll());
+    }
+
+    public function countUnreadNotifications(string $account): int {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM forum.notifications WHERE account = ? AND read_at IS NULL'
+        );
+        $stmt->execute([$account]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /** Marca UN aviso propio como leído (el WHERE account impide tocar ajenos). */
+    public function markNotificationRead(string $account, int $id): void {
+        $this->pdo->prepare(
+            'UPDATE forum.notifications SET read_at = SYSUTCDATETIME()
+             WHERE id = ? AND account = ? AND read_at IS NULL'
+        )->execute([$id, $account]);
+    }
+
+    public function markAllNotificationsRead(string $account): void {
+        $this->pdo->prepare(
+            'UPDATE forum.notifications SET read_at = SYSUTCDATETIME()
+             WHERE account = ? AND read_at IS NULL'
+        )->execute([$account]);
+    }
+
+    /** Purga oportunista (>60 días) — no hay SQL Agent en Express para un job. */
+    public function purgeOldNotifications(): void {
+        $this->pdo->query(
+            'DELETE FROM forum.notifications WHERE created_at < DATEADD(DAY, -60, GETUTCDATE())'
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Menciones (F-03.03) — resolución de @Personaje contra participantes del foro
+    // -------------------------------------------------------------------------
+
+    /**
+     * Mapea nombres visibles (personajes) → cuenta, buscando SOLO entre quienes
+     * ya publicaron en el foro (nunca contra la base de juego: no filtrar la
+     * lista de cuentas del servidor). Case-insensitive.
+     * @param string[] $names
+     * @return array<string,string> nombre en minúsculas => cuenta
+     */
+    public function findAccountsByDisplayNames(array $names): array {
+        if (!$names) return [];
+        $placeholders = implode(',', array_fill(0, count($names), '?'));
+        $stmt = $this->pdo->prepare(
+            "SELECT author_display_name, MAX(author_account) AS account FROM (
+                 SELECT author_display_name, author_account FROM forum.threads WHERE author_display_name IN ($placeholders)
+                 UNION ALL
+                 SELECT author_display_name, author_account FROM forum.posts WHERE author_display_name IN ($placeholders)
+             ) x GROUP BY author_display_name"
+        );
+        $stmt->execute([...$names, ...$names]);
+        $out = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $out[mb_strtolower($row['author_display_name'])] = $row['account'];
+        }
+        return $out;
+    }
+
+    // -------------------------------------------------------------------------
+    // Búsqueda (F-11.01) — LIKE acotado (Express sin Full-Text), TOP fijo
+    // -------------------------------------------------------------------------
+
+    /**
+     * Busca en títulos y cuerpos (hilos + respuestas visibles). Devuelve hasta
+     * $limit hilos ordenados por actividad; cantidad fija de queries (2), sin
+     * N+1 (F-13.04). El término ya viene con los comodines LIKE escapados.
+     */
+    public function searchThreads(string $likeTerm, int $categoryId = 0, bool $includeHidden = false, int $limit = 30): array {
+        $hiddenCond = $includeHidden ? '' : 'AND c.is_hidden = 0';
+        $catCond    = $categoryId > 0 ? 'AND t.category_id = :cat' : '';
+        $stmt = $this->pdo->prepare(
+            "SELECT TOP {$limit} t.id, t.category_id, t.title, t.author_display_name, t.body,
+                    t.reply_count, t.created_at, t.last_post_at, c.name AS category_name
+             FROM forum.threads t
+             JOIN forum.categories c ON c.id = t.category_id
+             WHERE t.deleted_at IS NULL {$hiddenCond} {$catCond}
+               AND (t.title LIKE :q1 ESCAPE '\\' OR t.body LIKE :q2 ESCAPE '\\'
+                    OR EXISTS (SELECT 1 FROM forum.posts p
+                               WHERE p.thread_id = t.id AND p.deleted_at IS NULL
+                                 AND p.body LIKE :q3 ESCAPE '\\'))
+             ORDER BY t.last_post_at DESC"
+        );
+        $params = [':q1' => $likeTerm, ':q2' => $likeTerm, ':q3' => $likeTerm];
+        if ($categoryId > 0) $params[':cat'] = $categoryId;
+        $stmt->execute($params);
+        return array_map([$this, 'mapThreadRow'], $stmt->fetchAll());
+    }
+
+    /**
+     * Para hilos donde el match está en una respuesta (no en el título/cuerpo),
+     * trae UNA respuesta coincidente por hilo — una sola query para todos.
+     * @param int[] $threadIds
+     * @return array<int,string> threadId => cuerpo de la respuesta coincidente
+     */
+    public function getMatchingPostBodies(array $threadIds, string $likeTerm): array {
+        if (!$threadIds) return [];
+        $placeholders = implode(',', array_fill(0, count($threadIds), '?'));
+        $stmt = $this->pdo->prepare(
+            "SELECT p.thread_id, p.body FROM forum.posts p
+             WHERE p.id IN (SELECT MIN(p2.id) FROM forum.posts p2
+                            WHERE p2.thread_id IN ($placeholders) AND p2.deleted_at IS NULL
+                              AND p2.body LIKE ? ESCAPE '\\'
+                            GROUP BY p2.thread_id)"
+        );
+        $stmt->execute([...$threadIds, $likeTerm]);
+        $out = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $out[(int) $row['thread_id']] = $row['body'];
+        }
+        return $out;
+    }
+
+    // -------------------------------------------------------------------------
+    // Imágenes (F-04.05) — cuota diaria de subidas a R2
+    // -------------------------------------------------------------------------
+
+    public function countImageUploadsToday(string $account): int {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM forum.image_uploads
+             WHERE account = ? AND created_at > DATEADD(DAY, -1, GETUTCDATE())'
+        );
+        $stmt->execute([$account]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function logImageUpload(string $account, string $objectKey): void {
+        $this->pdo->prepare(
+            'INSERT INTO forum.image_uploads (account, object_key) VALUES (?, ?)'
+        )->execute([$account, $objectKey]);
     }
 }

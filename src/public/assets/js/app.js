@@ -45,25 +45,35 @@ function esc(str) {
 //   Línea en blanco = párrafo nuevo · salto simple = <br>
 function renderRichText(str) {
   const inline = s => s
+    // Imágenes ANTES que links, para que ![alt](url) no lo consuma el link.
+    // El server solo deja llegar como imagen las del bucket del foro
+    // (ForumValidation::restrictImages) — el resto viaja como link normal.
+    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g,
+             '<a href="$2" target="_blank" rel="noopener noreferrer" class="rich-img"><img src="$2" alt="$1" loading="lazy"></a>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/__(.+?)__/g, '<u>$1</u>')
     .replace(/~~(.+?)~~/g, '<s>$1</s>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-             '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+             '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/(^|[\s(])@([A-Za-z0-9_]{2,10})\b/g, '$1<span class="rich-mention">@$2</span>');
 
-  let html = '', para = [], list = [];
-  const flushPara = () => { if (para.length) { html += `<p>${para.map(inline).join('<br>')}</p>`; para = []; } };
-  const flushList = () => { if (list.length) { html += `<ul>${list.map(i => `<li>${inline(i)}</li>`).join('')}</ul>`; list = []; } };
+  let html = '', para = [], list = [], quote = [];
+  const flushPara  = () => { if (para.length)  { html += `<p>${para.map(inline).join('<br>')}</p>`; para = []; } };
+  const flushList  = () => { if (list.length)  { html += `<ul>${list.map(i => `<li>${inline(i)}</li>`).join('')}</ul>`; list = []; } };
+  const flushQuote = () => { if (quote.length) { html += `<blockquote class="rich-quote">${quote.map(inline).join('<br>')}</blockquote>`; quote = []; } };
 
   for (const line of esc(str).split('\n')) {
     const l = line.trim();
+    // Citas "> ": llegan escapadas como "&gt; " (esc() corre antes del split)
+    if (/^&gt;\s?/.test(l)) { flushPara(); flushList(); quote.push(l.replace(/^&gt;\s?/, '')); continue; }
+    flushQuote();
     if (!l)               { flushPara(); flushList(); continue; }
     if (/^##\s+/.test(l)) { flushPara(); flushList(); html += `<h3>${inline(l.replace(/^##\s+/, ''))}</h3>`; continue; }
     if (/^-\s+/.test(l))  { flushPara(); list.push(l.replace(/^-\s+/, '')); continue; }
     flushList(); para.push(l);
   }
-  flushPara(); flushList();
+  flushPara(); flushList(); flushQuote();
   return html;
 }
 

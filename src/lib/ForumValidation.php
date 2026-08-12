@@ -29,6 +29,18 @@ class ForumValidation {
     const REPORTS_PER_HOUR_MAX = 10;
     const REPORT_REASONS = ['spam', 'insultos', 'estafa', 'inapropiado', 'otro'];
 
+    // Búsqueda (F-11.01)
+    const SEARCH_MIN_LEN = 3;
+
+    // Imágenes (F-04.05) — la cuota se evalúa server-side al emitir la
+    // presigned URL; el tamaño solo puede validarlo el cliente (la firma
+    // PUT de R2 no fija content-length, mismo límite que en Reclamos).
+    const IMAGES_PER_DAY_MAX = 20;
+
+    // Paginación (F-03.05 / F-10.02)
+    const THREADS_PER_PAGE = 25;
+    const POSTS_PER_PAGE   = 20;
+
     // Cuentas nuevas: hasta este número de publicaciones, los links externos
     // fuera de la whitelist se guardan como texto plano (F-09.03).
     const NEW_ACCOUNT_LINK_THRESHOLD = 5;
@@ -82,8 +94,10 @@ class ForumValidation {
      * whitelist (quedan como texto plano, visibles pero no clickeables).
      */
     public static function restrictExternalLinks(string $s): string {
+        // El lookbehind (?<!\!) evita degradar la parte [alt](url) de una
+        // imagen ![alt](url) — las imágenes ya pasaron por restrictImages().
         return preg_replace_callback(
-            '/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/i',
+            '/(?<!\!)\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/i',
             function ($m) {
                 $host = strtolower(parse_url($m[2], PHP_URL_HOST) ?? '');
                 foreach (self::LINK_DOMAIN_WHITELIST as $dom) {
@@ -95,5 +109,54 @@ class ForumValidation {
             },
             $s
         );
+    }
+
+    /**
+     * Prefijo público de las imágenes del foro. El foro NO tiene bucket propio:
+     * reusa el de Reclamos (RECLAMOS_R2_*) bajo la carpeta foro/, un solo token
+     * y un solo dominio que mantener. Vacío = R2 sin configurar.
+     */
+    public static function imageUrlPrefix(): string {
+        $base = rtrim(trim($_ENV['RECLAMOS_R2_PUBLIC_URL'] ?? ''), '/');
+        if ($base === '') return '';
+        if (!preg_match('#^https?://#i', $base)) $base = 'https://' . $base;
+        return $base . '/foro/';
+    }
+
+    /**
+     * Imágenes ![alt](url): solo sobreviven las que viven bajo la carpeta foro/
+     * del bucket. Cualquier otra se degrada a link normal [alt](url) — y de ahí
+     * siguen las reglas de links. El prefijo incluye la carpeta a propósito: así
+     * una URL de reclamos/ (capturas de tickets de otros jugadores) tampoco se
+     * puede empotrar como imagen en un post. Sin R2 configurado se degradan todas.
+     */
+    public static function restrictImages(string $s): string {
+        $prefix = self::imageUrlPrefix();
+        return preg_replace_callback(
+            '/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/i',
+            function ($m) use ($prefix) {
+                if ($prefix !== '' && stripos($m[2], $prefix) === 0) {
+                    return $m[0];
+                }
+                return '[' . ($m[1] !== '' ? $m[1] : 'imagen') . '](' . $m[2] . ')';
+            },
+            $s
+        );
+    }
+
+    /**
+     * Extrae los @menciones del cuerpo (F-03.03): nombres de personaje MU
+     * (alfanuméricos, 2-10 chars), únicos, máximo 10 por mensaje. La
+     * resolución nombre→cuenta la hace el repo contra participantes del foro.
+     * @return string[]
+     */
+    public static function extractMentions(string $s): array {
+        preg_match_all('/(?<![\w@])@([A-Za-z0-9_]{2,10})\b/u', $s, $m);
+        return array_slice(array_values(array_unique($m[1])), 0, 10);
+    }
+
+    /** Escapa los comodines de LIKE para búsquedas (usar con ESCAPE '\'). */
+    public static function escapeLike(string $term): string {
+        return addcslashes($term, '\\%_[');
     }
 }
