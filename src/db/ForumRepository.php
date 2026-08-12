@@ -879,10 +879,10 @@ class ForumRepository {
              FROM forum.threads t
              JOIN forum.categories c ON c.id = t.category_id
              WHERE t.deleted_at IS NULL {$hiddenCond} {$catCond}
-               AND (t.title LIKE :q1 ESCAPE '\\' OR t.body LIKE :q2 ESCAPE '\\'
+               AND (t.title LIKE :q1 ESCAPE '!' OR t.body LIKE :q2 ESCAPE '!'
                     OR EXISTS (SELECT 1 FROM forum.posts p
                                WHERE p.thread_id = t.id AND p.deleted_at IS NULL
-                                 AND p.body LIKE :q3 ESCAPE '\\'))
+                                 AND p.body LIKE :q3 ESCAPE '!'))
              ORDER BY t.last_post_at DESC"
         );
         $params = [':q1' => $likeTerm, ':q2' => $likeTerm, ':q3' => $likeTerm];
@@ -904,7 +904,7 @@ class ForumRepository {
             "SELECT p.thread_id, p.body FROM forum.posts p
              WHERE p.id IN (SELECT MIN(p2.id) FROM forum.posts p2
                             WHERE p2.thread_id IN ($placeholders) AND p2.deleted_at IS NULL
-                              AND p2.body LIKE ? ESCAPE '\\'
+                              AND p2.body LIKE ? ESCAPE '!'
                             GROUP BY p2.thread_id)"
         );
         $stmt->execute([...$threadIds, $likeTerm]);

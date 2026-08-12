@@ -61,7 +61,26 @@ function renderRichText(str) {
   let html = '', para = [], list = [], quote = [];
   const flushPara  = () => { if (para.length)  { html += `<p>${para.map(inline).join('<br>')}</p>`; para = []; } };
   const flushList  = () => { if (list.length)  { html += `<ul>${list.map(i => `<li>${inline(i)}</li>`).join('')}</ul>`; list = []; } };
-  const flushQuote = () => { if (quote.length) { html += `<blockquote class="rich-quote">${quote.map(inline).join('<br>')}</blockquote>`; quote = []; } };
+
+  // La primera línea de una cita puede ser la atribución que genera el botón
+  // "Citar" (**autor** [dijo](permalink):). Si está, se muestra como encabezado
+  // del bloque en vez de como una línea más de texto citado — que es lo que la
+  // hacía verse como un renglón suelto con un link en el medio.
+  const flushQuote = () => {
+    if (!quote.length) return;
+    let head = '';
+    const m = quote[0].match(/^\*\*(.+?)\*\*\s*\[dijo\]\((https?:\/\/[^\s)]+)\)\s*:?\s*$/);
+    if (m) {
+      quote.shift();
+      head = `<span class="rich-quote__head">`
+           + `<span class="rich-quote__author">${m[1]}</span>`
+           + `<a class="rich-quote__link" href="${m[2]}">ver mensaje ↗</a></span>`;
+    }
+    html += `<blockquote class="rich-quote">${head}`
+          + (quote.length ? `<span class="rich-quote__body">${quote.map(inline).join('<br>')}</span>` : '')
+          + `</blockquote>`;
+    quote = [];
+  };
 
   for (const line of esc(str).split('\n')) {
     const l = line.trim();

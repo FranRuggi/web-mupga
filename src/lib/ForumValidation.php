@@ -101,7 +101,11 @@ class ForumValidation {
             function ($m) {
                 $host = strtolower(parse_url($m[2], PHP_URL_HOST) ?? '');
                 foreach (self::LINK_DOMAIN_WHITELIST as $dom) {
-                    if ($host === $dom || str_ends_with($host, '.' . $dom)) {
+                    // substr() y no str_ends_with(): el VPS corre PHP 7.4 y esa
+                    // función es de PHP 8 — con str_ends_with, la primera cuenta
+                    // nueva que pegara un link se comía un fatal
+                    $sufijo = '.' . $dom;
+                    if ($host === $dom || substr($host, -strlen($sufijo)) === $sufijo) {
                         return $m[0]; // whitelisted: el link queda intacto
                     }
                 }
@@ -155,8 +159,17 @@ class ForumValidation {
         return array_slice(array_values(array_unique($m[1])), 0, 10);
     }
 
-    /** Escapa los comodines de LIKE para búsquedas (usar con ESCAPE '\'). */
+    /**
+     * Escapa los comodines de LIKE. El carácter de escape es "!" y NO "\", a
+     * propósito: el driver de SQL Server no soporta parámetros con nombre de
+     * forma nativa, así que PDO reescribe los :nombre a ? parseando la consulta
+     * él mismo. Ese parser lee \' como comilla escapada, con lo cual un
+     * ESCAPE '\' le hace creer que el literal sigue abierto, se traga el resto
+     * del SQL como si fuera texto y los placeholders que vienen después dejan
+     * de existir → "Invalid parameter number" y 500 en toda búsqueda.
+     * Sin backslashes en el SQL, el problema no existe.
+     */
     public static function escapeLike(string $term): string {
-        return addcslashes($term, '\\%_[');
+        return str_replace(['!', '%', '_', '['], ['!!', '!%', '!_', '!['], $term);
     }
 }

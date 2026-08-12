@@ -6,6 +6,16 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
 
+/* ── El atributo hidden gana SIEMPRE ──────────────────────────
+   El display:none del navegador para [hidden] tiene la especificidad más
+   baja posible, así que cualquier `.clase { display: flex }` lo pisa y el
+   elemento queda visible aunque el JS le ponga .hidden = true. Ya nos mordió
+   con .spinner, .store-panel, .cp-emoji-picker, .cp-form y .cp-actions (los
+   botones de moderación se le mostraban a todo el mundo). Esta regla lo cierra
+   de una vez para todo el sitio, actual y futuro: si algo tiene que verse,
+   el JS le saca el atributo. */
+[hidden] { display: none !important; }
+
 /* ── Variables ─────────────────────────────────────────────── */
 :root {
   /* ── Fondos (de negro puro hacia arriba) ── */
@@ -2707,14 +2717,43 @@ h1, h2, h3, h4 {
 /* ── Foro v3: citas, menciones, imágenes, editor, pager, avisos ── */
 .rich-quote {
   border-left: 3px solid var(--cyan);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.035);
   border-radius: 0 var(--radius) var(--radius) 0;
-  padding: 0.5rem 0.9rem;
-  margin: 0.5rem 0;
-  font-size: 0.85rem;
-  opacity: 0.9;
+  padding: 0.6rem 0.95rem;
+  margin: 0.5rem 0 0.9rem;
+  font-size: 0.9rem;
 }
-.rich-mention { color: var(--cyan); font-weight: 600; }
+.rich-quote__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+.rich-quote__author {
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gold);
+}
+.forum-post__body .rich-quote__link {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  border-bottom: 0;
+}
+.forum-post__body .rich-quote__link:hover { color: var(--cyan); }
+.rich-quote__body { display: block; color: var(--text-dim); }
+
+.rich-mention {
+  color: var(--cyan);
+  font-weight: 600;
+  background: rgba(0, 196, 234, 0.1);
+  border-radius: 4px;
+  padding: 0.05em 0.32em;
+}
 .rich-img img {
   max-width: min(100%, 480px);
   max-height: 360px;
@@ -2751,9 +2790,12 @@ h1, h2, h3, h4 {
 .forum-mention-dd {
   display: flex;
   flex-direction: column;
-  background: var(--panel, #14151d);
-  border: 1px solid var(--border);
+  position: relative;
+  z-index: 15;
+  background: var(--bg-raised);
+  border: 1px solid var(--gold-border);
   border-radius: var(--radius);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
   margin-top: 0.25rem;
   max-width: 260px;
   overflow: hidden;

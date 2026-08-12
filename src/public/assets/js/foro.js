@@ -701,8 +701,10 @@ function onCitarMensaje(postEl) {
   const raw   = postEl.querySelector('.forum-post__body')?.dataset.raw ?? '';
   // Un solo nivel de anidamiento: al citar se descartan las citas previas
   const cuerpo = raw.split('\n').filter(l => !l.trim().startsWith('>')).join('\n').trim();
+  // Sin el fragmento #post-N: ?post=N ya alcanza para que initHiloDetalle lo
+  // ubique y lo resalte, y en el textarea la línea de la cita queda más corta
   const permalink = postEl.dataset.targetType === 'post'
-    ? `${BASE}/foro/hilo/?id=${_foroHiloActual.id}&post=${postEl.dataset.id}#post-${postEl.dataset.id}`
+    ? `${BASE}/foro/hilo/?id=${_foroHiloActual.id}&post=${postEl.dataset.id}`
     : `${BASE}/foro/hilo/?id=${_foroHiloActual.id}`;
 
   const cita = `> **${autor}** [dijo](https://mupga.com.ar${permalink}):\n`
