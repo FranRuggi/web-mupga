@@ -4,7 +4,12 @@
  * Body JSON con "action":
  *   - create: { action, name, description?, sort_order?, admin_only_post? }
  *   - update: { action, id, name, description?, sort_order?, admin_only_post? }
- *   - delete: { action, id }
+ *   - delete: { action, id, move_to? , force? }
+ *
+ * Borrar una categoría con contenido adentro exige decir qué hacer con él:
+ * `move_to` reasigna los hilos a otra categoría (no se pierde nada) o `force`
+ * borra todo en cascada. Sin ninguno de los dos responde 409 con los conteos.
+ * Toda variante queda en forum.moderation_log.
  *
  * El listado se lee del endpoint público GET /api/forum/categories.php
  * (mismos datos, no hace falta duplicarlo acá).
@@ -17,7 +22,7 @@ require_once dirname(__DIR__) . '/_cors.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-requireAdmin();
+$admin = requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405); echo json_encode(['error' => 'Método no permitido']); exit;
@@ -76,14 +81,59 @@ try {
             $id = (int) ($body['id'] ?? 0);
             if ($id <= 0) { http_response_code(400); echo json_encode(['error' => 'Falta id.']); exit; }
 
-            if ($repo->categoryHasThreads($id)) {
+            $categoria = $repo->getCategory($id);
+            if (!$categoria) { http_response_code(404); echo json_encode(['error' => 'Categoría no encontrada.']); exit; }
+
+            $counts = $repo->getCategoryContentCounts($id);
+            $moveTo = (int) ($body['move_to'] ?? 0);
+            $force  = !empty($body['force']);
+
+            // Con contenido adentro hace falta decir explícitamente qué hacer con
+            // él. Los conteos viajan en el 409 para que el panel pueda ofrecer las
+            // dos salidas sin adivinar (mover los hilos, o borrar todo).
+            if ($counts['total'] > 0 && $moveTo <= 0 && !$force) {
                 http_response_code(409);
-                echo json_encode(['error' => 'La categoría tiene hilos — borralos o moverlos primero.']);
+                echo json_encode([
+                    'error'  => 'La categoría tiene ' . $counts['total'] . ' hilo(s) — '
+                              . $counts['visible'] . ' visibles y ' . $counts['deleted']
+                              . ' en la papelera. Movelos a otra categoría o confirmá el borrado total.',
+                    'counts' => $counts,
+                ], JSON_THROW_ON_ERROR);
                 exit;
             }
 
-            $ok = $repo->deleteCategory($id);
-            if (!$ok) { http_response_code(404); echo json_encode(['error' => 'Categoría no encontrada.']); exit; }
+            if ($moveTo > 0) {
+                if ($moveTo === $id) {
+                    http_response_code(400); echo json_encode(['error' => 'La categoría destino no puede ser la misma.']); exit;
+                }
+                if (!$repo->getCategory($moveTo)) {
+                    http_response_code(404); echo json_encode(['error' => 'La categoría destino no existe.']); exit;
+                }
+
+                $movidos = $repo->moveAllThreads($id, $moveTo);
+                $repo->deleteCategory($id);
+                $repo->logModeration($admin['usr'], 'delete_category', 'category', (string) $id,
+                    'Borrada "' . $categoria['name'] . '" — ' . $movidos . ' hilo(s) movidos a la categoría ' . $moveTo);
+
+                echo json_encode(['success' => true, 'moved' => $movidos], JSON_THROW_ON_ERROR);
+                break;
+            }
+
+            if ($force && $counts['total'] > 0) {
+                // Cascada real: única excepción al soft delete del módulo (ver
+                // ForumRepository::purgeCategory). El log de auditoría sobrevive.
+                $borrado = $repo->purgeCategory($id);
+                $repo->logModeration($admin['usr'], 'delete_category', 'category', (string) $id,
+                    'Borrada "' . $categoria['name'] . '" con todo su contenido — '
+                    . $borrado['threads'] . ' hilo(s) y ' . $borrado['posts'] . ' respuesta(s)');
+
+                echo json_encode(['success' => true, 'purged' => $borrado], JSON_THROW_ON_ERROR);
+                break;
+            }
+
+            $repo->deleteCategory($id);
+            $repo->logModeration($admin['usr'], 'delete_category', 'category', (string) $id,
+                'Borrada "' . $categoria['name'] . '" (vacía)');
             echo json_encode(['success' => true], JSON_THROW_ON_ERROR);
             break;
         }

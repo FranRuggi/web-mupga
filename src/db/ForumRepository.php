@@ -113,10 +113,104 @@ class ForumRepository {
         return (bool) $stmt->rowCount();
     }
 
-    public function categoryHasThreads(int $id): bool {
-        $stmt = $this->pdo->prepare('SELECT TOP 1 1 FROM forum.threads WHERE category_id = ?');
+    /**
+     * Contenido de una categoría, separando lo visible de lo que está en la
+     * papelera. Los dos cuentan para poder borrar la categoría: un hilo con
+     * soft delete sigue siendo una fila y la FK contra categories lo defiende
+     * igual (por eso "borré todos los hilos" no alcanzaba para borrarla).
+     *
+     * @return array{visible:int, deleted:int, total:int}
+     */
+    public function getCategoryContentCounts(int $id): array {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(CASE WHEN deleted_at IS NULL     THEN 1 END) AS visible,
+                    COUNT(CASE WHEN deleted_at IS NOT NULL THEN 1 END) AS deleted
+             FROM forum.threads WHERE category_id = ?'
+        );
         $stmt->execute([$id]);
-        return (bool) $stmt->fetchColumn();
+        $row = $stmt->fetch();
+        $visible = (int) $row['visible'];
+        $deleted = (int) $row['deleted'];
+        return ['visible' => $visible, 'deleted' => $deleted, 'total' => $visible + $deleted];
+    }
+
+    /** Reasigna TODOS los hilos de una categoría a otra (papelera incluida). */
+    public function moveAllThreads(int $fromCategoryId, int $toCategoryId): int {
+        $stmt = $this->pdo->prepare(
+            'UPDATE forum.threads SET category_id = ? WHERE category_id = ?'
+        );
+        $stmt->execute([$toCategoryId, $fromCategoryId]);
+        return $stmt->rowCount();
+    }
+
+    /**
+     * Cascada real de una categoría: borra FÍSICAMENTE sus hilos, respuestas y
+     * todo lo que cuelga de ellos, y después la categoría. Es la única
+     * excepción al "siempre soft delete" del módulo, y a propósito: acá el
+     * admin no está moderando contenido, está desarmando una sección entera
+     * del foro (y ya se le ofreció mover los hilos antes de llegar acá).
+     *
+     * Las FK cubren solo una parte: posts y thread_follows caen por
+     * ON DELETE CASCADE de threads, pero reactions y reports son polimórficas
+     * (target_type + target_id, sin FK) y notifications tampoco tiene FK — esas
+     * hay que limpiarlas a mano o quedan apuntando a ids que ya no existen.
+     * forum.moderation_log NO se toca: la auditoría sobrevive al contenido.
+     *
+     * La FK threads → categories se deja SIN cascade a propósito: así un DELETE
+     * suelto contra categories falla en vez de vaciar el foro en silencio.
+     *
+     * Lo que NO limpia: los objetos de las imágenes en R2 quedan huérfanos
+     * (inaccesibles desde el foro, pero siguen ocupando lugar en el bucket).
+     *
+     * @return array{threads:int, posts:int} lo que se borró
+     */
+    public function purgeCategory(int $id): array {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM forum.threads WHERE category_id = ?');
+        $stmt->execute([$id]);
+        $threadCount = (int) $stmt->fetchColumn();
+
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM forum.posts p
+             JOIN forum.threads t ON t.id = p.thread_id
+             WHERE t.category_id = ?'
+        );
+        $stmt->execute([$id]);
+        $postCount = (int) $stmt->fetchColumn();
+
+        $subThreads = '(SELECT id FROM forum.threads WHERE category_id = :c1)';
+        $subPosts   = '(SELECT p.id FROM forum.posts p
+                          JOIN forum.threads t ON t.id = p.thread_id
+                         WHERE t.category_id = :c2)';
+
+        $this->pdo->beginTransaction();
+        try {
+            $this->pdo->prepare(
+                "DELETE FROM forum.reactions
+                 WHERE (target_type = 'thread' AND target_id IN {$subThreads})
+                    OR (target_type = 'post'   AND target_id IN {$subPosts})"
+            )->execute([':c1' => $id, ':c2' => $id]);
+
+            $this->pdo->prepare(
+                "DELETE FROM forum.reports
+                 WHERE (target_type = 'thread' AND target_id IN {$subThreads})
+                    OR (target_type = 'post'   AND target_id IN {$subPosts})"
+            )->execute([':c1' => $id, ':c2' => $id]);
+
+            $this->pdo->prepare(
+                "DELETE FROM forum.notifications WHERE thread_id IN {$subThreads}"
+            )->execute([':c1' => $id]);
+
+            // posts y thread_follows se van solos (ON DELETE CASCADE de threads)
+            $this->pdo->prepare('DELETE FROM forum.threads WHERE category_id = ?')->execute([$id]);
+            $this->pdo->prepare('DELETE FROM forum.categories WHERE id = ?')->execute([$id]);
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            throw $e;
+        }
+
+        return ['threads' => $threadCount, 'posts' => $postCount];
     }
 
     // -------------------------------------------------------------------------

@@ -356,6 +356,26 @@ usó — contradice la regla dura de CLAUDE.md (incidente timezone 2026-07-19); 
       manual, Franco. Es el único paso manual: no hay variables de entorno nuevas, las
       imágenes salen por el bucket de Reclamos que ya está configurado en el VPS.
 
+### Fix — borrado de categorías (2026-08-11)
+
+Reportado por Franco: el ControlPanel no dejaba borrar ninguna categoría. La guarda
+contaba los hilos **sin filtrar `deleted_at`**, así que una categoría "vacía" en pantalla
+(todos sus hilos en la papelera) seguía dando 409 para siempre — y borrarlos de nuevo no
+servía porque el soft delete no elimina la fila. Además la FK `threads → categories` no
+tiene cascade, con lo cual ni un DELETE manual pasaba.
+
+- [x] `getCategoryContentCounts()` separa visible / papelera; el 409 ahora devuelve los
+      conteos para que el panel ofrezca salidas concretas en vez de un mensaje ciego
+- [x] `move_to`: reasigna todos los hilos (papelera incluida) a otra categoría y borra
+      la categoría — no se pierde nada, es el camino recomendado
+- [x] `force`: cascada real (`purgeCategory()`) en transacción — hilos, respuestas,
+      reacciones, reportes y avisos. `posts`/`thread_follows` caen por el
+      `ON DELETE CASCADE` de threads; reactions/reports/notifications son polimórficas o
+      sin FK y se limpian a mano. `forum.moderation_log` sobrevive a propósito
+- [x] La FK se deja sin cascade a nivel DB adrede: un DELETE suelto contra `categories`
+      tiene que fallar, no vaciar el foro en silencio
+- [x] Toda variante queda registrada en `forum.moderation_log` como `delete_category`
+
 **Siguientes etapas del backlog (no iniciadas):** Etapa 7 y P2 sueltos (F-10.03 URLs
 legibles/slug, bloque de código F-04.02, spoiler F-04.03, embed YouTube F-04.04, no leídos
 F-03.06/F-10.04, perfil F-06.02, métricas F-13.05, etc.) — según pida la comunidad.

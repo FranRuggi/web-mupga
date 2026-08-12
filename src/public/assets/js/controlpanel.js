@@ -1091,13 +1091,45 @@ async function loadForumCategoriesAdmin() {
   }));
 
   el.querySelectorAll('[data-foro-cat-del]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('¿Borrar esta categoría? Solo se puede si no tiene hilos.')) return;
-    const { ok, data: d2 } = await adminFetch('forum_categories.php', {
-      method: 'POST',
-      body: JSON.stringify({ action: 'delete', id: Number(b.dataset.foroCatDel) }),
-    });
-    feedback('foro-cat-feedback', ok ? 'Borrada ✔' : (d2?.error ?? 'Error'), !ok);
-    if (ok) loadForumCategoriesAdmin();
+    const id  = Number(b.dataset.foroCatDel);
+    const cat = data.categories.find(x => x.id === id);
+    if (!confirm(`¿Borrar la categoría "${cat.name}"?`)) return;
+
+    const borrar = extra =>
+      adminFetch('forum_categories.php', { method: 'POST', body: JSON.stringify({ action: 'delete', id, ...extra }) });
+
+    let res = await borrar({});
+
+    // 409 con conteos: la categoría tiene contenido y hay que elegir qué hacer
+    // con él. Los hilos en la papelera cuentan igual — siguen siendo filas.
+    if (!res.ok && res.data?.counts) {
+      const { visible, deleted, total } = res.data.counts;
+      const otras = data.categories.filter(c => c.id !== id);
+      const opcion = prompt(
+        `"${cat.name}" tiene ${total} hilo(s): ${visible} visibles y ${deleted} en la papelera.\n\n`
+        + `¿Qué hacemos con ellos?\n`
+        + (otras.length ? `  · Escribí el NÚMERO de la categoría destino para moverlos:\n${otras.map(c => `      ${c.id} = ${c.name}`).join('\n')}\n` : '')
+        + `  · Escribí BORRAR para eliminar la categoría con todo su contenido (irreversible)`,
+        '');
+      if (opcion === null) return;
+
+      const txt = opcion.trim();
+      if (/^borrar$/i.test(txt)) {
+        if (!confirm(`Se borran DEFINITIVAMENTE ${total} hilo(s) con todas sus respuestas, reacciones y reportes. Esto no se puede deshacer.\n\n¿Confirmás?`)) return;
+        res = await borrar({ force: true });
+      } else if (Number(txt) > 0) {
+        res = await borrar({ move_to: Number(txt) });
+      } else {
+        feedback('foro-cat-feedback', 'Cancelado — la categoría no se tocó.', true);
+        return;
+      }
+    }
+
+    const detalle = res.data?.moved  ? ` (${res.data.moved} hilo(s) movidos)`
+                  : res.data?.purged ? ` (${res.data.purged.threads} hilo(s) y ${res.data.purged.posts} respuesta(s) borrados)`
+                  : '';
+    feedback('foro-cat-feedback', res.ok ? `Borrada ✔${detalle}` : (res.data?.error ?? 'Error'), !res.ok);
+    if (res.ok) loadForumCategoriesAdmin();
   }));
 }
 
