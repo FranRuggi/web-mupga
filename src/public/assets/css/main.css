@@ -2763,6 +2763,15 @@ h1, h2, h3, h4 {
   margin: 0.4rem 0;
 }
 
+/* Bandera emoji → imagen de flagcdn.com (ver renderRichText en app.js) */
+.rich-flag {
+  height: 1em;
+  width: auto;
+  vertical-align: -0.15em;
+  border-radius: 2px;
+  margin: 0 0.05em;
+}
+
 .forum-post--highlight { outline: 2px solid var(--cyan); }
 .forum-post__anchor { color: var(--muted); text-decoration: none; margin-left: 0.35rem; }
 .forum-post__anchor:hover { color: var(--cyan); }

@@ -36,6 +36,26 @@ function esc(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ── Banderas emoji → imagen real ──────────────────────────────
+// Windows no dibuja banderas emoji: Segoe UI Emoji no trae esos glifos por
+// política de Microsoft (nunca los agregó, por temas geopolíticos) — no es
+// un bug nuestro, pasa en cualquier programa de Windows. Mismo problema que
+// ya se había resuelto en el Prode con imágenes de flagcdn.com en vez de
+// emoji (TEAM_FLAGS en mudial.js); acá se generaliza sin necesitar ninguna
+// tabla: una bandera-emoji son 2 "regional indicator symbols" consecutivos
+// (U+1F1E6–U+1F1FF, uno por letra A-Z), de ahí se saca directo el código
+// ISO de 2 letras. Espera texto YA escapado con esc() — el resultado solo
+// agrega <img> de forma fija, nunca texto del autor sin escapar.
+function renderFlags(escapedStr) {
+  return escapedStr.replace(/[\u{1F1E6}-\u{1F1FF}]{2}/gu, pair => {
+    const cc = [...pair]
+      .map(ch => String.fromCharCode(ch.codePointAt(0) - 0x1F1E6 + 65))
+      .join('')
+      .toLowerCase();
+    return `<img src="https://flagcdn.com/24x18/${cc}.png" alt="${pair}" class="rich-flag" loading="lazy" onerror="this.style.display='none'">`;
+  });
+}
+
 // ── Texto con formato (markdown-lite) ────────────────────────
 // Convierte texto plano con marcadores a HTML seguro. Escapa
 // SIEMPRE primero con esc(): el resultado solo puede contener
@@ -44,6 +64,7 @@ function esc(str) {
 //   ## subtítulo · "- " ítem de lista
 //   [texto](https://url) — link externo, se abre en pestaña nueva
 //   [texto](/eventos/)   — link interno (empieza con "/"), misma pestaña
+//   🇦🇷 banderas — se detectan solas y se cambian por la imagen (renderFlags)
 //   Línea en blanco = párrafo nuevo · salto simple = <br>
 function renderRichText(str) {
   // Link interno: arranca con "/" pero no "//" (eso sería protocol-relative
@@ -53,7 +74,7 @@ function renderRichText(str) {
     ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`
     : `<a href="${url}">${text}</a>`;
 
-  const inline = s => s
+  const inline = s => renderFlags(s)
     // Imágenes ANTES que links, para que ![alt](url) no lo consuma el link.
     // El server solo deja llegar como imagen las del bucket del foro
     // (ForumValidation::restrictImages) — el resto viaja como link normal.

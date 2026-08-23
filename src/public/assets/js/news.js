@@ -40,9 +40,9 @@ function renderListCard(n) {
           <span class="news-date">${esc(n.date)}</span>
         </div>
         <h2 class="news-title">
-          <a href="${BASE}/news/?id=${n.id}">${esc(n.title)}</a>
+          <a href="${BASE}/news/?id=${n.id}">${renderFlags(esc(n.title))}</a>
         </h2>
-        <p class="news-summary">${esc(n.summary)}</p>
+        <p class="news-summary">${renderFlags(esc(n.summary))}</p>
         <a class="card-link" href="${BASE}/news/?id=${n.id}">Leer completa</a>
       </div>
     </article>`;
@@ -57,8 +57,8 @@ function renderArticle(n) {
         <span class="news-category">${esc(n.category)}</span>
         <span class="news-date">${esc(n.date)}</span>
       </div>
-      <h1 class="news-article__title">${esc(n.title)}</h1>
-      <p class="news-article__summary">${esc(n.summary)}</p>
+      <h1 class="news-article__title">${renderFlags(esc(n.title))}</h1>
+      <p class="news-article__summary">${renderFlags(esc(n.summary))}</p>
       ${n.image ? `<img class="news-article__image" src="${esc(n.image)}" alt="">` : ''}
       <div class="news-article__body">
         ${renderRichText(n.content ?? '')}
