@@ -503,10 +503,16 @@ function setReplyProgress(text) {
   $replyProgress.hidden = false;
 }
 
-// '2026-07-18 09:51:44.9400000' → '18/07 09:51 hs' (hora del servidor)
+// '2026-07-18 09:51:44.9400000' (UTC, created_at = GETUTCDATE()) → '18/07 09:51 hs'
+// en la hora local del navegador de quien lo mira — el sitio lo ven jugadores
+// de distintos países, nunca hay que asumir la hora del servidor.
 function fmtFecha(sql) {
-  const m = String(sql ?? '').match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
-  return m ? `${m[3]}/${m[2]} ${m[4]}:${m[5]} hs` : '';
+  const s = String(sql ?? '');
+  if (!s) return '';
+  const d = new Date(s.slice(0, 19).replace(' ', 'T') + 'Z');
+  if (isNaN(d.getTime())) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())} hs`;
 }
 
 function showAlert(msg, isError) {

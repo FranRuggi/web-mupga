@@ -19,10 +19,15 @@ const FORO_REPORT_REASONS = [
   ['otro',        'Otro'],
 ];
 
-// '2026-07-18 09:51:44.9400000' → '18/07 09:51 hs'
+// '2026-07-18 09:51:44.9400000' (UTC) → '18/07 09:51 hs' en la hora local del
+// navegador de quien lo mira (el foro lo ve gente de distintos países).
 function foroFmtFecha(sql) {
-  const m = String(sql ?? '').match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
-  return m ? `${m[3]}/${m[2]} ${m[4]}:${m[5]} hs` : '';
+  const s = String(sql ?? '');
+  if (!s) return '';
+  const d = new Date(s.slice(0, 19).replace(' ', 'T') + 'Z');
+  if (isNaN(d.getTime())) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())} hs`;
 }
 
 // created_at viene en UTC → milisegundos transcurridos hasta ahora

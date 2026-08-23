@@ -29,6 +29,26 @@ function isEventOpen(ev) {
   return new Date(ev.event_datetime + 'Z').getTime() > Date.now();
 }
 
+// Badge "⏰ Empieza en Xh Ym" cuando falta menos de 24hs — mismo lenguaje
+// visual que ya usa el Prode para partidos próximos (.prode-badge--soon).
+function startsSoonBadge(ev) {
+  if (!ev.event_datetime) return '';
+  const diffMs = new Date(ev.event_datetime + 'Z').getTime() - Date.now();
+  if (diffMs <= 0 || diffMs > 24 * 3600 * 1000) return '';
+  const h = Math.floor(diffMs / 3600000);
+  const m = Math.floor((diffMs % 3600000) / 60000);
+  const txt = h > 0 ? `Empieza en ${h}h ${m}m` : `Empieza en ${m}m`;
+  return `<span class="prode-badge prode-badge--soon">⏰ ${esc(txt)}</span>`;
+}
+
+// Hash simple y estable del nombre → 1 de 6 variantes de color para el
+// avatar circular del roster. Mismo personaje siempre cae en el mismo color.
+function nameHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return h % 6;
+}
+
 async function getCharacters() {
   if (charactersCache) return charactersCache;
   const res = await authFetch('account/profile.php');
@@ -57,7 +77,7 @@ async function loadEvents() {
   eventsCache = data.events;
 
   if (!eventsCache.length) {
-    el.innerHTML = '<p class="state-message">No hay eventos activos por ahora.</p>';
+    el.innerHTML = '<p class="state-message">No hay eventos activos por ahora. Volvé pronto ⚔️</p>';
     return;
   }
 
@@ -73,12 +93,18 @@ function renderEventCard(ev) {
     : `${ev.registered_count} anotado${ev.registered_count === 1 ? '' : 's'}`;
   const registered = !!ev.my_registration;
 
+  const capacityBar = ev.max_slots !== null ? `
+      <div class="evento-capacity">
+        <div class="evento-capacity__fill${full ? ' evento-capacity__fill--full' : ''}"
+             style="width:${Math.min(100, Math.round(ev.registered_count / ev.max_slots * 100))}%"></div>
+      </div>` : '';
+
   let actionHtml;
   if (!isAuthenticated()) {
     actionHtml = `<a class="btn btn-secondary btn-sm" href="${BASE}/login/?redirect=${encodeURIComponent('/eventos/')}">Iniciá sesión para anotarte</a>`;
   } else if (registered) {
     actionHtml = `
-      <span class="badge badge--vip">Anotado como ${esc(ev.my_registration)}</span>
+      <span class="badge badge--vip">✓ Anotado como ${esc(ev.my_registration)}</span>
       <button class="btn btn-secondary btn-sm" data-unregister="${ev.id}">Cancelar inscripción</button>`;
   } else if (!open) {
     actionHtml = `<span class="state-message">Inscripciones cerradas</span>`;
@@ -94,14 +120,21 @@ function renderEventCard(ev) {
 
   return `
     <div class="account-card evento-card" data-event="${ev.id}">
-      <p class="account-card__title">${esc(ev.title)}</p>
+      <div class="evento-card__head">
+        <p class="evento-card__title">${esc(ev.title)}</p>
+        ${startsSoonBadge(ev)}
+      </div>
       ${ev.description ? `<p class="evento-desc">${esc(ev.description).replace(/\n/g, '<br>')}</p>` : ''}
       <div class="evento-meta">
-        <span>🗓️ ${esc(formatEventDate(ev.event_datetime))}</span>
-        <span>👥 ${esc(cupoTxt)}</span>
+        <span class="evento-meta__item${ev.event_datetime ? '' : ' evento-meta__item--tbd'}">🗓️ <strong>${esc(formatEventDate(ev.event_datetime))}</strong></span>
+        <span class="evento-meta__item">👥 <strong>${esc(cupoTxt)}</strong></span>
       </div>
+      ${capacityBar}
       <div class="evento-actions">${actionHtml}</div>
-      <button type="button" class="btn btn-secondary btn-sm evento-toggle-regs" data-toggle-regs="${ev.id}">Ver anotados</button>
+      <button type="button" class="evento-regs-toggle" data-toggle-regs="${ev.id}">
+        <span class="evento-regs-toggle__chevron">›</span>
+        Anotados <span class="evento-regs-toggle__count">(${ev.registered_count})</span>
+      </button>
       <div class="evento-regs-list" id="evento-regs-${ev.id}" hidden></div>
     </div>`;
 }
@@ -175,10 +208,10 @@ async function toggleRegistrations(eventId, btn) {
   const box = document.getElementById(`evento-regs-${eventId}`);
   if (!box) return;
 
-  if (!box.hidden) { box.hidden = true; btn.textContent = 'Ver anotados'; return; }
+  if (!box.hidden) { box.hidden = true; btn.classList.remove('is-open'); return; }
 
   box.hidden = false;
-  btn.textContent = 'Ocultar anotados';
+  btn.classList.add('is-open');
   box.innerHTML = '<p class="state-message">Cargando…</p>';
 
   const data = await apiFetch(`events/registrations.php?event_id=${eventId}`);
@@ -187,12 +220,22 @@ async function toggleRegistrations(eventId, btn) {
     return;
   }
   if (!data.registrations.length) {
-    box.innerHTML = '<p class="state-message">Todavía nadie se anotó.</p>';
+    box.innerHTML = '<p class="evento-regs-empty">👻 Todavía nadie se anotó. ¡Sé el primero!</p>';
     return;
   }
-  box.innerHTML = '<ul class="evento-regs-ul">' +
-    data.registrations.map((r, i) => `<li><span class="evento-regs-num">${i + 1}.</span> ${esc(r.character_name)}</li>`).join('') +
-    '</ul>';
+
+  box.innerHTML = '<div class="evento-roster">' +
+    data.registrations.map((r, i) => {
+      const name    = r.character_name;
+      const initial = esc(name.charAt(0).toUpperCase());
+      const variant = nameHash(name);
+      return `
+        <div class="evento-roster-item" style="animation-delay:${Math.min(i * 0.04, 0.6)}s">
+          <span class="evento-avatar evento-avatar--${variant}">${initial}</span>
+          <span class="evento-roster-name">${esc(name)}</span>
+        </div>`;
+    }).join('') +
+    '</div>';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
