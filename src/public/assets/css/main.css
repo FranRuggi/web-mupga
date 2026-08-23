@@ -5181,3 +5181,64 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 .cp-field input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   opacity: 1;
 }
+
+/* ── Eventos: cards de torneos/actividades ─────────────────── */
+.evento-card {
+  margin-bottom: var(--gap-md);
+}
+.evento-desc {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin: 0.35rem 0 0.75rem;
+  white-space: pre-line;
+}
+.evento-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 0.75rem;
+}
+.evento-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.evento-register {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.evento-register select {
+  background: var(--bg-raised);
+  color: var(--text);
+  border: 1px solid var(--purple-border);
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  font-family: inherit;
+}
+.evento-regs-list {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--purple-border);
+}
+.evento-regs-ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.35rem 0.75rem;
+}
+.evento-regs-ul li {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+.evento-regs-num {
+  color: var(--gold);
+  margin-right: 0.25rem;
+}

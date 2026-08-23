@@ -228,6 +228,39 @@ vez, resueltos por fórmula `grupo = ItemID ÷ 512`, `índice = ItemID % 512`).
 **Pendiente:** endpoint de compra (`buy.php`) y página pública `/tienda/` — ver Fase 5 en
 `ROADMAP.md`.
 
+## Módulo Eventos
+
+Página `/eventos/` donde jugadores logueados se anotan a torneos y actividades puntuales
+(primer caso: Torneo PVP) y ven la lista de anotados. Genérico a propósito — una tabla de
+eventos, no una tabla por evento — para no rehacer el módulo la próxima vez que haga falta.
+
+**Schema DB:** tablas `dbo.events` y `dbo.event_registrations` en **`mupga_admin`** (misma
+base que ControlPanel, no una base nueva). Conexión: `AdminDatabase` (login `mupga_web_svc`,
+ya tiene `db_datareader`+`db_datawriter` sobre toda `mupga_admin` — sin GRANT nuevo, mismo
+criterio que `wcoin_credits`/`vip_grants`). Setup: `database/controlpanel_events.sql` (correr
+con un login con DDL, nunca con `mupga_web_svc`).
+
+**Archivos:** `src/db/EventsRepository.php`; endpoints públicos en `src/public/api/events/`
+(`list`, `registrations`, `register` y `unregister` — estos dos últimos requieren token);
+`src/public/api/admin/events.php` (create/update/set_active/remove_registration, protegido
+con `requireAdmin()`). Frontend: `src/public/eventos/index.php` + `assets/js/eventos.js`. Tab
+"🏆 Eventos" en `/controlpanel/`.
+
+**Reglas del módulo:**
+- `event_datetime` es nullable ("hora a confirmar") — se puede anotar igual mientras el
+  evento esté activo. Una vez cargada la fecha, la inscripción se cierra sola al llegar la
+  hora: `GETUTCDATE() < event_datetime` dentro de una transacción con `UPDLOCK/HOLDLOCK`
+  sobre la fila del evento — mismo patrón anti-TOCTOU que `ProdeRepository::savePrediction()`
+  y el rate-limit de Reclamos (ver Incidentes de Seguridad). Nunca offset fijo sobre
+  `GETDATE()` para esto.
+- `max_slots` es opcional; `NULL` = sin límite de cupo.
+- El personaje con el que alguien se anota se valida contra
+  `CharacterRepository::belongsToAccount()` (conexión principal del juego) antes de escribir
+  en `mupga_admin` — nunca confiar en el nombre de personaje que manda el cliente sin más.
+- La lista pública de anotados (`GET /api/events/registrations.php`) expone solo el nombre de
+  personaje, nunca la cuenta — mismo criterio de privacidad que el foro. El admin sí ve la
+  cuenta (necesaria para poder dar de baja una inscripción puntual).
+
 ## Incidentes de Seguridad
 
 ### 2026-06-19 — Bypass del cutoff de predicciones (Prode)

@@ -32,6 +32,7 @@ ob_start();
       <button class="cp-tab" data-tab="vip">🎖️ VIP</button>
       <button class="cp-tab" data-tab="estadisticas">📊 Estadísticas</button>
       <button class="cp-tab" data-tab="foro">💬 Foro</button>
+      <button class="cp-tab" data-tab="eventos">🏆 Eventos</button>
     </div>
 
     <!-- ── Estado del sitio ── -->
@@ -439,6 +440,34 @@ ob_start();
 
       <p class="account-card__title" style="margin-top:var(--gap-lg)">📋 Últimas acciones de moderación</p>
       <div id="foro-modlog-list"><p class="state-message">Cargando…</p></div>
+    </section>
+
+    <!-- ── Eventos ── -->
+    <section class="cp-section account-card" id="cp-tab-eventos" hidden>
+      <p class="account-card__title">Eventos</p>
+      <p class="cp-hint">Torneos y actividades puntuales. Sin fecha = "a confirmar" (los jugadores igual se pueden anotar); las inscripciones se cierran solas cuando llega la fecha, o antes si desactivás el evento.</p>
+      <div id="eventos-admin-list"><p class="state-message">Cargando…</p></div>
+
+      <p class="account-card__title" style="margin-top:var(--gap-md)" id="evt-form-title">Nuevo evento</p>
+      <div class="cp-form">
+        <input type="hidden" id="evt-id" value="">
+        <label class="cp-field"><span>Título</span><input type="text" id="evt-title" maxlength="120" placeholder="Torneo PVP"></label>
+        <label class="cp-field"><span>Descripción (opcional)</span><textarea id="evt-desc" rows="3" maxlength="2000"></textarea></label>
+        <div class="cp-grid-2">
+          <label class="cp-field"><span>Fecha y hora (opcional — vacío = a confirmar)</span><input type="datetime-local" id="evt-datetime"></label>
+          <label class="cp-field"><span>Cupo máximo (opcional — vacío = sin límite)</span><input type="number" id="evt-maxslots" min="1" step="1"></label>
+        </div>
+        <div class="cp-actions">
+          <button class="btn btn-primary" id="evt-save">Guardar</button>
+          <button class="btn btn-secondary" id="evt-cancel" hidden>Cancelar edición</button>
+        </div>
+        <p class="cp-feedback" id="evt-feedback"></p>
+      </div>
+
+      <div id="evt-regs-panel" hidden>
+        <p class="account-card__title" style="margin-top:var(--gap-lg)" id="evt-regs-title">Anotados</p>
+        <div id="evt-regs-list"><p class="state-message">Cargando…</p></div>
+      </div>
     </section>
 
   </div>

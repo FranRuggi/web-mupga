@@ -1359,6 +1359,136 @@ function initForoBan() {
 
 // ── Init + guard ──────────────────────────────────────────────
 
+// ── Eventos ───────────────────────────────────────────────────
+
+function localToUtcIso(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 19); // 'YYYY-MM-DDTHH:MM:SS', mismo formato que admin_match.php del prode
+}
+
+// UTC ('YYYY-MM-DDTHH:MM:SS...') → valor para <input type="datetime-local"> en hora del navegador
+function utcToLocalInput(utcStr) {
+  if (!utcStr) return '';
+  const d = new Date(utcStr + 'Z');
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+let eventsAdminCache = [];
+
+async function loadEventsAdmin() {
+  const { ok, data } = await adminFetch('events.php');
+  const el = document.getElementById('eventos-admin-list');
+  if (!ok || !data?.events) { el.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
+
+  eventsAdminCache = data.events;
+
+  el.innerHTML = data.events.map(ev => `
+    <div class="cp-row">
+      <div class="cp-row__info">
+        <strong>${esc(ev.title)}</strong>
+        <span class="cp-dim">${ev.event_datetime ? esc(fmtFechaCp(ev.event_datetime)) : 'a confirmar'} · ${ev.registered_count}${ev.max_slots ? '/' + ev.max_slots : ''} anotados · ${Number(ev.is_active) ? 'activo' : '<em>inactivo</em>'}</span>
+      </div>
+      <div class="cp-row__actions">
+        <button class="btn btn-secondary btn-sm" data-evt-regs="${ev.id}">Ver anotados</button>
+        <button class="btn btn-secondary btn-sm" data-evt-edit="${ev.id}">Editar</button>
+        <button class="btn btn-secondary btn-sm" data-evt-act="${ev.id}" data-act="${Number(ev.is_active) ? 0 : 1}">
+          ${Number(ev.is_active) ? 'Desactivar' : 'Activar'}
+        </button>
+      </div>
+    </div>`).join('') || '<p class="state-message">Sin eventos.</p>';
+
+  el.querySelectorAll('[data-evt-edit]').forEach(b => b.addEventListener('click', () => {
+    const ev = eventsAdminCache.find(x => String(x.id) === b.dataset.evtEdit);
+    document.getElementById('evt-id').value       = ev.id;
+    document.getElementById('evt-title').value    = ev.title;
+    document.getElementById('evt-desc').value     = ev.description ?? '';
+    document.getElementById('evt-datetime').value = utcToLocalInput(ev.event_datetime);
+    document.getElementById('evt-maxslots').value = ev.max_slots ?? '';
+    document.getElementById('evt-form-title').textContent = `Editando evento #${ev.id}`;
+    document.getElementById('evt-cancel').hidden = false;
+  }));
+
+  el.querySelectorAll('[data-evt-act]').forEach(b => b.addEventListener('click', async () => {
+    const { ok: ok2, data: d2 } = await adminFetch('events.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'set_active', id: Number(b.dataset.evtAct), is_active: Number(b.dataset.act) }),
+    });
+    feedback('evt-feedback', ok2 ? 'Actualizado ✔' : (d2?.error ?? 'Error'), !ok2);
+    if (ok2) loadEventsAdmin();
+  }));
+
+  el.querySelectorAll('[data-evt-regs]').forEach(b => b.addEventListener('click', () => loadEventRegistrationsAdmin(Number(b.dataset.evtRegs))));
+}
+
+async function loadEventRegistrationsAdmin(eventId) {
+  const panel = document.getElementById('evt-regs-panel');
+  const title = document.getElementById('evt-regs-title');
+  const list  = document.getElementById('evt-regs-list');
+  const ev    = eventsAdminCache.find(x => Number(x.id) === eventId);
+
+  panel.hidden = false;
+  title.textContent = `Anotados — ${ev ? ev.title : '#' + eventId}`;
+  list.innerHTML = '<p class="state-message">Cargando…</p>';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const { ok, data } = await adminFetch(`events.php?id=${eventId}`);
+  if (!ok || !data?.registrations) { list.innerHTML = '<p class="state-message">Error al cargar.</p>'; return; }
+
+  if (!data.registrations.length) { list.innerHTML = '<p class="state-message">Todavía nadie se anotó.</p>'; return; }
+
+  list.innerHTML = data.registrations.map(r => `
+    <div class="cp-row">
+      <div class="cp-row__info">
+        <strong>${esc(r.character_name)}</strong>
+        <span class="cp-dim">${esc(r.account)} · ${esc(fmtFechaCp(r.created_at))}</span>
+      </div>
+      <div class="cp-row__actions">
+        <button class="btn btn-secondary btn-sm" data-evt-reg-remove="${esc(r.account)}">Quitar</button>
+      </div>
+    </div>`).join('');
+
+  list.querySelectorAll('[data-evt-reg-remove]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm(`¿Quitar a ${b.dataset.evtRegRemove} de este evento?`)) return;
+    const { ok: ok2, data: d2 } = await adminFetch('events.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'remove_registration', id: eventId, account: b.dataset.evtRegRemove }),
+    });
+    if (ok2) { loadEventRegistrationsAdmin(eventId); loadEventsAdmin(); }
+    else feedback('evt-feedback', d2?.error ?? 'Error', true);
+  }));
+}
+
+function resetEvtForm() {
+  ['evt-id', 'evt-title', 'evt-desc', 'evt-datetime', 'evt-maxslots'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('evt-form-title').textContent = 'Nuevo evento';
+  document.getElementById('evt-cancel').hidden = true;
+}
+
+function initEvents() {
+  document.getElementById('evt-cancel').addEventListener('click', resetEvtForm);
+  document.getElementById('evt-save').addEventListener('click', async () => {
+    const id    = document.getElementById('evt-id').value;
+    const title = document.getElementById('evt-title').value.trim();
+    if (!title) { feedback('evt-feedback', 'El título es obligatorio', true); return; }
+
+    const body = {
+      action:             id ? 'update' : 'create',
+      title,
+      description:        document.getElementById('evt-desc').value.trim(),
+      event_datetime_utc: localToUtcIso(document.getElementById('evt-datetime').value),
+      max_slots:          document.getElementById('evt-maxslots').value,
+    };
+    if (id) body.id = Number(id);
+
+    const { ok, data } = await adminFetch('events.php', { method: 'POST', body: JSON.stringify(body) });
+    feedback('evt-feedback', ok ? 'Guardado ✔' : (data?.error ?? 'Error'), !ok);
+    if (ok) { resetEvtForm(); loadEventsAdmin(); }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   if (!isAuthenticated()) {
     window.location.href = `${BASE}/login/?redirect=${encodeURIComponent('/controlpanel/')}`;
@@ -1389,6 +1519,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initVip();
   initForoCategorias();
   initForoBan();
+  initEvents();
 
   loadStatus();
   loadPromo();
@@ -1403,4 +1534,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadForoBanHistory();
   loadForoReports();
   loadForoPapelera();
+  loadEventsAdmin();
 });

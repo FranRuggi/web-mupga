@@ -8,7 +8,9 @@ Radar de Tiendas: implementado, probado contra datos reales y descartado (ver se
 Foro: phpBB probado y descartado (quedó parqueado en `foro.mupga.com.ar` sin usar). Pivot a
 módulo nativo construido en el repo — falta correr `foro_setup.sql` en el VPS y cargar
 categorías antes de anunciarlo a los jugadores.
-**Última actualización:** 2026-08-11
+Fase 9 (Eventos) recién construida — falta correr `controlpanel_events.sql` en el VPS y cargar
+el Torneo PVP desde el ControlPanel.
+**Última actualización:** 2026-08-23
 
 ---
 
@@ -457,6 +459,33 @@ Tres cosas que aparecieron al probar el foro con las categorías reales cargadas
 legibles/slug, bloque de código F-04.02, spoiler F-04.03, embed YouTube F-04.04, no leídos
 F-03.06/F-10.04, perfil F-06.02, métricas F-13.05, etc.) — según pida la comunidad.
 
+## Fase 9 — Módulo Eventos
+
+Página `/eventos/` donde jugadores logueados se anotan a torneos/actividades puntuales y ven
+la lista de anotados. Genérico a propósito (no una tabla por evento) para no rehacer esto la
+próxima vez — primer evento a cargar: Torneo PVP (viernes que viene, hora a confirmar).
+
+- [x] `database/controlpanel_events.sql` — tablas `dbo.events` / `dbo.event_registrations`
+      en `mupga_admin` (misma base que ControlPanel, sin base ni login nuevos — `mupga_web_svc`
+      ya tiene datareader+datawriter ahí, mismo criterio que `wcoin_credits`/`vip_grants`) — 2026-08-23
+- [x] `src/db/EventsRepository.php` — listActive, listRegistrations (pública, solo nombre de
+      personaje), register/unregister (transacción UPDLOCK/HOLDLOCK, mismo patrón anti-TOCTOU
+      que Prode/Reclamos), listAll/create/update/setActive/listRegistrationsAdmin/removeRegistration — 2026-08-23
+- [x] `GET /api/events/list.php` — eventos activos + cupo + `my_registration` si hay token — 2026-08-23
+- [x] `GET /api/events/registrations.php?event_id=X` — lista pública de anotados (solo personaje) — 2026-08-23
+- [x] `POST /api/events/register.php` — valida personaje propio (`CharacterRepository::belongsToAccount`),
+      cutoff por `GETUTCDATE() < event_datetime` (NULL = sin cutoff hasta que se cargue fecha), cupo — 2026-08-23
+- [x] `POST /api/events/unregister.php` — cancelar inscripción propia — 2026-08-23
+- [x] `POST /api/admin/events.php` — create/update/set_active/remove_registration, `requireAdmin()` — 2026-08-23
+- [x] Frontend `/eventos/` + `eventos.js` — cards con fecha en hora local del navegador,
+      form de inscripción con selector de personaje, "ver anotados" expandible — 2026-08-23
+- [x] Tab "🏆 Eventos" en `/controlpanel/` — alta/edición, activar/desactivar, ver anotados y
+      dar de baja una inscripción puntual — 2026-08-23
+- [x] Nav (`layout.php`) y `build.php` — 2026-08-23
+- [ ] Correr `database/controlpanel_events.sql` en SSMS (mirror local + VPS) — manual, Franco
+- [ ] Cargar el Torneo PVP desde el ControlPanel (título, descripción, cupo si aplica; fecha
+      cuando Franco la confirme) y probar el flujo end-to-end en producción — manual, Franco
+
 ## Radar de Tiendas — lectura de tiendas personales
 
 Analizado a pedido de Franco (2026-08-11) si se podía llevar la tienda personal del juego
@@ -624,3 +653,4 @@ se retoma la idea más adelante (por ejemplo, si algún día se resuelve la iden
 - 2026-08-11 — [Feat] Foro hardening v2 (Etapas 1-3 de `BACKLOG_FORO.md`, auditoría previa en `GAP_FORO.md`): migración SQL aditiva (`foro_migracion_v2.sql`), validador único server-side con 422 (`ForumValidation.php`), whitelist de esquema de links en el server, antiflood transaccional 30s/10 por hora (patrón Reclamos), personaje requerido para publicar, links restringidos a cuentas nuevas, sistema de reportes con cola en el ControlPanel + webhook Discord opcional, log de auditoría inmutable (`forum.moderation_log`), soft delete con papelera y restore (se eliminó el DELETE físico del módulo), ventana de edición 30 min con marca "editado por el staff", fix del lock que bloqueaba a admins, motivo de cierre visible, mover hilos, ban con vencimiento en días, sin autoagradecimiento, categorías con conteo/última actividad y categorías ocultas (404 a no-admins), y la API dejó de exponer `author_account` (`is_mine` server-side). Pendiente manual: correr la migración en SSMS y (opcional) `DISCORD_WEBHOOK_FORO`.
 - 2026-08-11 — [Feat] Pivot de Fase 8: en vez de seguir invirtiendo en phpBB, foro reconstruido como módulo nativo de `web-mupga` (mismo patrón que Reclamos — usuarios crean, admin modera — reusando JWT/ControlPanel/diseño ya existentes). Backend: `database/foro_setup.sql` (schema `forum` en `mupga_admin`, login `mupga_forum_svc`, tablas categories/threads/posts/reactions/banned_accounts), `ForumDatabase`, `ForumRepository`, 8 endpoints públicos/usuario (`src/public/api/forum/`) y 3 admin (`forum_categories`, `forum_moderate`, `forum_ban`). El nombre mostrado en los posts es el personaje principal de la cuenta (`CharacterRepository::getMainCharacterName()`), resuelto y denormalizado al postear — igual criterio que `reclamos.reclamos.nick`. Se agregaron `optionalAuth()` a `Auth.php` (para que `/foro/hilo/` marque reacciones propias sin exigir sesión) e `isAdminAccount()` a `AdminAuth.php` (chequeo "dueño o admin" no bloqueante, reusado en editar/borrar). Frontend: `/foro/`, `/foro/categoria/`, `/foro/hilo/` + `foro.js` — moderación (fijar/cerrar/editar/borrar) inline en la página para admin y para el dueño del contenido, sin depender del ControlPanel para el día a día. ControlPanel: pestaña "💬 Foro" para CRUD de categorías y bans (acotados al foro, nunca tocan `MEMB_INFO.bloc_code` — no es lo mismo que banear la cuenta de juego). Reacciones: un solo tipo ("🙏 Agradecer"), toggle on/off, sin publicar. Bugs propios encontrados y corregidos antes de terminar: el id de categoría/hilo no llegaba en el build estático de Cloudflare Pages (faltaba el fallback a `URLSearchParams` client-side, mismo patrón que `guild.js`), y el botón de responder acumulaba listeners duplicados en cada re-render (cambiado de `addEventListener` a asignación `.onclick`). Pendiente: correr `foro_setup.sql` en el VPS y cargar las categorías iniciales (`runbooks/foro-web-setup-manual.md`).
 - 2026-08-11 — [Feat] Foro Etapas 4-6 del backlog: migración `foro_migracion_v3.sql` (thread_follows, notifications, image_uploads), citar con permalink y un nivel de anidamiento, menciones @Personaje resueltas server-side solo contra participantes del foro + autocompletado acotado al hilo, seguir hilo con auto-follow y avisos agrupados, centro de notificaciones con campanita/panel/purga oportunista (respuesta·mención·gracias·moderación), barra de formato con toggle y atajos, vista previa, imágenes vía presigned PUT a bucket R2 separado (`FORO_R2_*`, cuota 20/día, `restrictImages()` degrada hosts ajenos), paginación real de hilos (25) y respuestas (20) con permalink `?post=X` resuelto server-side, y búsqueda `/foro/buscar/` (LIKE escapado, TOP 30, 2 queries fijas). `renderRichText()` ganó blockquote, imagen y mención (compartido con Noticias). Pendiente manual VPS: migraciones v2+v3 en SSMS y bucket `mupga-foro`.
+- 2026-08-23 — [Feat] Módulo Eventos (Fase 9), a pedido de Franco para anotarse al Torneo PVP del viernes que viene (hora aún sin confirmar) y sumar cualquier evento futuro sin rehacer el módulo. Tablas genéricas `dbo.events`/`dbo.event_registrations` en `mupga_admin` (`database/controlpanel_events.sql`, sin base ni login nuevos — mismo criterio que `wcoin_credits`/`vip_grants`, `mupga_web_svc` ya tiene datareader+datawriter ahí). `EventsRepository.php` + endpoints públicos (`list`, `registrations`, `register`, `unregister`) y admin (`admin/events.php`: create/update/set_active/remove_registration, `requireAdmin()`). `register()` valida que el personaje pertenezca a la cuenta (`CharacterRepository::belongsToAccount()` contra la base del juego) y corre en transacción con `UPDLOCK/HOLDLOCK` sobre la fila del evento — mismo patrón anti-TOCTOU que `ProdeRepository::savePrediction()`/rate-limit de Reclamos — para serializar inscripciones concurrentes contra cupo y duplicados; cutoff temporal con `GETUTCDATE() < event_datetime` (nunca offsets fijos, ver incidentes de timezone arriba), `event_datetime` nullable ("a confirmar") deja las inscripciones abiertas hasta que se cargue una fecha. La lista pública de anotados solo expone el nombre de personaje, nunca la cuenta (mismo criterio de privacidad que el foro); el admin sí ve la cuenta, para poder dar de baja una inscripción puntual. Frontend `/eventos/` + `eventos.js` (fecha convertida a hora local del navegador igual que Prode, formulario de inscripción con selector de personajes de la cuenta vía `/api/account/profile.php`, lista de anotados expandible) y tab "🏆 Eventos" en `/controlpanel/` (alta/edición con `datetime-local`, activar/desactivar, ver anotados, quitar inscripción). Nav y `build.php` actualizados. Pendiente manual: correr `controlpanel_events.sql` en SSMS (mirror local + VPS) y cargar el Torneo PVP real desde el ControlPanel.
