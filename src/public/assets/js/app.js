@@ -41,9 +41,18 @@ function esc(str) {
 // SIEMPRE primero con esc(): el resultado solo puede contener
 // los tags de esta whitelist, nunca HTML del autor.
 //   **negrita**  *cursiva*  __subrayado__  ~~tachado~~
-//   ## subtítulo · "- " ítem de lista · [texto](https://url)
+//   ## subtítulo · "- " ítem de lista
+//   [texto](https://url) — link externo, se abre en pestaña nueva
+//   [texto](/eventos/)   — link interno (empieza con "/"), misma pestaña
 //   Línea en blanco = párrafo nuevo · salto simple = <br>
 function renderRichText(str) {
+  // Link interno: arranca con "/" pero no "//" (eso sería protocol-relative
+  // a un dominio externo, ej. "//evil.com" — se trata como no-match a propósito).
+  const LINK_URL = '(?:https?:\\/\\/|\\/(?!\\/))[^\\s)]+';
+  const linkTag = (text, url) => /^https?:\/\//.test(url)
+    ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`
+    : `<a href="${url}">${text}</a>`;
+
   const inline = s => s
     // Imágenes ANTES que links, para que ![alt](url) no lo consuma el link.
     // El server solo deja llegar como imagen las del bucket del foro
@@ -54,8 +63,7 @@ function renderRichText(str) {
     .replace(/__(.+?)__/g, '<u>$1</u>')
     .replace(/~~(.+?)~~/g, '<s>$1</s>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-             '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(new RegExp(`\\[([^\\]]+)\\]\\((${LINK_URL})\\)`, 'g'), (_, text, url) => linkTag(text, url))
     .replace(/(^|[\s(])@([A-Za-z0-9_]{2,10})\b/g, '$1<span class="rich-mention">@$2</span>');
 
   let html = '', para = [], list = [], quote = [];

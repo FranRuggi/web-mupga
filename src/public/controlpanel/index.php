@@ -162,7 +162,8 @@ ob_start();
             <div class="cp-editor__preview news-article__body" id="news-preview" hidden></div>
           </div>
           <small class="cp-hint" style="margin:0">
-            **negrita** · *cursiva* · __subrayado__ · ~~tachado~~ · ## subtítulo · "- " lista · [texto](https://url)
+            **negrita** · *cursiva* · __subrayado__ · ~~tachado~~ · ## subtítulo · "- " lista ·
+            [texto](https://url) (link externo) · [texto](/eventos/) (link interno del sitio)
           </small>
         </div>
         <div class="cp-field">
