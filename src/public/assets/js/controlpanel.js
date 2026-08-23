@@ -1413,6 +1413,7 @@ async function loadEventsAdmin() {
     document.getElementById('evt-id').value       = ev.id;
     document.getElementById('evt-title').value    = ev.title;
     document.getElementById('evt-desc').value     = ev.description ?? '';
+    updateEvtPreview();
     document.getElementById('evt-datetime').value = utcToLocalInput(ev.event_datetime);
     document.getElementById('evt-maxslots').value = ev.max_slots ?? '';
     document.getElementById('evt-form-title').textContent = `Editando evento #${ev.id}`;
@@ -1471,11 +1472,68 @@ async function loadEventRegistrationsAdmin(eventId) {
 
 function resetEvtForm() {
   ['evt-id', 'evt-title', 'evt-desc', 'evt-datetime', 'evt-maxslots'].forEach(id => document.getElementById(id).value = '');
+  updateEvtPreview();
   document.getElementById('evt-form-title').textContent = 'Nuevo evento';
   document.getElementById('evt-cancel').hidden = true;
 }
 
+// Mismo editor que Noticias (barra de formato + emojis + vista previa), para
+// que el contenido se vea siempre igual sin importar en qué módulo se escribió.
+function updateEvtPreview() {
+  const prev = document.getElementById('evt-preview');
+  if (prev.hidden) return;
+  prev.innerHTML = renderRichText(document.getElementById('evt-desc').value)
+    || '<p class="cp-dim">Nada que previsualizar…</p>';
+}
+
+function initEvtEditor() {
+  const ta = document.getElementById('evt-desc');
+
+  const actions = {
+    bold:      () => mdWrap(ta, '**'),
+    italic:    () => mdWrap(ta, '*'),
+    underline: () => mdWrap(ta, '__'),
+    strike:    () => mdWrap(ta, '~~'),
+    heading:   () => mdLinePrefix(ta, '## '),
+    list:      () => mdLinePrefix(ta, '- '),
+    link:      () => mdLink(ta),
+  };
+
+  document.querySelectorAll('#evt-toolbar [data-md]').forEach(btn => {
+    btn.addEventListener('click', () => { actions[btn.dataset.md](); updateEvtPreview(); });
+  });
+
+  ta.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const key = { b: 'bold', i: 'italic', u: 'underline' }[e.key.toLowerCase()];
+    if (key) { e.preventDefault(); actions[key](); updateEvtPreview(); }
+  });
+  ta.addEventListener('input', updateEvtPreview);
+
+  const picker = document.getElementById('evt-emoji-picker');
+  picker.innerHTML = NEWS_EMOJIS.map(em => `<button type="button">${em}</button>`).join('');
+  picker.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') return;
+    replaceSelection(ta, e.target.textContent);
+    updateEvtPreview();
+  });
+  document.getElementById('evt-emoji-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    picker.hidden = !picker.hidden;
+  });
+  document.addEventListener('click', (e) => {
+    if (!picker.hidden && !picker.contains(e.target)) picker.hidden = true;
+  });
+
+  document.getElementById('evt-preview-toggle').addEventListener('click', () => {
+    const prev = document.getElementById('evt-preview');
+    prev.hidden = !prev.hidden;
+    updateEvtPreview();
+  });
+}
+
 function initEvents() {
+  initEvtEditor();
   document.getElementById('evt-cancel').addEventListener('click', resetEvtForm);
   document.getElementById('evt-save').addEventListener('click', async () => {
     const id    = document.getElementById('evt-id').value;

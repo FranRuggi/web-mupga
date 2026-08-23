@@ -453,7 +453,31 @@ ob_start();
       <div class="cp-form">
         <input type="hidden" id="evt-id" value="">
         <label class="cp-field"><span>Título</span><input type="text" id="evt-title" maxlength="120" placeholder="Torneo PVP"></label>
-        <label class="cp-field"><span>Descripción (opcional)</span><textarea id="evt-desc" rows="3" maxlength="2000"></textarea></label>
+        <div class="cp-field">
+          <span>Descripción (opcional)</span>
+          <div class="cp-editor">
+            <div class="cp-editor__toolbar" id="evt-toolbar">
+              <button type="button" data-md="bold"      title="Negrita (Ctrl+B)"><strong>B</strong></button>
+              <button type="button" data-md="italic"    title="Cursiva (Ctrl+I)"><em>I</em></button>
+              <button type="button" data-md="underline" title="Subrayado (Ctrl+U)"><u>S</u></button>
+              <button type="button" data-md="strike"    title="Tachado"><s>T</s></button>
+              <span class="cp-editor__sep"></span>
+              <button type="button" data-md="heading" title="Subtítulo">H</button>
+              <button type="button" data-md="list"    title="Lista">≡ Lista</button>
+              <button type="button" data-md="link"    title="Enlace">🔗</button>
+              <span class="cp-editor__sep"></span>
+              <button type="button" id="evt-emoji-btn" title="Insertar emoji">😀</button>
+              <button type="button" id="evt-preview-toggle" title="Vista previa">👁 Vista previa</button>
+            </div>
+            <div class="cp-emoji-picker" id="evt-emoji-picker" hidden></div>
+            <textarea id="evt-desc" rows="6" maxlength="2000"></textarea>
+            <div class="cp-editor__preview news-article__body" id="evt-preview" hidden></div>
+          </div>
+          <small class="cp-hint" style="margin:0">
+            **negrita** · *cursiva* · __subrayado__ · ~~tachado~~ · ## subtítulo · "- " lista ·
+            [texto](https://url) (link externo) · [texto](/eventos/) (link interno del sitio)
+          </small>
+        </div>
         <div class="cp-grid-2">
           <label class="cp-field"><span>Fecha y hora (opcional — vacío = a confirmar)</span><input type="datetime-local" id="evt-datetime"></label>
           <label class="cp-field"><span>Cupo máximo (opcional — vacío = sin límite)</span><input type="number" id="evt-maxslots" min="1" step="1"></label>

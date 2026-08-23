@@ -121,10 +121,10 @@ function renderEventCard(ev) {
   return `
     <div class="account-card evento-card" data-event="${ev.id}">
       <div class="evento-card__head">
-        <p class="evento-card__title">${esc(ev.title)}</p>
+        <p class="evento-card__title">${renderFlags(esc(ev.title))}</p>
         ${startsSoonBadge(ev)}
       </div>
-      ${ev.description ? `<p class="evento-desc">${esc(ev.description).replace(/\n/g, '<br>')}</p>` : ''}
+      ${ev.description ? `<div class="evento-desc news-article__body">${renderRichText(ev.description)}</div>` : ''}
       <div class="evento-meta">
         <span class="evento-meta__item${ev.event_datetime ? '' : ' evento-meta__item--tbd'}">🗓️ <strong>${esc(formatEventDate(ev.event_datetime))}</strong></span>
         <span class="evento-meta__item">👥 <strong>${esc(cupoTxt)}</strong></span>

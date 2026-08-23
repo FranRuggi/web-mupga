@@ -5231,13 +5231,13 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
   filter: drop-shadow(0 0 16px var(--gold-glow));
 }
 
-.evento-desc {
-  color: var(--text);
-  font-size: 0.95rem;
-  line-height: 1.7;
-  margin: 0.6rem 0 1rem;
+/* La tipografía interna (párrafos, subtítulos, listas, links) la pone
+   .news-article__body — misma clase que usa Noticias — para que el
+   contenido se vea idéntico sin importar en qué módulo se escribió.
+   Acá solo se ajusta el ancho de lectura y el margen dentro de la card. */
+.evento-desc.news-article__body {
   max-width: 64ch;
-  white-space: pre-line;
+  margin: 0.6rem 0 1rem;
 }
 
 .evento-meta {
