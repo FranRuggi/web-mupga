@@ -629,6 +629,77 @@ h1, h2, h3, h4 {
   50%       { filter: drop-shadow(0 0 52px var(--gold-glow)) drop-shadow(0 0 80px rgba(145,71,232,0.3)); }
 }
 
+/* ── Pergamino de apertura (temporal — 04/09) ───────────────────
+   Flota sobre el hero, entre el texto y el personaje de la imagen. Va anclado
+   con `right` en % porque la imagen del hero se ajusta al ANCHO (object-fit
+   cover en un contenedor más panorámico que 16:9), así que el personaje escala
+   con el viewport y el pergamino lo acompaña. En mobile eso no vale: ahí la
+   imagen se ajusta al alto y se recorta a la franja central, por eso más abajo
+   se reposiciona a la esquina inferior derecha. */
+.hero-scroll {
+  --scroll-w: clamp(150px, 17vw, 290px);
+  position: absolute;
+  top: 6%;
+  right: 40%;
+  z-index: 2;
+  width: var(--scroll-w);
+  pointer-events: none;
+  animation:
+    heroScrollIn 0.8s ease 0.3s both,
+    heroScrollFloat 5s ease-in-out 1.1s infinite;
+}
+
+/* De 769px a 1849px no queda hueco limpio entre el texto y el personaje: el
+   .hero-content mide 580px fijos, el caballero arranca al 66% del ancho del
+   hero y la sidebar de 272px le come ancho al hero hasta los 1100px, donde
+   además desaparece y cambia todo el cálculo. Recién a partir de ~1850px de
+   viewport el pergamino grande entra sin pisar el texto ni al personaje (ojo:
+   un monitor de 1920 con Windows al 125% de escala reporta 1536px, así que
+   ese caso también cae acá). Abajo de ese corte se va a la esquina superior
+   derecha, más chico, apoyado sobre el ala — zona de color plano, sin detalle
+   que valga la pena tapar. */
+@media (min-width: 769px) and (max-width: 1849px) {
+  .hero-scroll {
+    --scroll-w: clamp(140px, 14vw, 185px);
+    top: 7%;
+    right: 1.5rem;
+  }
+}
+
+/* Resplandor dorado detrás del pergamino — respira junto con el flote */
+.hero-scroll::before {
+  content: '';
+  position: absolute;
+  inset: -18%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(200,168,75,0.28) 0%, rgba(145,71,232,0.16) 45%, transparent 72%);
+  filter: blur(28px);
+  z-index: -1;
+  animation: heroScrollGlow 5s ease-in-out 1.1s infinite;
+}
+
+.hero-scroll img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 14px 28px rgba(0,0,0,0.6));
+}
+
+@keyframes heroScrollIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes heroScrollFloat {
+  0%, 100% { transform: translateY(0)     rotate(-0.7deg); }
+  50%      { transform: translateY(-12px) rotate(0.7deg); }
+}
+
+@keyframes heroScrollGlow {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
 /* ── Buttons ───────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
@@ -1044,6 +1115,14 @@ h1, h2, h3, h4 {
   .hero { min-height: 400px; padding: var(--gap-lg) var(--gap-md); }
   .section { padding: var(--gap-lg) var(--gap-md); }
 
+  /* El texto del hero pasa a ocupar todo el ancho: el pergamino se va a la
+     esquina de abajo, chico, donde no pisa nada. */
+  .hero-scroll {
+    width: 118px;
+    top: auto; right: 0.75rem;
+    bottom: 0.75rem;
+  }
+
   .site-footer { flex-direction: column; text-align: center; gap: 0.75rem; }
 
   .rank-item { grid-template-columns: 2rem 2.5rem 1fr auto; gap: 0.5rem; padding: 0.75rem; }
@@ -1052,6 +1131,14 @@ h1, h2, h3, h4 {
 @media (max-width: 480px) {
   .info-grid { grid-template-columns: repeat(2, 1fr); }
   .hero-title { font-size: 3rem; }
+  .hero-scroll { width: 96px; }
+}
+
+/* Sin movimiento para quien lo pidió a nivel sistema */
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll,
+  .hero-scroll::before { animation: none; }
+  .hero-scroll { opacity: 1; }
 }
 
 @media (min-width: 1800px) {
