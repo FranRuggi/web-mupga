@@ -672,7 +672,7 @@ h1, h2, h3, h4 {
    img-6 gris) — el pergamino es beige y sobre esos fondos pierde el borde. */
 .hero-scroll img {
   display: block;
-  width: 100%;
+  width: 130%;
   height: auto;
   filter:
     drop-shadow(0 14px 28px rgba(0,0,0,0.6))
