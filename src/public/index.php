@@ -2,8 +2,7 @@
 require_once dirname(__DIR__) . '/bootstrap.php';
 
 $pageTitle = 'Inicio';
-// Slider desactivado mientras el hero es una sola imagen fija (apertura 04/09).
-// $extraJs = 'hero-slider.js';
+$extraJs   = 'hero-slider.js';
 
 ob_start();
 ?>
@@ -12,17 +11,12 @@ ob_start();
 
   <!-- ── Hero ── -->
   <section class="hero">
-    <!-- Imagen fija de la apertura (04/09). El slider rotativo está más abajo,
-         comentado: para volver a él hay que restaurar ese bloque y descomentar
-         $extraJs = 'hero-slider.js' arriba. La clase .active va en el markup a
-         propósito — con un solo slide no queremos depender del JS para que se
-         vea la imagen. -->
+    <!-- El key art de la apertura abre la rotación. La clase .active va puesta en
+         el markup a propósito: el JS se la agrega igual al primer slide, pero
+         ponerla acá evita el hero en negro durante el instante previo a que
+         corra hero-slider.js. -->
     <div class="hero-slider" aria-hidden="true">
       <div class="hero-slide active"><img src="assets/img/slider/hero-apertura.jpg" alt="" fetchpriority="high"></div>
-    </div>
-
-    <!--
-    <div class="hero-slider" aria-hidden="true">
       <div class="hero-slide"><video src="assets/img/slider/vid-2.mp4" muted playsinline preload="metadata"></video></div>
       <div class="hero-slide"><img src="assets/img/slider/img-1.jpg" alt=""></div>
       <div class="hero-slide"><img src="assets/img/slider/img-3.jpg" alt=""></div>
@@ -36,7 +30,6 @@ ob_start();
       <div class="hero-slide"><img src="assets/img/slider/img-10.jpg" alt=""></div>
       <div class="hero-slide"><video src="assets/img/slider/vid-4.mp4" muted playsinline preload="metadata"></video></div>
     </div>
-    -->
 
     <!-- Orbes decorativos animados -->
     <div class="hero-orb hero-orb--1" aria-hidden="true"></div>

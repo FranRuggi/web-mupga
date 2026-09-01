@@ -678,11 +678,16 @@ h1, h2, h3, h4 {
   animation: heroScrollGlow 5s ease-in-out 1.1s infinite;
 }
 
+/* Dos sombras: la larga lo despega del fondo, la corta le hace un contorno para
+   que no se funda con los slides claros del slider (img-3 nieve, img-5 cyan,
+   img-6 gris) — el pergamino es beige y sobre esos fondos pierde el borde. */
 .hero-scroll img {
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 14px 28px rgba(0,0,0,0.6));
+  filter:
+    drop-shadow(0 14px 28px rgba(0,0,0,0.6))
+    drop-shadow(0 0 10px rgba(0,0,0,0.55));
 }
 
 @keyframes heroScrollIn {
