@@ -2,10 +2,30 @@
   "description": "El servidor se sostiene gracias a las donaciones de la comunidad. No vendemos WCoins: son una acreditación que te damos como agradecimiento por tu donación, para usar en el Cash Shop.",
   "rates": [
     {
+      "provider": "Transferencia bancaria",
+      "icon": "🏦",
+      "rate": "$1 ARS = 1 WCoin",
+      "highlight": "⭐ Recomendado — mismas bonificaciones que el link de pago",
+      "notes": "Transferí al alias el monto exacto de la promo y avisale a un administrador con el comprobante.",
+      "action_label": "Ver promos y transferir",
+      "transfer_popup": {
+        "alias": "MUPGA.MP",
+        "promos": [
+          { "monto": "$5.000", "wcoins": "6.000 WCoins", "bonus": "+1.000 de regalo" },
+          { "monto": "$10.000", "wcoins": "12.000 WCoins", "bonus": "+2.000 de regalo" },
+          { "monto": "$20.000", "wcoins": "24.000 WCoins", "bonus": "+4.000 de regalo" },
+          { "monto": "$30.000", "wcoins": "38.000 WCoins", "bonus": "+8.000 de regalo" }
+        ],
+        "libre_note": "¿Otro monto? También podés transferir lo que quieras: se acredita $1 ARS = 1 WCoin, sin bonificación.",
+        "whatsapp_url": "https://chat.whatsapp.com/DqaUqom63aFALaBsK2l7of",
+        "discord_url": "https://discord.com/invite/xTxFHSmVhf",
+        "ticket_url": "../reclamos/"
+      }
+    },
+    {
       "provider": "Mercado Pago",
       "icon": "💳",
       "rate": "$1 ARS = 1 WCoin",
-      "highlight": "⭐ Recomendado: transferí al alias MUPGA.MP, mismas bonificaciones",
       "notes": "Elegí un monto con bonificación o doná el monto que quieras",
       "promos": [
         { "label": "Monto libre — $1 ARS = 1 WCoin (sin bonificación)", "url": "https://link.mercadopago.com.ar/mupga" },

@@ -3825,11 +3825,16 @@ a.dl-yt-btn:hover   { background: #a02520; color: #fff; }
   justify-content: center;
   gap: 0.75rem;
 }
+/* Monoespaciada a propósito: con la display (Cinzel) el punto de "MUPGA.MP"
+   se pierde entre las mayúsculas y se leía "MUPGAMP" — y es un alias que
+   tienen que copiar exacto para transferir. */
 .transfer-alias-value span {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-family: ui-monospace, 'Cascadia Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: var(--gold-light);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
+  user-select: all;
 }
 .transfer-alias-copy {
   background: transparent;
@@ -5746,4 +5751,87 @@ html.apertura-bloqueada .page-wrapper { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .apertura-gate__bg  { animation: none; }
   .apertura-gate__cta { animation: none; }
+}
+
+/* ── Modal de donación por transferencia (/donate2/) ───────────
+   Reusa la caja del modal de Binance; solo necesita más ancho y
+   alineación a la izquierda, porque acá hay una lista y pasos a leer. */
+.donate2-modal__inner--wide {
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  text-align: left;
+}
+.donate2-modal__inner--wide .donate2-modal__title,
+.donate2-modal__inner--wide .donate2-modal__sub { text-align: center; }
+.donate2-modal__inner--wide .donate2-modal__sub strong { color: var(--gold-light); }
+
+.transfer-promos {
+  list-style: none;
+  margin: 1.1rem 0 0.6rem;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.transfer-promo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.transfer-promo__monto {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--gold-light);
+}
+.transfer-promo__flecha  { color: var(--text-dim); }
+.transfer-promo__wcoins  { color: var(--text-bright); font-weight: 600; font-size: 0.9rem; }
+.transfer-promo__bonus {
+  margin-left: auto;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--cyan);
+  border: 1px solid var(--cyan-glow);
+  border-radius: var(--radius);
+  padding: 0.1rem 0.45rem;
+  white-space: nowrap;
+}
+
+.transfer-libre-note {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin: 0 0 1.1rem;
+}
+
+/* Los dos pasos: es la parte que más se saltean, así que van numerados
+   y con lo importante en dorado. */
+.transfer-pasos {
+  margin: 1.1rem 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+.transfer-pasos strong { color: var(--gold-light); }
+
+.transfer-contactos {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.transfer-contactos .donate2-card-btn {
+  flex: 1 1 auto;
+  justify-content: center;
+  text-align: center;
 }

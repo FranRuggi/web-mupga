@@ -18,6 +18,12 @@ foreach ($rates as $r) {
     if (!empty($r['qr_popup'])) { $hasQrPopup = true; break; }
 }
 
+// Datos del modal de transferencia (los toma de la primera card que lo define)
+$transfer = null;
+foreach ($rates as $r) {
+    if (!empty($r['transfer_popup'])) { $transfer = $r['transfer_popup']; break; }
+}
+
 ob_start();
 ?>
 
@@ -73,6 +79,12 @@ ob_start();
             <?= htmlspecialchars($r['action_label'] ?? 'Donar ahora') ?>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </a>
+        </div>
+        <?php elseif (!empty($r['transfer_popup'])): ?>
+        <div class="donate2-card-action">
+          <button type="button" class="donate2-card-btn donate2-card-btn--mp" data-open-transfer>
+            <?= htmlspecialchars($r['action_label'] ?? 'Ver promos y transferir') ?>
+          </button>
         </div>
         <?php elseif (!empty($r['qr_popup'])): ?>
         <div class="donate2-card-action">
@@ -139,6 +151,69 @@ ob_start();
     <button id="binance-modal-close" type="button" class="donate2-modal__close">
       Cerrar
     </button>
+  </div>
+</div>
+<?php endif; ?>
+
+<?php if ($transfer): ?>
+<div id="transfer-modal" class="donate2-modal" hidden aria-modal="true" role="dialog" aria-label="Donar por transferencia">
+  <div id="transfer-modal-overlay" class="donate2-modal__overlay"></div>
+  <div class="donate2-modal__inner donate2-modal__inner--wide">
+
+    <p class="donate2-modal__title">Donar por transferencia</p>
+    <p class="donate2-modal__sub">Elegí una promo y transferí <strong>ese monto exacto</strong></p>
+
+    <?php if (!empty($transfer['promos'])): ?>
+    <ul class="transfer-promos">
+      <?php foreach ($transfer['promos'] as $p): ?>
+      <li class="transfer-promo">
+        <span class="transfer-promo__monto"><?= htmlspecialchars($p['monto'] ?? '') ?></span>
+        <span class="transfer-promo__flecha" aria-hidden="true">→</span>
+        <span class="transfer-promo__wcoins"><?= htmlspecialchars($p['wcoins'] ?? '') ?></span>
+        <?php if (!empty($p['bonus'])): ?>
+        <span class="transfer-promo__bonus"><?= htmlspecialchars($p['bonus']) ?></span>
+        <?php endif; ?>
+      </li>
+      <?php endforeach; ?>
+    </ul>
+    <?php endif; ?>
+
+    <?php if (!empty($transfer['libre_note'])): ?>
+    <p class="transfer-libre-note"><?= htmlspecialchars($transfer['libre_note']) ?></p>
+    <?php endif; ?>
+
+    <div class="transfer-alias-box">
+      <p class="transfer-alias-label">Alias para transferir</p>
+      <div class="transfer-alias-value">
+        <span id="transfer-alias-text"><?= htmlspecialchars($transfer['alias'] ?? '') ?></span>
+        <button type="button" id="transfer-copy-alias" class="transfer-alias-copy">Copiar</button>
+      </div>
+      <p class="transfer-alias-hint" id="transfer-copy-feedback" hidden>Alias copiado.</p>
+    </div>
+
+    <ol class="transfer-pasos">
+      <li><strong>Transferí el monto exacto</strong> de la promo que elegiste. Si transferís otro
+          monto no se aplica la bonificación.</li>
+      <li><strong>Avisale a un administrador</strong> con el comprobante. La acreditación es
+          manual: si no avisás, no se acredita.</li>
+    </ol>
+
+    <div class="transfer-contactos">
+      <?php if (!empty($transfer['whatsapp_url'])): ?>
+      <a href="<?= htmlspecialchars($transfer['whatsapp_url']) ?>" target="_blank" rel="noopener"
+         class="donate2-card-btn donate2-card-btn--wsp">Avisar por WhatsApp</a>
+      <?php endif; ?>
+      <?php if (!empty($transfer['discord_url'])): ?>
+      <a href="<?= htmlspecialchars($transfer['discord_url']) ?>" target="_blank" rel="noopener"
+         class="donate2-card-btn donate2-card-btn--qr">Avisar por Discord</a>
+      <?php endif; ?>
+      <?php if (!empty($transfer['ticket_url'])): ?>
+      <a href="<?= htmlspecialchars($transfer['ticket_url']) ?>"
+         class="donate2-card-btn donate2-card-btn--qr">Abrir un reclamo</a>
+      <?php endif; ?>
+    </div>
+
+    <button id="transfer-modal-close" type="button" class="donate2-modal__close">Cerrar</button>
   </div>
 </div>
 <?php endif; ?>
