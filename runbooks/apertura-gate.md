@@ -24,13 +24,13 @@ dejando como única acción el botón **REGISTRATE**.
 | Bloqueo real | `src/lib/AperturaGate.php` (enganchado en `api/_cors.php`) | 503 en toda la API salvo lo exento |
 | Reloj del server | `src/public/api/site/hora.php` | Sincroniza el contador (epoch UTC) |
 
-**Páginas que NO se tapan:** `/register/`, `/downloads/`, `/info/`, `/login/`,
+**Páginas que NO se tapan:** `/register/`, `/downloads/`, `/info/`, `/donate2/`, `/login/`,
 `/controlpanel/` — ahí se muestra una franja con el mismo contador. Si se taparan, el botón
 REGISTRATE no llevaría a ningún lado, nadie podría bajar el launcher ni leer las rates del
 server, y no se podría entrar al panel a arreglar nada.
 
 **Navbar:** durante la cuenta regresiva `apertura.js` borra del DOM todos los links del menú
-salvo Info, Descargas, Login, Registrarme y ✦ Admin (más "Salir", que lo maneja `auth.js`) — el resto
+salvo Info, Descargas, WCoin, Login, Registrarme y ✦ Admin (más "Salir", que lo maneja `auth.js`) — el resto
 llevaba a la pared y solo generaba consultas. Se borran en vez de esconderse porque
 `updateNav()` de `auth.js` maneja `hidden` en algunos y los volvería a mostrar. Vuelve solo a
 las 21:00.

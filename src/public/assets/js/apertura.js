@@ -108,6 +108,9 @@
   // antes de la apertura y entrar apenas abramos.
   // /info/ también: es lo que la gente quiere leer antes de arrancar (rates,
   // características del server).
+  // /donate2/ (WCoins) va destapada para que puedan donar desde antes de abrir.
+  // No pega a ningún endpoint: el contenido sale de data/donate.json horneado
+  // en el build, y los links de pago y el alias son estáticos.
   // /login/ y /controlpanel/ quedan libres para poder administrar el sitio
   // (mismo criterio que el overlay de mantenimiento en app.js: si tapáramos
   // el panel, quedaría el candado cerrado con la llave adentro).
@@ -115,6 +118,7 @@
   var esRescate = path.indexOf('/register') !== -1
                || path.indexOf('/downloads') !== -1
                || path.indexOf('/info') !== -1
+               || path.indexOf('/donate2') !== -1
                || path.indexOf('/login') !== -1
                || path.indexOf('/controlpanel') !== -1;
 
@@ -161,7 +165,7 @@
   // Corre en DOMContentLoaded porque apertura.js se ejecuta al abrir el
   // <body>, cuando el <nav> todavía no se parseó.
   function filtrarNav() {
-    var permitidos = ['/downloads', '/info', '/login', '/register', '/controlpanel'];
+    var permitidos = ['/downloads', '/info', '/donate2', '/login', '/register', '/controlpanel'];
     var links = document.querySelectorAll('.site-nav .nav-link');
 
     for (var i = 0; i < links.length; i++) {
