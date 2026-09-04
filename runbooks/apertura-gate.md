@@ -28,6 +28,12 @@ dejando como única acción el botón **REGISTRATE**.
 muestra una franja con el mismo contador. Si se taparan, el botón REGISTRATE no llevaría a
 ningún lado, nadie podría bajar el launcher, y no se podría entrar al panel a arreglar nada.
 
+**Navbar:** durante la cuenta regresiva `apertura.js` borra del DOM todos los links del menú
+salvo Descargas, Login, Registrarme y ✦ Admin (más "Salir", que lo maneja `auth.js`) — el resto
+llevaba a la pared y solo generaba consultas. Se borran en vez de esconderse porque
+`updateNav()` de `auth.js` maneja `hidden` en algunos y los volvería a mostrar. Vuelve solo a
+las 21:00.
+
 **Endpoints que siguen respondiendo:** `auth/register.php`, `auth/login.php`,
 `site/status.php`, `site/hora.php`, `site/downloads.php` y todo `/api/admin/*`.
 

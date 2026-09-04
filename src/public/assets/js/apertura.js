@@ -146,6 +146,52 @@
     } catch (e) { /* modo privado */ }
   }
 
+  // ── Navbar: solo los links que funcionan ────────────────────────
+  // Durante la cuenta regresiva todo el resto del sitio está tapado, así que
+  // un menú lleno de links que llevan a la pared solo genera confusión (y
+  // consultas). Se dejan únicamente las páginas destapadas.
+  //
+  // Se BORRAN del DOM en vez de esconderse con hidden: auth.js/updateNav()
+  // maneja hidden en [data-auth-show]/[data-guest-show] y volvería a
+  // mostrarlos. Lo que no está, no lo puede desesconder.
+  //
+  // Corre en DOMContentLoaded porque apertura.js se ejecuta al abrir el
+  // <body>, cuando el <nav> todavía no se parseó.
+  function filtrarNav() {
+    var permitidos = ['/downloads', '/login', '/register', '/controlpanel'];
+    var links = document.querySelectorAll('.site-nav .nav-link');
+
+    for (var i = 0; i < links.length; i++) {
+      var link = links[i];
+
+      // "Salir" (href="#", lo maneja auth.js) se queda: cerrar sesión
+      // tiene que seguir siendo posible.
+      if (link.id === 'nav-logout') continue;
+
+      var href = link.getAttribute('href') || '';
+      var ok   = false;
+
+      for (var j = 0; j < permitidos.length; j++) {
+        if (href.indexOf(permitidos[j]) !== -1) { ok = true; break; }
+      }
+
+      if (!ok && link.parentNode) link.parentNode.removeChild(link);
+    }
+  }
+
+  // ── Franja para las páginas de rescate ───────────────────────
+  // Las páginas que NO se tapan (/register/, /downloads/, /login/,
+  // /controlpanel/) llevan el contador en una franja arriba de todo, para que
+  // igual se vea cuánto falta. Reusa el estilo del aviso del ControlPanel.
+  function montarFranja() {
+    var b = document.createElement('div');
+    b.className = 'site-status-banner apertura-franja';
+    b.innerHTML = '<strong>Gran apertura</strong> MuPGA abre en ' +
+                  '<span class="apertura-franja__t">—</span>';
+    document.body.insertBefore(b, document.body.firstChild);
+    nodos.franja = b.querySelector('.apertura-franja__t');
+  }
+
   // ── Pantalla completa ────────────────────────────────────────
   function montarPantalla() {
     document.documentElement.classList.add('apertura-bloqueada');
@@ -265,6 +311,13 @@
   // ── Arranque ─────────────────────────────────────────────────
   function iniciar() {
     limpiarSesionPersistente();
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', filtrarNav);
+    } else {
+      filtrarNav();
+    }
+
     if (esRescate) montarFranja(); else montarPantalla();
     pintar();
     timer = setInterval(pintar, 1000);
