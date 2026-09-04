@@ -32,6 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Lockdown server-side: con overlay activo, toda la API responde 503
-// (salvo status/admin/login — ver src/lib/Lockdown.php).
+// (salvo status/hora/admin/login — ver src/lib/Lockdown.php).
 require_once SRC_ROOT . '/lib/Lockdown.php';
 enforceLockdown();
+
+// Apertura: hasta la hora de apertura la API responde 503 salvo
+// registro/login/status/hora/admin (ver src/lib/AperturaGate.php).
+// Se desactiva sola al pasar la hora objetivo.
+require_once SRC_ROOT . '/lib/AperturaGate.php';
+enforceApertura();

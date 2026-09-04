@@ -17,6 +17,10 @@ if (php_sapi_name() === 'cli') {
 
 $title   = htmlspecialchars($pageTitle ?? 'MuPGA', ENT_QUOTES);
 $year    = date('Y');
+
+// Pantalla de apertura (cuenta regresiva). Ver src/config/apertura.php.
+require_once SRC_ROOT . '/config/apertura.php';
+$apertura = aperturaConfigFront();
 ?>
 <!DOCTYPE html>
 <?php
@@ -47,8 +51,16 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
 }
 ?>
   <link rel="stylesheet" href="<?= $base ?>/assets/css/main.css<?= $v ?>">
+  <!-- config.js va en el <head> (y no al final del body) porque apertura.js
+       necesita MUPGA_CONFIG.api apenas abre el <body>. -->
+  <script src="<?= $base ?>/assets/js/config.js<?= $v ?>"></script>
 </head>
 <body>
+
+<!-- Pantalla de apertura: síncrona y antes de .page-wrapper, para que tape
+     el sitio sin flash. Si la apertura ya pasó o está apagada, no hace nada. -->
+<script>window.MUPGA_APERTURA = <?= json_encode($apertura, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;</script>
+<script src="<?= $base ?>/assets/js/apertura.js<?= $v ?>"></script>
 
 <div class="page-wrapper">
 
@@ -117,7 +129,6 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'development') {
 <?php if (!empty($_ENV['TURNSTILE_SITE_KEY'])): ?>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <?php endif; ?>
-<script src="<?= $base ?>/assets/js/config.js<?= $v ?>"></script>
 <script src="<?= $base ?>/assets/js/app.js<?= $v ?>" defer></script>
 <script src="<?= $base ?>/assets/js/auth.js<?= $v ?>" defer></script>
 <?php if (!empty($extraJs)): ?>

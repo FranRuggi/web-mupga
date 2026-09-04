@@ -5496,3 +5496,227 @@ body::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
   font-size: 0.88rem;
   font-style: italic;
 }
+
+/* ── Apertura — pantalla de cuenta regresiva ───────────────────
+   La monta assets/js/apertura.js (config desde src/config/apertura.php).
+   z-index 9500: por DEBAJO del overlay de mantenimiento (10000), que es
+   más urgente y tiene que poder taparla. */
+html.apertura-bloqueada,
+html.apertura-bloqueada body { overflow: hidden !important; }
+html.apertura-bloqueada .page-wrapper { display: none !important; }
+
+.apertura-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: clamp(1rem, 4vh, 3rem) 1.25rem;
+  text-align: center;
+}
+
+.apertura-gate__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 30%;
+  opacity: 0.55;
+  transform: scale(1.06);
+  animation: apertura-zoom 28s ease-in-out infinite alternate;
+}
+
+/* Velo: sin esto el texto compite con el key art y no se lee. */
+.apertura-gate__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(9,8,15,0.42) 0%, rgba(9,8,15,0.86) 58%, var(--bg) 100%),
+    linear-gradient(180deg, rgba(9,8,15,0.75) 0%, rgba(9,8,15,0.35) 40%, rgba(9,8,15,0.92) 100%);
+}
+
+@keyframes apertura-zoom {
+  from { transform: scale(1.06); }
+  to   { transform: scale(1.16); }
+}
+
+.apertura-gate__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: auto;
+}
+
+.apertura-gate__eyebrow {
+  font-family: var(--font-title);
+  font-size: clamp(0.68rem, 2.4vw, 0.82rem);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.75rem;
+}
+
+.apertura-gate__logo {
+  font-family: var(--font-display);
+  font-size: clamp(3.2rem, 15vw, 6.5rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--text-bright);
+  text-shadow: 0 0 42px rgba(200,168,75,0.35), 0 6px 30px rgba(0,0,0,0.8);
+  margin-bottom: 1.4rem;
+}
+.apertura-gate__logo span {
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 45%, #a8850a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.apertura-gate__lead {
+  font-family: var(--font-title);
+  font-size: clamp(0.8rem, 3vw, 1rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+}
+
+/* ── Contador ── */
+.apertura-gate__clock {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.4rem, 2vw, 0.9rem);
+  margin-bottom: 1.5rem;
+}
+
+.apertura-block {
+  flex: 0 1 128px;
+  min-width: 0;
+  padding: clamp(0.7rem, 2.5vw, 1.1rem) 0.35rem;
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(27,24,48,0.82), rgba(9,8,15,0.82));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 28px rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.apertura-block__n {
+  display: block;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 9vw, 3.4rem);
+  line-height: 1;
+  color: var(--gold-light);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  text-shadow: 0 0 24px var(--gold-glow);
+}
+
+.apertura-block__l {
+  display: block;
+  margin-top: 0.45rem;
+  font-family: var(--font-title);
+  font-size: clamp(0.55rem, 2.2vw, 0.7rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.apertura-gate__abierto {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 7vw, 2.8rem);
+  color: var(--gold-light);
+  text-shadow: 0 0 40px var(--gold-glow);
+  margin-bottom: 1.5rem;
+}
+
+/* ── Hora traducida a la zona del visitante ── */
+.apertura-gate__hora {
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+.apertura-gate__hora span {
+  display: block;
+  color: var(--text);
+  font-size: clamp(0.9rem, 3.4vw, 1.05rem);
+}
+/* "viernes, 4 de septiembre" → solo la primera letra en mayúscula
+   (text-transform: capitalize dejaba "Viernes, 4 De Septiembre"). */
+.apertura-gate__hora span::first-letter { text-transform: uppercase; }
+.apertura-gate__hora small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--text-dim);
+  font-size: clamp(0.7rem, 2.6vw, 0.8rem);
+}
+
+/* ── CTA — el único camino disponible ── */
+.apertura-gate__cta {
+  display: inline-block;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: clamp(1rem, 4.5vw, 1.45rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #0d0b14;
+  padding: clamp(0.9rem, 3.5vw, 1.25rem) clamp(2rem, 10vw, 4rem);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 45%, #a8850a 100%);
+  box-shadow: 0 0 34px var(--gold-glow), 0 10px 30px rgba(0,0,0,0.55);
+  animation: apertura-latido 2.6s ease-in-out infinite;
+  transition: transform var(--t), box-shadow var(--t);
+}
+.apertura-gate__cta:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 46px rgba(200,168,75,0.5), 0 14px 38px rgba(0,0,0,0.6);
+}
+
+@keyframes apertura-latido {
+  0%, 100% { box-shadow: 0 0 30px var(--gold-glow), 0 10px 30px rgba(0,0,0,0.55); }
+  50%      { box-shadow: 0 0 52px rgba(200,168,75,0.45), 0 10px 30px rgba(0,0,0,0.55); }
+}
+
+.apertura-gate__nota {
+  margin-top: 1rem;
+  color: var(--text-dim);
+  font-size: clamp(0.78rem, 3vw, 0.9rem);
+}
+
+.apertura-gate__social {
+  margin-top: 1.75rem;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+.apertura-gate__social a {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.apertura-gate__social a:hover {
+  color: var(--gold-light);
+  border-bottom-color: var(--gold-border);
+}
+
+/* Franja para /register/, /login/ y /controlpanel/ (las páginas que la
+   pantalla completa NO tapa). Reusa el estilo del aviso del ControlPanel. */
+.apertura-franja__t {
+  color: var(--gold-light);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  font-weight: 700;
+  margin-left: 0.3rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apertura-gate__bg  { animation: none; }
+  .apertura-gate__cta { animation: none; }
+}

@@ -9,6 +9,7 @@
  *
  * Exentos (los mínimos para poder salir del lockdown):
  *   - /api/site/status.php   → el frontend necesita leer el estado para dibujar el aviso
+ *   - /api/site/hora.php     → reloj del server (sin DB) para el contador de apertura
  *   - /api/admin/*           → el panel para apagarlo (cada endpoint valida admin igual)
  *   - /api/auth/login.php    → el admin necesita loguearse para entrar al panel
  *
@@ -28,6 +29,7 @@ function enforceLockdown(): void {
 
     if (strpos($script, '/api/admin/') !== false
         || $exento('/api/site/status.php')
+        || $exento('/api/site/hora.php')
         || $exento('/api/auth/login.php')) {
         return;
     }
