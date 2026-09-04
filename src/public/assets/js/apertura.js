@@ -106,12 +106,15 @@
   // /register/ es a dónde manda el botón, así que no puede estar tapada.
   // /downloads/ tiene que estar abierta para que puedan bajar el launcher
   // antes de la apertura y entrar apenas abramos.
+  // /info/ también: es lo que la gente quiere leer antes de arrancar (rates,
+  // características del server).
   // /login/ y /controlpanel/ quedan libres para poder administrar el sitio
   // (mismo criterio que el overlay de mantenimiento en app.js: si tapáramos
   // el panel, quedaría el candado cerrado con la llave adentro).
   var path      = window.location.pathname;
   var esRescate = path.indexOf('/register') !== -1
                || path.indexOf('/downloads') !== -1
+               || path.indexOf('/info') !== -1
                || path.indexOf('/login') !== -1
                || path.indexOf('/controlpanel') !== -1;
 
@@ -158,7 +161,7 @@
   // Corre en DOMContentLoaded porque apertura.js se ejecuta al abrir el
   // <body>, cuando el <nav> todavía no se parseó.
   function filtrarNav() {
-    var permitidos = ['/downloads', '/login', '/register', '/controlpanel'];
+    var permitidos = ['/downloads', '/info', '/login', '/register', '/controlpanel'];
     var links = document.querySelectorAll('.site-nav .nav-link');
 
     for (var i = 0; i < links.length; i++) {
