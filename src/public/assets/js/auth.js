@@ -8,10 +8,24 @@ const TOKEN_KEY = 'mupga_token';
 const USER_KEY  = 'mupga_user';
 const ADMIN_KEY = 'mupga_admin'; // sessionStorage: '1' | '0' (cache del check de admin)
 
+// ── Dónde vive la sesión ──────────────────────────────────────
+// Normalmente localStorage: la sesión sobrevive a cerrar el navegador.
+// Durante la cuenta regresiva de la apertura se usa sessionStorage: dura
+// mientras la ventana esté abierta y muere al cerrarla. Pasada la hora
+// objetivo vuelve sola a localStorage, sin deploy (la config la inyecta
+// layout.php desde src/config/apertura.php).
+function authStore() {
+  try {
+    const ap = window.MUPGA_APERTURA;
+    if (ap && ap.activa && Number(ap.objetivo_ms) > Date.now()) return sessionStorage;
+  } catch (e) { /* si algo falla, comportamiento normal */ }
+  return localStorage;
+}
+
 // ── Token ─────────────────────────────────────────────────────
 
 function getToken() {
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = authStore().getItem(TOKEN_KEY);
   if (!token) return null;
 
   // Verificar expiración client-side (sin validar firma — eso es el servidor)
@@ -31,18 +45,23 @@ function getToken() {
 
 function getUser() {
   try {
-    return JSON.parse(localStorage.getItem(USER_KEY)) ?? null;
+    return JSON.parse(authStore().getItem(USER_KEY)) ?? null;
   } catch { return null; }
 }
 
 function setAuth(token, username, userId) {
-  localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(USER_KEY, JSON.stringify({ username, userId }));
+  const store = authStore();
+  store.setItem(TOKEN_KEY, token);
+  store.setItem(USER_KEY, JSON.stringify({ username, userId }));
 }
 
+// Limpia los dos almacenes a propósito: si el usuario cierra sesión no puede
+// quedar un token viejo en el otro esperando a que cambie el modo.
 function clearAuth() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(USER_KEY);
   sessionStorage.removeItem(ADMIN_KEY);
 }
 

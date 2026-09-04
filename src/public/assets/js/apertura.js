@@ -117,30 +117,33 @@
 
   var nodos = {};
 
-  // ── Sesiones: durante la cuenta regresiva nadie queda logueado ───
-  // Se borra el token guardado en el navegador, así que todos ven el sitio
-  // como visitante hasta la apertura. Además destraba una ratonera real:
-  // login.js y register.js redirigen a /usercp/ si encuentran un token, y
-  // /usercp/ SÍ está tapado — cualquiera con una sesión vieja quedaba
-  // encerrado en la pantalla sin poder llegar al registro.
-  // Excepción: /controlpanel/, donde el admin necesita su sesión para operar.
-  function limpiarSesion() {
-    if (path.indexOf('/controlpanel') !== -1) return;
+  // ── Sesiones durante la cuenta regresiva ────────────────────────
+  // La sesión vive en sessionStorage (ver authStore() en auth.js): dura lo que
+  // dure la ventana abierta y muere al cerrarla. Acá solo se barre lo que haya
+  // quedado en localStorage, que es lo único que sobrevive a cerrar el
+  // navegador — así nadie llega a la apertura arrastrando una sesión vieja, y
+  // de paso se destraba una ratonera: login.js y register.js redirigen a
+  // /usercp/ si encuentran un token, y /usercp/ está tapado.
+  //
+  // Ojo: esto NO toca sessionStorage, así que el que se loguea a propósito
+  // sigue adentro mientras no cierre la ventana.
+  function limpiarSesionPersistente() {
     try {
       localStorage.removeItem('mupga_token');
       localStorage.removeItem('mupga_user');
-      sessionStorage.removeItem('mupga_admin');
     } catch (e) { /* modo privado */ }
   }
 
-  // ── Franja para las páginas de rescate ───────────────────────
-  function montarFranja() {
-    var b = document.createElement('div');
-    b.className = 'site-status-banner apertura-franja';
-    b.innerHTML = '<strong>Gran apertura</strong> MuPGA abre en ' +
-                  '<span class="apertura-franja__t">—</span>';
-    document.body.insertBefore(b, document.body.firstChild);
-    nodos.franja = b.querySelector('.apertura-franja__t');
+  // Al abrir (21:00) auth.js vuelve a localStorage: se pasa para allá la
+  // sesión de la ventana, así el que estaba logueado no se cae justo en el
+  // momento de la apertura.
+  function migrarSesionAlAbrir() {
+    try {
+      var t = sessionStorage.getItem('mupga_token');
+      var u = sessionStorage.getItem('mupga_user');
+      if (t) localStorage.setItem('mupga_token', t);
+      if (u) localStorage.setItem('mupga_user', u);
+    } catch (e) { /* modo privado */ }
   }
 
   // ── Pantalla completa ────────────────────────────────────────
@@ -240,6 +243,7 @@
   function abrir() {
     if (timer) { clearInterval(timer); timer = null; }
     try { sessionStorage.setItem(YA_ABRIO, '1'); } catch (e) {}
+    migrarSesionAlAbrir();
 
     if (nodos.franja) nodos.franja.textContent = '¡ya!';
     if (!nodos.gate) return;
@@ -260,7 +264,7 @@
 
   // ── Arranque ─────────────────────────────────────────────────
   function iniciar() {
-    limpiarSesion();
+    limpiarSesionPersistente();
     if (esRescate) montarFranja(); else montarPantalla();
     pintar();
     timer = setInterval(pintar, 1000);

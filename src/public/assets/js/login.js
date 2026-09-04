@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Validar que sea ruta interna (evitar open redirect)
         window.location.href = (redir && redir.startsWith('/') && !redir.startsWith('//'))
           ? `${BASE}${redir}`
-          : `${BASE}/usercp/`;
+          : destinoPostLogin();
       } else {
         showAlert(data.error ?? 'Error al iniciar sesión.', 'error');
         setLoading(btnSubmit, false);
@@ -53,6 +53,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// Destino por defecto después de loguearse. Durante la cuenta regresiva de la
+// apertura /usercp/ está tapado por la pantalla y su API responde 503, así que
+// caer ahí parece que el login falló: se manda a /downloads/, que está abierta
+// y es lo que necesitan antes de que abramos. Pasada la hora, vuelve a /usercp/
+// solo (la config viene de src/config/apertura.php).
+function destinoPostLogin() {
+  const ap = window.MUPGA_APERTURA;
+  const enCurso = ap && ap.activa && Number(ap.objetivo_ms) > Date.now();
+  return enCurso ? `${BASE}/downloads/` : `${BASE}/usercp/`;
+}
 
 // ── Helpers de UI ─────────────────────────────────────────────
 

@@ -31,13 +31,15 @@ ningún lado, nadie podría bajar el launcher, y no se podría entrar al panel a
 **Endpoints que siguen respondiendo:** `auth/register.php`, `auth/login.php`,
 `site/status.php`, `site/hora.php`, `site/downloads.php` y todo `/api/admin/*`.
 
-**Sesiones:** mientras la cuenta regresiva está activa, `apertura.js` borra el token guardado
-en el navegador en cada carga (salvo en `/controlpanel/`), así nadie queda logueado antes de
-la apertura. Efecto secundario buscado: `login.js` y `register.js` redirigen a `/usercp/` si
-encuentran un token, y `/usercp/` está tapado — sin esto, cualquiera con una sesión vieja
-quedaba encerrado en la pantalla sin poder registrarse. **Para entrar al panel:**
-`/login/?redirect=/controlpanel/` (si caés en `/usercp/`, la sesión se borra y hay que
-loguearse de nuevo). Todo esto se levanta solo a las 21:00 junto con el resto.
+**Sesiones:** mientras la cuenta regresiva está activa, la sesión vive en `sessionStorage` en
+vez de `localStorage` (`authStore()` en `auth.js`): **dura mientras la ventana esté abierta y
+muere al cerrarla**. Además `apertura.js` barre en cada carga cualquier token que haya quedado
+en `localStorage` — es lo único que sobrevive a cerrar el navegador, y con un token viejo
+`login.js`/`register.js` redirigen a `/usercp/`, que está tapado (quedaban encerrados sin poder
+registrarse). El login funciona normal: al entrar durante la ventana caés en `/downloads/` en
+vez de `/usercp/` (que está tapado), y desde ahí navegás a `/controlpanel/` si sos admin.
+A las 21:00 `auth.js` vuelve solo a `localStorage`, y la sesión de la ventana se migra para allá
+(`migrarSesionAlAbrir()`) para que nadie se caiga justo en el momento de la apertura.
 
 ---
 
