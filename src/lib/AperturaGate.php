@@ -13,6 +13,8 @@
  *   - site/status.php   → aviso de emergencia del ControlPanel
  *   - site/hora.php     → reloj del server que sincroniza el contador
  *   - site/downloads.php → el launcher se puede bajar antes de la apertura
+ *   - online.php / serverinfo.php → widgets del sidebar (solo lectura, datos
+ *     públicos: conectados, rates y total de cuentas) en las páginas destapadas
  *   - /admin/*          → el panel sigue operativo (cada endpoint valida admin igual)
  *
  * Los sufijos van SIN el prefijo /api para no atarse a dónde esté montada la
@@ -45,6 +47,8 @@ function enforceApertura(): void
             '/site/status.php',
             '/site/hora.php',
             '/site/downloads.php',
+            '/online.php',
+            '/serverinfo.php',
         ];
 
         $rutas = [

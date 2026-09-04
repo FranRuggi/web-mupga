@@ -35,7 +35,9 @@ llevaba a la pared y solo generaba consultas. Se borran en vez de esconderse por
 las 21:00.
 
 **Endpoints que siguen respondiendo:** `auth/register.php`, `auth/login.php`,
-`site/status.php`, `site/hora.php`, `site/downloads.php` y todo `/api/admin/*`.
+`site/status.php`, `site/hora.php`, `site/downloads.php`, `online.php`, `serverinfo.php`
+y todo `/api/admin/*`. Los dos últimos son los widgets del sidebar (conectados, rates y total
+de cuentas): solo lectura y datos públicos.
 
 **Sesiones:** mientras la cuenta regresiva está activa, la sesión vive en `sessionStorage` en
 vez de `localStorage` (`authStore()` en `auth.js`): **dura mientras la ventana esté abierta y
