@@ -5,7 +5,7 @@
       "provider": "Transferencia bancaria",
       "icon": "🏦",
       "rate": "$1 ARS = 1 WCoin",
-      "highlight": "⭐ Recomendado — mismas bonificaciones que el link de pago",
+      "highlight": "⭐ Con bonificación según el monto",
       "notes": "Transferí al alias el monto exacto de la promo y avisale a un administrador con el comprobante.",
       "action_label": "Ver promos y transferir",
       "transfer_popup": {
@@ -21,20 +21,6 @@
         "discord_url": "https://discord.com/invite/xTxFHSmVhf",
         "ticket_url": "../reclamos/"
       }
-    },
-    {
-      "provider": "Mercado Pago",
-      "icon": "💳",
-      "rate": "$1 ARS = 1 WCoin",
-      "notes": "Elegí un monto con bonificación o doná el monto que quieras",
-      "promos": [
-        { "label": "Monto libre — $1 ARS = 1 WCoin (sin bonificación)", "url": "https://link.mercadopago.com.ar/mupga" },
-        { "label": "$5.000 ARS → 6.000 WCoins", "url": "https://mpago.la/17qCNgm" },
-        { "label": "$10.000 ARS → 12.000 WCoins", "url": "https://mpago.la/29gQNnU" },
-        { "label": "$20.000 ARS → 24.000 WCoins", "url": "https://mpago.la/2djutZo" },
-        { "label": "$30.000 ARS → 38.000 WCoins", "url": "https://mpago.la/2vAAHwn" }
-      ],
-      "action_label": "Donar ahora"
     },
     {
       "provider": "Binance Pay",
