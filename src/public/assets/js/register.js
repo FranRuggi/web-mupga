@@ -38,17 +38,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const body = await res.json();
 
       if (res.ok) {
+        // Sin redirección automática: mucha gente crea 2 o 3 cuentas seguidas
+        // (main + mulas) y mandarlos al login los obligaba a volver a mano.
+        // El link "¿Ya tenés cuenta? Iniciar sesión" está abajo del formulario.
         showAlert(body.message, 'success');
         form.reset();
-        // Redirigir al login después de 2s
-        setTimeout(() => { window.location.href = `${BASE}/login/`; }, 2000);
+        resetTurnstile();
+        setLoading(btnSubmit, false);
+        document.getElementById('username')?.focus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         if (body.field) showFieldError(body.field, body.error);
         else showAlert(body.error ?? 'Error al registrar.', 'error');
+        resetTurnstile();
         setLoading(btnSubmit, false);
       }
     } catch {
       showAlert('No se pudo conectar con el servidor.', 'error');
+      resetTurnstile();
       setLoading(btnSubmit, false);
     }
   });
@@ -58,6 +65,18 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('input', () => clearFieldError(input.id));
   });
 });
+
+// El token de Turnstile es de UN SOLO USO: sin este reset, el segundo intento
+// en la misma página (crear otra cuenta, o reintentar después de un error)
+// falla siempre con "Verificación de seguridad fallida" y no hay forma de
+// salir sin recargar a mano.
+function resetTurnstile() {
+  try {
+    if (window.turnstile && typeof window.turnstile.reset === 'function') {
+      window.turnstile.reset();
+    }
+  } catch (e) { /* el widget no está cargado: no hay nada que resetear */ }
+}
 
 // ── Validación client-side ────────────────────────────────────
 

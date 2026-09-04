@@ -30,6 +30,12 @@ $password = $body['password'] ?? '';
 $confirm  = $body['password_confirm'] ?? '';
 $email    = trim($body['email'] ?? '');
 
+// Cuántas cuentas puede crear un mismo email. En MU jugar con mulas es lo
+// normal (main + guerreros + almacén), así que exigir un email por cuenta
+// obligaba a inventarse emails. El techo es solo para que no sea una fábrica
+// de cuentas automática. Cambiar este número es todo lo que hace falta.
+const MAX_CUENTAS_POR_EMAIL = 5;
+
 // ── Validaciones ──────────────────────────────────────────────
 
 function fail(string $message, string $field = '', int $code = 400): void {
@@ -87,8 +93,9 @@ try {
         fail('Ese nombre de usuario ya está en uso.', 'username');
     }
 
-    if ($repo->emailExists($email)) {
-        fail('Ese email ya está registrado.', 'email');
+    if ($repo->countByEmail($email) >= MAX_CUENTAS_POR_EMAIL) {
+        fail('Ese email ya tiene ' . MAX_CUENTAS_POR_EMAIL . ' cuentas, que es el máximo. '
+           . 'Usá otro email para crear más.', 'email');
     }
 
     // Crear la cuenta (usa fn_md5 internamente para el password)
@@ -108,7 +115,10 @@ try {
         }
     }
 
-    echo json_encode(['message' => '¡Cuenta creada con éxito! Ya podés iniciar sesión.'], JSON_THROW_ON_ERROR);
+    echo json_encode(
+        ['message' => '¡Cuenta creada con éxito! Podés crear otra cuenta con el mismo email o iniciar sesión.'],
+        JSON_THROW_ON_ERROR
+    );
 
 } catch (Throwable $e) {
     http_response_code(500);

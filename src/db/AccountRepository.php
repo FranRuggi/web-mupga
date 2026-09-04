@@ -48,6 +48,20 @@ class AccountRepository {
     }
 
     /**
+     * Cuántas cuentas hay con ese email. En MU es normal jugar con varias
+     * cuentas (mulas), así que el email NO es único — mail_addr es
+     * varchar(50) NULL sin constraint, la PK de MEMB_INFO es memb___id.
+     * El techo lo pone register.php, no la base.
+     */
+    public function countByEmail(string $email): int {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM MEMB_INFO WHERE mail_addr = ?'
+        );
+        $stmt->execute([$email]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
      * Valida usuario y contraseña.
      * Con DB_USE_MD5=true usa la función SQL fn_md5(password, username),
      * igual que el GameServer y WebEngine.
