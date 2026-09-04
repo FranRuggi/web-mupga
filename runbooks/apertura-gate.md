@@ -24,12 +24,20 @@ dejando como única acción el botón **REGISTRATE**.
 | Bloqueo real | `src/lib/AperturaGate.php` (enganchado en `api/_cors.php`) | 503 en toda la API salvo lo exento |
 | Reloj del server | `src/public/api/site/hora.php` | Sincroniza el contador (epoch UTC) |
 
-**Páginas que NO se tapan:** `/register/`, `/login/`, `/controlpanel/` — ahí se muestra una
-franja con el mismo contador. Si se taparan, el botón REGISTRATE no llevaría a ningún lado y
-no se podría entrar al panel a arreglar nada.
+**Páginas que NO se tapan:** `/register/`, `/downloads/`, `/login/`, `/controlpanel/` — ahí se
+muestra una franja con el mismo contador. Si se taparan, el botón REGISTRATE no llevaría a
+ningún lado, nadie podría bajar el launcher, y no se podría entrar al panel a arreglar nada.
 
 **Endpoints que siguen respondiendo:** `auth/register.php`, `auth/login.php`,
-`site/status.php`, `site/hora.php` y todo `/api/admin/*`.
+`site/status.php`, `site/hora.php`, `site/downloads.php` y todo `/api/admin/*`.
+
+**Sesiones:** mientras la cuenta regresiva está activa, `apertura.js` borra el token guardado
+en el navegador en cada carga (salvo en `/controlpanel/`), así nadie queda logueado antes de
+la apertura. Efecto secundario buscado: `login.js` y `register.js` redirigen a `/usercp/` si
+encuentran un token, y `/usercp/` está tapado — sin esto, cualquiera con una sesión vieja
+quedaba encerrado en la pantalla sin poder registrarse. **Para entrar al panel:**
+`/login/?redirect=/controlpanel/` (si caés en `/usercp/`, la sesión se borra y hay que
+loguearse de nuevo). Todo esto se levanta solo a las 21:00 junto con el resto.
 
 ---
 

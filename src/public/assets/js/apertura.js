@@ -104,15 +104,34 @@
 
   // ── Páginas de rescate ───────────────────────────────────────
   // /register/ es a dónde manda el botón, así que no puede estar tapada.
+  // /downloads/ tiene que estar abierta para que puedan bajar el launcher
+  // antes de la apertura y entrar apenas abramos.
   // /login/ y /controlpanel/ quedan libres para poder administrar el sitio
   // (mismo criterio que el overlay de mantenimiento en app.js: si tapáramos
   // el panel, quedaría el candado cerrado con la llave adentro).
   var path      = window.location.pathname;
   var esRescate = path.indexOf('/register') !== -1
+               || path.indexOf('/downloads') !== -1
                || path.indexOf('/login') !== -1
                || path.indexOf('/controlpanel') !== -1;
 
   var nodos = {};
+
+  // ── Sesiones: durante la cuenta regresiva nadie queda logueado ───
+  // Se borra el token guardado en el navegador, así que todos ven el sitio
+  // como visitante hasta la apertura. Además destraba una ratonera real:
+  // login.js y register.js redirigen a /usercp/ si encuentran un token, y
+  // /usercp/ SÍ está tapado — cualquiera con una sesión vieja quedaba
+  // encerrado en la pantalla sin poder llegar al registro.
+  // Excepción: /controlpanel/, donde el admin necesita su sesión para operar.
+  function limpiarSesion() {
+    if (path.indexOf('/controlpanel') !== -1) return;
+    try {
+      localStorage.removeItem('mupga_token');
+      localStorage.removeItem('mupga_user');
+      sessionStorage.removeItem('mupga_admin');
+    } catch (e) { /* modo privado */ }
+  }
 
   // ── Franja para las páginas de rescate ───────────────────────
   function montarFranja() {
@@ -238,6 +257,7 @@
 
   // ── Arranque ─────────────────────────────────────────────────
   function iniciar() {
+    limpiarSesion();
     if (esRescate) montarFranja(); else montarPantalla();
     pintar();
     timer = setInterval(pintar, 1000);

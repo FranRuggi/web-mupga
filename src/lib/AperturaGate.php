@@ -12,6 +12,7 @@
  *   - auth/login.php    → los que ya tienen cuenta pueden entrar; el admin también
  *   - site/status.php   → aviso de emergencia del ControlPanel
  *   - site/hora.php     → reloj del server que sincroniza el contador
+ *   - site/downloads.php → el launcher se puede bajar antes de la apertura
  *   - /admin/*          → el panel sigue operativo (cada endpoint valida admin igual)
  *
  * Los sufijos van SIN el prefijo /api para no atarse a dónde esté montada la
@@ -43,6 +44,7 @@ function enforceApertura(): void
             '/auth/login.php',
             '/site/status.php',
             '/site/hora.php',
+            '/site/downloads.php',
         ];
 
         $rutas = [
