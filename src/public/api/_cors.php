@@ -39,5 +39,15 @@ enforceLockdown();
 // Apertura: hasta la hora de apertura la API responde 503 salvo
 // registro/login/status/hora/admin (ver src/lib/AperturaGate.php).
 // Se desactiva sola al pasar la hora objetivo.
-require_once SRC_ROOT . '/lib/AperturaGate.php';
-enforceApertura();
+//
+// Los is_file() no son paranoia: esto corre en el choke point de TODA la API,
+// así que un archivo faltante (deploy a medias) no puede dejar el sitio sin
+// login. Los require van acá arriba y no adentro de enforceApertura() para
+// que la config quede cargada en el scope global.
+$aperturaCfg = SRC_ROOT . '/config/apertura.php';
+$aperturaLib = SRC_ROOT . '/lib/AperturaGate.php';
+if (is_file($aperturaCfg) && is_file($aperturaLib)) {
+    require_once $aperturaCfg;
+    require_once $aperturaLib;
+    enforceApertura();
+}
