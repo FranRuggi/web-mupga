@@ -29,9 +29,16 @@ try {
     $db   = Database::get();
     $repo = new AccountRepository($db);
 
-    if ($repo->emailExists($email)) {
+    // Mismo criterio que el registro: el email no es único, pero tiene techo.
+    // Si no, alguien con 3 cuentas (lo normal en MU) no podría ponerles el
+    // mismo email a todas.
+    $tope = AccountRepository::MAX_CUENTAS_POR_EMAIL;
+    if ($repo->countByEmail($email) >= $tope) {
         http_response_code(409);
-        echo json_encode(['error' => 'Ese email ya está registrado en otra cuenta.', 'field' => 'email']);
+        echo json_encode([
+            'error' => "Ese email ya tiene {$tope} cuentas, que es el máximo.",
+            'field' => 'email',
+        ]);
         exit;
     }
 

@@ -48,6 +48,14 @@ class AccountRepository {
     }
 
     /**
+     * Techo de cuentas por email. En MU jugar con mulas es lo normal
+     * (main + guerreros + almacén), así que el email no es único: el límite
+     * existe solo para que no sea una fábrica de cuentas automática.
+     * Lo usan register.php y account/changeemail.php.
+     */
+    public const MAX_CUENTAS_POR_EMAIL = 5;
+
+    /**
      * Cuántas cuentas hay con ese email. En MU es normal jugar con varias
      * cuentas (mulas), así que el email NO es único — mail_addr es
      * varchar(50) NULL sin constraint, la PK de MEMB_INFO es memb___id.
