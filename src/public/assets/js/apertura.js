@@ -164,8 +164,11 @@
         '</div>' +
         '<p class="apertura-gate__abierto" hidden>¡Estamos abiertos!</p>' +
         '<p class="apertura-gate__hora"></p>' +
-        '<a class="apertura-gate__cta" href="' + BASE + '/register/">Registrate</a>' +
-        '<p class="apertura-gate__nota">Creá tu cuenta ahora y entrá a jugar apenas abramos.</p>' +
+        '<div class="apertura-gate__ctas">' +
+          '<a class="apertura-gate__cta" href="' + BASE + '/register/">Registrate</a>' +
+          '<a class="apertura-gate__cta apertura-gate__cta--alt" href="' + BASE + '/downloads/">Descargar launcher</a>' +
+        '</div>' +
+        '<p class="apertura-gate__nota">Creá tu cuenta y bajá el launcher ahora: entrás a jugar apenas abramos.</p>' +
         '<div class="apertura-gate__social">' +
           '<a href="https://discord.com/invite/xTxFHSmVhf" target="_blank" rel="noopener">Discord</a>' +
           '<a href="https://chat.whatsapp.com/DqaUqom63aFALaBsK2l7of" target="_blank" rel="noopener">WhatsApp</a>' +

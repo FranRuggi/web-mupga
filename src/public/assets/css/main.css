@@ -5654,7 +5654,15 @@ html.apertura-bloqueada .page-wrapper { display: none !important; }
   font-size: clamp(0.7rem, 2.6vw, 0.8rem);
 }
 
-/* ── CTA — el único camino disponible ── */
+/* ── CTAs — registro (principal) + launcher (secundario) ── */
+.apertura-gate__ctas {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(0.6rem, 2.5vw, 1rem);
+  flex-wrap: wrap;
+}
+
 .apertura-gate__cta {
   display: inline-block;
   font-family: var(--font-title);
@@ -5664,7 +5672,7 @@ html.apertura-bloqueada .page-wrapper { display: none !important; }
   text-transform: uppercase;
   text-decoration: none;
   color: #0d0b14;
-  padding: clamp(0.9rem, 3.5vw, 1.25rem) clamp(2rem, 10vw, 4rem);
+  padding: clamp(0.85rem, 3.2vw, 1.15rem) clamp(1.5rem, 6.5vw, 2.75rem);
   border-radius: var(--radius);
   background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 45%, #a8850a 100%);
   box-shadow: 0 0 34px var(--gold-glow), 0 10px 30px rgba(0,0,0,0.55);
@@ -5674,6 +5682,25 @@ html.apertura-bloqueada .page-wrapper { display: none !important; }
 .apertura-gate__cta:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 0 46px rgba(200,168,75,0.5), 0 14px 38px rgba(0,0,0,0.6);
+}
+
+/* Secundario: mismo peso visual de caja, sin el dorado lleno ni el latido,
+   para que REGISTRATE siga siendo el que se lleva la mirada. */
+.apertura-gate__cta--alt {
+  font-size: clamp(0.85rem, 3.6vw, 1.1rem);
+  color: var(--gold-light);
+  background: rgba(19, 17, 36, 0.72);
+  border: 1px solid var(--gold-border);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: none;
+}
+.apertura-gate__cta--alt:hover {
+  color: var(--text-bright);
+  background: rgba(27, 24, 48, 0.92);
+  border-color: var(--gold);
+  box-shadow: 0 0 26px var(--gold-glow), 0 10px 30px rgba(0,0,0,0.55);
 }
 
 @keyframes apertura-latido {
