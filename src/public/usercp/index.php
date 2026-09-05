@@ -1,5 +1,8 @@
 <?php
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
+// Interruptor de las opciones de personaje: decide qué botones salen grisados
+// y con qué leyenda. El bloqueo real vive en api/account/*.php.
+require_once SRC_ROOT . '/config/char_actions.php';
 $pageTitle = 'Mi cuenta';
 $extraJs   = 'usercp.js';
 ob_start();
@@ -73,44 +76,44 @@ ob_start();
       <div class="game-options-actions">
 
         <div class="game-option-btn-group">
-          <button class="btn btn-secondary game-option-btn" id="btn-unstick" disabled>
+          <button class="btn btn-secondary game-option-btn" id="btn-unstick"<?= charActionAttr('unstick') ?> disabled>
             <span class="game-option-icon">📍</span>
             <span class="game-option-text">
               <strong>Unstick</strong>
-              <small>Mover a Lorencia si quedaste trabado</small>
+              <small><?= htmlspecialchars(charActionLeyenda('unstick', 'Mover a Lorencia si quedaste trabado')) ?></small>
             </span>
           </button>
           <div id="msg-unstick" class="alert" role="alert"></div>
         </div>
 
         <div class="game-option-btn-group">
-          <button class="btn btn-secondary game-option-btn" id="btn-clearpk" disabled>
+          <button class="btn btn-secondary game-option-btn" id="btn-clearpk"<?= charActionAttr('clearpk') ?> disabled>
             <span class="game-option-icon">🕊</span>
             <span class="game-option-text">
               <strong>Limpiar PK</strong>
-              <small>Sacar el estado asesino del personaje</small>
+              <small><?= htmlspecialchars(charActionLeyenda('clearpk', 'Sacar el estado asesino del personaje')) ?></small>
             </span>
           </button>
           <div id="msg-clearpk" class="alert" role="alert"></div>
         </div>
 
         <div class="game-option-btn-group">
-          <button class="btn btn-secondary game-option-btn" id="btn-resetstats" disabled>
+          <button class="btn btn-secondary game-option-btn" id="btn-resetstats"<?= charActionAttr('resetstats') ?> disabled>
             <span class="game-option-icon">⚡</span>
             <span class="game-option-text">
               <strong>Resetear Stats</strong>
-              <small>Devolver puntos de estadísticas al pool</small>
+              <small><?= htmlspecialchars(charActionLeyenda('resetstats', 'Devolver puntos de estadísticas al pool')) ?></small>
             </span>
           </button>
           <div id="msg-resetstats" class="alert" role="alert"></div>
         </div>
 
         <div class="game-option-btn-group">
-          <button class="btn btn-secondary game-option-btn" id="btn-resetml" disabled>
+          <button class="btn btn-secondary game-option-btn" id="btn-resetml"<?= charActionAttr('resetml') ?> disabled>
             <span class="game-option-icon">🌀</span>
             <span class="game-option-text">
               <strong>Resetear Árbol ML</strong>
-              <small>Próximamente disponible</small>
+              <small><?= htmlspecialchars(charActionLeyenda('resetml', 'Devolver los puntos del árbol maestro')) ?></small>
             </span>
           </button>
           <div id="msg-resetml" class="alert" role="alert"></div>
@@ -127,11 +130,11 @@ ob_start();
           if ($rstMax > 0)   $rstInfo .= ' · Máx ' . $rstMax . ' RST';
         ?>
         <div class="game-option-btn-group">
-          <button class="btn btn-secondary game-option-btn game-option-btn--reset" id="btn-resetchar" disabled>
+          <button class="btn btn-secondary game-option-btn game-option-btn--reset" id="btn-resetchar"<?= charActionAttr('resetchar') ?> disabled>
             <span class="game-option-icon">🔁</span>
             <span class="game-option-text">
               <strong>Reset de personaje</strong>
-              <small><?= htmlspecialchars($rstInfo) ?></small>
+              <small><?= htmlspecialchars(charActionLeyenda('resetchar', $rstInfo)) ?></small>
             </span>
           </button>
           <div id="msg-resetchar" class="alert" role="alert"></div>

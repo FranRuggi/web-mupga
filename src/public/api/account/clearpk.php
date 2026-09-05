@@ -10,6 +10,7 @@
  */
 require_once dirname(__DIR__, 3) . '/bootstrap.php';
 require_once dirname(__DIR__) . '/_cors.php';
+require_once SRC_ROOT . '/config/char_actions.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -17,6 +18,10 @@ header('Cache-Control: no-store');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405); echo json_encode(['error' => 'Método no permitido']); exit;
 }
+
+// Opción cerrada desde src/config/char_actions.php: 403 antes de tocar la DB.
+// El botón grisado del usercp es solo visual; este es el bloqueo real.
+enforceCharAction('clearpk');
 
 $auth     = requireAuth();
 $body     = json_decode(file_get_contents('php://input'), true);

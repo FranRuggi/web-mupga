@@ -116,13 +116,21 @@ function renderCharacters(chars) {
 
 // ── Panel de Opciones de personaje ───────────────────────────
 
+// Botones cerrados desde el server: el HTML los marca con data-locked="1"
+// (ver src/config/char_actions.php). Quedan grisados pase lo que pase —
+// ni se les engancha listener ni se rehabilitan al elegir personaje. Así este
+// archivo no necesita saber qué opciones están abiertas: lo decide el PHP.
+function charActionLocked(id) {
+  return document.getElementById(id)?.dataset.locked === '1';
+}
+
 function populateCharSelect(chars) {
   const sel = document.getElementById('char-select');
   if (!sel) return;
 
   const prevSelection = sel.value; // preservar personaje seleccionado
 
-  const actionBtns = ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetchar'];
+  const actionBtns = ['btn-unstick', 'btn-clearpk', 'btn-resetstats', 'btn-resetml', 'btn-resetchar'];
 
   if (!chars.length) {
     sel.innerHTML = '<option value="">Sin personajes</option>';
@@ -141,7 +149,10 @@ function populateCharSelect(chars) {
     sel.value = prevSelection;
   }
 
-  actionBtns.forEach(id => document.getElementById(id)?.toggleAttribute('disabled', false));
+  actionBtns.forEach(id => {
+    if (charActionLocked(id)) return;
+    document.getElementById(id)?.toggleAttribute('disabled', false);
+  });
 
   updateAddStatsPanel();
 }
@@ -151,10 +162,11 @@ function initGameOptions() {
     ['btn-unstick',    'account/unstick.php',    'msg-unstick',    'Unstick'],
     ['btn-clearpk',    'account/clearpk.php',    'msg-clearpk',    'Limpiar PK'],
     ['btn-resetstats', 'account/resetstats.php', 'msg-resetstats', 'Resetear Stats'],
-    // btn-resetml: temporalmente deshabilitado, no se registra listener
+    ['btn-resetml',    'account/resetml.php',    'msg-resetml',    'Resetear Árbol ML'],
     ['btn-resetchar',  'account/resetchar.php',  'msg-resetchar',  'Reset personaje'],
   ];
   actions.forEach(([id, endpoint, msgId, label]) => {
+    if (charActionLocked(id)) return;   // opción cerrada: no se engancha nada
     document.getElementById(id)?.addEventListener('click', () =>
       runCharAction(id.replace('btn-', ''), endpoint, msgId, label)
     );
