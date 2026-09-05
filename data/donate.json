@@ -9,7 +9,7 @@
       "notes": "Transferí al alias el monto exacto de la promo y avisale a un administrador con el comprobante.",
       "action_label": "Ver promos y transferir",
       "transfer_popup": {
-        "alias": "MUPGA.MP",
+        "alias": "mupga.server",
         "promos": [
           { "monto": "$5.000", "wcoins": "6.000 WCoins", "bonus": "+1.000 de regalo" },
           { "monto": "$10.000", "wcoins": "12.000 WCoins", "bonus": "+2.000 de regalo" },
